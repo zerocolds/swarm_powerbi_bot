@@ -134,6 +134,7 @@ class LLMClient:
 
         raw = await self._raw_chat(system, question)
         if not raw:
+            logger.warning("plan_query: LLM returned empty response")
             return None
 
         return self._parse_plan_json(raw)
@@ -225,13 +226,33 @@ class LLMClient:
 
         raw = self._extract_content(data)
         if not raw:
+            logger.warning("plan_aggregates: LLM returned empty content")
             self._cb_failures += 1
+            if self._cb_failures >= self.settings.llm_circuit_breaker_threshold:
+                cooldown = self.settings.llm_circuit_breaker_cooldown
+                self._cb_open_until = time.monotonic() + cooldown
+                logger.warning(
+                    "LLM circuit breaker opened for %ds after %d consecutive failures (empty content)",
+                    cooldown,
+                    self._cb_failures,
+                )
             return None
 
         result = self._parse_multiplan_json(raw)
-        if result is not None:
-            # Успех — сбрасываем счётчик ошибок
-            self._cb_failures = 0
+        if result is None:
+            self._cb_failures += 1
+            if self._cb_failures >= self.settings.llm_circuit_breaker_threshold:
+                cooldown = self.settings.llm_circuit_breaker_cooldown
+                self._cb_open_until = time.monotonic() + cooldown
+                logger.warning(
+                    "LLM circuit breaker opened for %ds after %d consecutive failures (parse error)",
+                    cooldown,
+                    self._cb_failures,
+                )
+            return None
+
+        # Успех — сбрасываем счётчик ошибок
+        self._cb_failures = 0
         return result
 
     def _parse_multiplan_json(self, raw: str) -> dict[str, Any] | None:
@@ -254,12 +275,12 @@ class LLMClient:
 
     def _parse_plan_json(self, raw: str) -> dict[str, Any] | None:
         """Извлекает JSON из ответа LLM (может быть обёрнут в markdown)."""
-        m = _JSON_RE.search(raw)
-        if not m:
+        json_str = _extract_json(raw)
+        if not json_str:
             logger.warning("LLM planner returned no JSON: %s", raw[:200])
             return None
         try:
-            data = json.loads(m.group(0))
+            data = json.loads(json_str)
         except json.JSONDecodeError:
             logger.warning("LLM planner returned invalid JSON: %s", raw[:200])
             return None

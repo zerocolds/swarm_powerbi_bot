@@ -20,6 +20,7 @@ try:
     import pyodbc  # type: ignore
 except Exception:  # pragma: no cover
     pyodbc = None
+    logger.warning("pyodbc not available — SQL queries will be disabled")
 
 
 # ── Извлечение дат из русского текста ────────────────────────
@@ -180,6 +181,7 @@ class SQLClient:
         """
         conn_str = self.settings.sql_connection_string()
         if not conn_str or pyodbc is None:
+            logger.warning("execute_query: no connection string or pyodbc unavailable")
             return []
 
         def _sync() -> list[dict[str, Any]]:
@@ -301,6 +303,10 @@ class SQLClient:
 
         conn_str = self.settings.sql_connection_string()
         if not conn_str or pyodbc is None:
+            logger.warning(
+                "_execute_aggregate_sync: no connection string or pyodbc unavailable for %s",
+                aggregate_id,
+            )
             return [], aggregate_id, {"DateFrom": d_from, "DateTo": d_to}
 
         obj_id = params.get("object_id")
@@ -403,6 +409,10 @@ class SQLClient:
 
         conn_str = self.settings.sql_connection_string()
         if not conn_str or pyodbc is None:
+            logger.warning(
+                "_fetch_with_query_params: no connection string or pyodbc unavailable for %s",
+                procedure,
+            )
             return [], topic_id, {"DateFrom": d_from, "DateTo": d_to}
 
         # ObjectId: из QueryParams, или дефолтный
@@ -509,6 +519,10 @@ class SQLClient:
 
         conn_str = self.settings.sql_connection_string()
         if not conn_str or pyodbc is None:
+            logger.warning(
+                "_fetch_rows_sync: no connection string or pyodbc unavailable for %s",
+                topic_id,
+            )
             return [], topic_id, date_params
 
         # Извлекаем ObjectId и MasterId из вопроса (или используем переданный/дефолтный)

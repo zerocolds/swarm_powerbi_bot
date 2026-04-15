@@ -166,14 +166,23 @@ class SwarmOrchestrator:
             except Exception as exc:
                 diagnostics["render_error"] = str(exc)
 
-        analysis = await self.analyst_agent.run(
-            question=question,
-            plan=plan,
-            sql_insight=sql_insight,
-            model_insight=pbi_insight,
-            diagnostics=diagnostics,
-            has_chart=has_chart,
-        )
+        # Если есть multi_results — используем run_multi для синтеза нескольких агрегатов,
+        # иначе — legacy run() с одним SQL-результатом
+        if multi_results and multi_plan:
+            analysis = await self.analyst_agent.run_multi(
+                question=question.text,
+                results=multi_results,
+                plan=multi_plan,
+            )
+        else:
+            analysis = await self.analyst_agent.run(
+                question=question,
+                plan=plan,
+                sql_insight=sql_insight,
+                model_insight=pbi_insight,
+                diagnostics=diagnostics,
+                has_chart=has_chart,
+            )
 
         merged_diagnostics = dict(diagnostics)
         merged_diagnostics.update(analysis.diagnostics)
@@ -204,5 +213,6 @@ class SwarmOrchestrator:
         try:
             return await self.powerbi_agent.run(question, plan)
         except Exception as exc:
+            logger.error("[PBI] ERROR: %s", exc)
             diagnostics["powerbi_model_error"] = str(exc)
             return ModelInsight(metrics={}, summary="Power BI model step failed")
