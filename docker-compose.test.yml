@@ -1,0 +1,54 @@
+# Docker Compose для интеграционного тестирования
+# Запуск: docker compose -f docker-compose.test.yml up -d
+# Smoke test: docker compose -f docker-compose.test.yml exec bot python scripts/smoke_test.py
+# Integration: docker compose -f docker-compose.test.yml exec bot pytest tests/integration/ -m integration -v
+# Остановка: docker compose -f docker-compose.test.yml down
+
+version: "3.9"
+services:
+  bot:
+    build: .
+    container_name: swarm-test-bot
+    env_file: ../.env
+    environment:
+      USE_DOTENV: "0"
+      SELENIUM_HUB_URL: http://selenium:4444/wd/hub
+      OLLAMA_BASE_URL: http://ollama:11434
+      OLLAMA_MODEL: ${OLLAMA_MODEL:-deepseek-v3.2:cloud}
+      DEFAULT_OBJECT_ID: ${DEFAULT_OBJECT_ID:-506770}
+      AGGREGATE_CATALOG_PATH: catalogs/aggregate-catalog.yaml
+      SEMANTIC_CATALOG_PATH: catalogs/semantic-catalog.yaml
+      DEBUG: "1"
+    depends_on:
+      selenium:
+        condition: service_healthy
+      ollama:
+        condition: service_healthy
+
+  selenium:
+    image: selenium/standalone-chrome:124.0
+    container_name: swarm-test-selenium
+    shm_size: 2gb
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:4444/wd/hub/status"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+
+  ollama:
+    image: ollama/ollama:latest
+    container_name: swarm-test-ollama
+    ports:
+      - "11434:11434"
+    volumes:
+      - ollama_data:/root/.ollama
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:11434/api/tags"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+
+volumes:
+  ollama_data:

@@ -1,0 +1,38 @@
+version: "3.9"
+services:
+  bot:
+    build: .
+    container_name: swarm-powerbi-bot
+    environment:
+      TG_TOKEN: ${TG_TOKEN}
+      TZ: ${TZ:-Europe/Moscow}
+      USE_DOTENV: ${USE_DOTENV:-0}
+      REPORT_BASE_URL: ${REPORT_BASE_URL}
+      PBI_HOST: ${PBI_HOST:-}
+      PBI_USER: ${PBI_USER:-}
+      PBI_PASS: ${PBI_PASS:-}
+      DEFAULT_REPORT_ID: ${DEFAULT_REPORT_ID:-sales/kpi}
+      SELENIUM_HUB_URL: ${SELENIUM_HUB_URL:-http://selenium:4444/wd/hub}
+      RENDER_WAIT_SECONDS: ${RENDER_WAIT_SECONDS:-8}
+      RENDER_TARGET_XPATH: ${RENDER_TARGET_XPATH:-}
+      MSSQL_DSN: ${MSSQL_DSN:-}
+      MSSQL_SERVER: ${MSSQL_SERVER:-}
+      MSSQL_PORT: ${MSSQL_PORT:-1433}
+      MSSQL_DB: ${MSSQL_DB:-}
+      MSSQL_USER: ${MSSQL_USER:-}
+      MSSQL_PWD: ${MSSQL_PWD:-}
+      MSSQL_DRIVER: ${MSSQL_DRIVER:-ODBC Driver 17 for SQL Server}
+      POWERBI_MODEL_QUERY_URL: ${POWERBI_MODEL_QUERY_URL:-}
+      POWERBI_MODEL_QUERY_TOKEN: ${POWERBI_MODEL_QUERY_TOKEN:-}
+      OLLAMA_API_KEY: ${OLLAMA_API_KEY:-}
+      OLLAMA_MODEL: ${OLLAMA_MODEL:-glm-5:cloud}
+      OLLAMA_BASE_URL: ${OLLAMA_BASE_URL:-https://ollama.com/api}
+      WHISPER_BASE_URL: ${WHISPER_BASE_URL:-}
+      WHISPER_MODEL: ${WHISPER_MODEL:-whisper-large:cloud}
+    depends_on:
+      - selenium
+
+  selenium:
+    image: selenium/standalone-chrome:124.0
+    container_name: swarm-powerbi-selenium
+    shm_size: 2gb
