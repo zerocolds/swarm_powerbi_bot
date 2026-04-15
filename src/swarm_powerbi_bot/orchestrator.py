@@ -99,7 +99,9 @@ class SwarmOrchestrator:
                 logger.error("[MULTI_SQL] ERROR: %s", exc)
                 diagnostics["multi_sql_error"] = str(exc)
         elif multi_plan and multi_plan.queries:
-            # Нет registry — логируем только первый агрегат для диагностики
+            # Degradation: LLM спланировал запросы, но registry не инициализирован
+            # (нет каталога агрегатов) — запросы не могут быть валидированы и выполнены.
+            # Логируем для диагностики, fallback на legacy plan.
             first_query = multi_plan.queries[0]
             diagnostics["multi_plan_aggregate"] = first_query.aggregate_id
             diagnostics["multi_plan_intent"] = multi_plan.intent

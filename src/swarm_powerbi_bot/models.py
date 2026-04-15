@@ -81,12 +81,20 @@ class AnalysisResult:
 # --- Semantic Aggregate Layer models ---
 
 
+class AggregateParams(dict[str, Any]):
+    """Типизированные параметры агрегатного запроса.
+
+    Известные ключи: object_id (int), date_from/date_to (str YYYY-MM-DD),
+    group_by (str), filter (str), top_n (int), master_id (int | None).
+    """
+
+
 @dataclass
 class AggregateQuery:
     """Один запрос к агрегату из каталога (whitelist)."""
 
     aggregate_id: str
-    params: dict[str, Any] = field(default_factory=dict)
+    params: AggregateParams = field(default_factory=AggregateParams)
     label: str = ""
 
 
@@ -116,13 +124,17 @@ class AggregateResult:
     status: Literal["ok", "error", "timeout"] = "ok"
     error: str | None = None
 
+    def __post_init__(self) -> None:
+        if self.row_count == 0 and self.rows:
+            self.row_count = len(self.rows)
+
 
 @dataclass
 class ComparisonResult:
     """Результат сравнения двух наборов данных."""
 
-    period_a: str = ""
-    period_b: str = ""
+    period_a: str
+    period_b: str
     results_a: AggregateResult = field(default_factory=AggregateResult)
     results_b: AggregateResult = field(default_factory=AggregateResult)
     deltas: dict[str, float] = field(default_factory=dict)
