@@ -185,6 +185,8 @@
 - [x] T043 Прогон всех 77 существующих тестов — backward compatibility (SC-001). Проверка ruff check + ruff format
 - [x] T044 Прогон quickstart.md: полный цикл pytest -q, docker build
 
+- [ ] T045 [P] Настроить Gemini CLI auth (GOOGLE_CLOUD_PROJECT env var) для adversarial review. Выполнить отложенный Gemini review при первом следующем PR
+
 **Checkpoint**: Все задачи завершены, проект готов к review
 
 ---
