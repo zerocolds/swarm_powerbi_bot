@@ -1,9 +1,12 @@
 from __future__ import annotations
 
+import logging
 import os
 from dataclasses import dataclass, field
 from pathlib import Path
 from urllib.parse import quote
+
+logger = logging.getLogger(__name__)
 
 
 def _as_int(name: str, default: int) -> int:
@@ -13,6 +16,7 @@ def _as_int(name: str, default: int) -> int:
     try:
         return int(raw)
     except ValueError:
+        logger.warning("Invalid integer for %s=%r, using default %d", name, raw, default)
         return default
 
 

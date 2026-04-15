@@ -299,12 +299,16 @@ class SQLClient:
 
         d_from_raw = params.get("date_from")
         d_to_raw = params.get("date_to")
-        d_from = (
-            date.fromisoformat(d_from_raw)
-            if d_from_raw
-            else date.today() - timedelta(days=30)
-        )
-        d_to = date.fromisoformat(d_to_raw) if d_to_raw else date.today()
+        try:
+            d_from = date.fromisoformat(d_from_raw) if d_from_raw else date.today() - timedelta(days=30)
+        except (ValueError, TypeError):
+            logger.warning("Invalid date_from %r for %s, using default", d_from_raw, aggregate_id)
+            d_from = date.today() - timedelta(days=30)
+        try:
+            d_to = date.fromisoformat(d_to_raw) if d_to_raw else date.today()
+        except (ValueError, TypeError):
+            logger.warning("Invalid date_to %r for %s, using default", d_to_raw, aggregate_id)
+            d_to = date.today()
 
         conn_str = self.settings.sql_connection_string()
         if not conn_str or pyodbc is None:
@@ -404,13 +408,17 @@ class SQLClient:
             procedure = f"dbo.{procedure}"
         topic_id = procedure.replace("dbo.spKDO_", "").lower()
 
-        # Парсим даты
-        d_from = (
-            date.fromisoformat(qp.date_from)
-            if qp.date_from
-            else date.today() - timedelta(days=30)
-        )
-        d_to = date.fromisoformat(qp.date_to) if qp.date_to else date.today()
+        # Парсим даты (LLM может вернуть невалидную строку)
+        try:
+            d_from = date.fromisoformat(qp.date_from) if qp.date_from else date.today() - timedelta(days=30)
+        except (ValueError, TypeError):
+            logger.warning("Invalid date_from %r, using default", qp.date_from)
+            d_from = date.today() - timedelta(days=30)
+        try:
+            d_to = date.fromisoformat(qp.date_to) if qp.date_to else date.today()
+        except (ValueError, TypeError):
+            logger.warning("Invalid date_to %r, using default", qp.date_to)
+            d_to = date.today()
 
         conn_str = self.settings.sql_connection_string()
         if not conn_str or pyodbc is None:
