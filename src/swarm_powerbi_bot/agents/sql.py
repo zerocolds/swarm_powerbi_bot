@@ -39,18 +39,28 @@ class SQLAgent(Agent):
                 question.text, topic=plan.topic, object_id=question.object_id,
             )
 
+        effective_topic = topic_id or plan.topic
+        status = "ok" if rows else "empty"
+        logger.info(
+            "sql.run user=%s topic=%s rows=%d status=%s",
+            question.user_id,
+            effective_topic,
+            len(rows),
+            status,
+        )
+
         if not rows:
             return SQLInsight(
                 rows=[],
                 summary="SQL вернул 0 строк или соединение не настроено",
-                topic=topic_id or plan.topic,
+                topic=effective_topic,
                 params=params,
             )
 
         return SQLInsight(
             rows=rows,
-            summary=f"SQL вернул {len(rows)} строк(и) по теме «{topic_id or plan.topic}»",
-            topic=topic_id or plan.topic,
+            summary=f"SQL вернул {len(rows)} строк(и) по теме «{effective_topic}»",
+            topic=effective_topic,
             params=params,
         )
 
@@ -60,6 +70,7 @@ class SQLAgent(Agent):
         registry: "AggregateRegistry",
         sql_client: SQLClient | None = None,
         logger_: "QueryLogger | None" = None,
+        user_id: str = "system",
     ) -> list[AggregateResult]:
         """T029/T032: Выполняет несколько агрегатных запросов параллельно.
 
@@ -121,7 +132,7 @@ class SQLAgent(Agent):
                 if logger_ is not None:
                     try:
                         logger_.log(
-                            user_id="system",
+                            user_id=user_id,
                             aggregate_id=result.aggregate_id,
                             params=query.params,
                             duration_ms=result.duration_ms,

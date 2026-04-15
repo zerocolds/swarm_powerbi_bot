@@ -73,4 +73,5 @@ def test_planner_fallback_topic():
 
     plan = asyncio.run(planner.run(q))
 
-    assert plan.topic == "statistics"
+    # score=0 → topic_registry возвращает "unknown" вместо дефолтной "statistics"
+    assert plan.topic == "unknown"

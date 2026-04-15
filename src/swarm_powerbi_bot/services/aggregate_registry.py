@@ -80,6 +80,16 @@ def _validate_entry_params(
     """Общая валидация параметров для записи каталога."""
     allowed_group_by: list[str] = entry.get("allowed_group_by", [])
 
+    # Проверяем наличие обязательных параметров из каталога
+    catalog_params: list[dict] = entry.get("parameters", [])
+    for catalog_param in catalog_params:
+        if catalog_param.get("required", False):
+            param_name = catalog_param.get("name", "")
+            if param_name and param_name not in params:
+                return False, (
+                    f"required param {param_name!r} missing for aggregate {aggregate_id!r}"
+                )
+
     for key, value in params.items():
         if key in ("date_from", "date_to"):
             if not _is_date(value):
@@ -115,9 +125,9 @@ def _validate_entry_params(
                     f"reason {value!r} not in allowed set {sorted(_REASON_VALUES)}"
                 )
 
-        elif key == "top_n":
+        elif key in ("top_n", "top"):
             if not isinstance(value, int) or not (1 <= value <= 50):
-                return False, f"top_n must be int in [1, 50], got {value!r}"
+                return False, f"{key} must be int in [1, 50], got {value!r}"
 
     return True, ""
 

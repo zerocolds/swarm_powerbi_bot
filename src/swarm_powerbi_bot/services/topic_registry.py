@@ -169,6 +169,10 @@ def detect_topic(question: str, last_topic: str = "") -> str:
             if not has_real_topic:
                 return last_topic
 
+    # Тема не определена и нет контекста разговора — не выполняем SQL
+    if best_score == 0:
+        return "unknown"
+
     return best_id
 
 

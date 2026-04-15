@@ -205,9 +205,10 @@ class SwarmOrchestrator:
             except Exception as exc:
                 diagnostics["render_error"] = str(exc)
 
-        # Если есть multi_results — используем run_multi для синтеза нескольких агрегатов,
-        # иначе — legacy run() с одним SQL-результатом
-        if multi_results and multi_plan:
+        # Если есть УСПЕШНЫЕ multi_results — используем run_multi для синтеза нескольких агрегатов,
+        # иначе — legacy run() с одним SQL-результатом.
+        # has_multi_ok уже вычислен выше; если все multi-queries failed, используем legacy analyst.
+        if multi_results and multi_plan and has_multi_ok:
             analysis = await self.analyst_agent.run_multi(
                 question=question.text,
                 results=multi_results,

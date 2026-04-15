@@ -358,8 +358,14 @@ class AnalystAgent(Agent):
         # Сортируем по модулю относительного изменения (убывание)
         factors_sorted = sorted(factors, key=lambda f: abs(f["rel_change"]), reverse=True)
 
-        # Основная метрика — первый фактор (предположительно целевой показатель)
-        main_factor = factors_sorted[0]
+        # Основная метрика: если topic совпадает с label фактора — используем его.
+        # Иначе — фактор с наибольшим абсолютным изменением (первый в отсортированном списке).
+        topic_lower = plan.topic.lower()
+        target_factor = next(
+            (f for f in factors if topic_lower in f["label"].lower()),
+            None,
+        )
+        main_factor = target_factor if target_factor is not None else factors_sorted[0]
         main_pct = main_factor["rel_change"]
         main_label = main_factor["label"]
         direction = "упал" if main_pct < 0 else "вырос"
@@ -368,8 +374,9 @@ class AnalystAgent(Agent):
             f"{main_label} {direction} на {abs(main_pct):.1f}%."
         ]
 
-        # Дополнительные факторы (до 2-х, итого max 3 с основным)
-        secondary = [f for f in factors_sorted[1:] if f["label"] != main_label][:2]
+        # Дополнительные факторы (до 2-х, итого max 3 с основным).
+        # Исключаем main_factor из полного списка, т.к. он может быть не в factors_sorted[0].
+        secondary = [f for f in factors_sorted if f["label"] != main_label][:2]
         if secondary:
             cause_label = secondary[0]["label"]
             cause_pct = secondary[0]["rel_change"]

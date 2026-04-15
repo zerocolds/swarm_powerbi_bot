@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# adversarial-review.sh — кросс-модельное adversarial ревью через Gemini и Codex
+# adversarial-review.sh — кросс-модельное adversarial ревью через DeepSeek и Codex
 # Вызывается из SDD-пайплайна ПОСЛЕ speckit-ревью, ПЕРЕД мержем.
 #
 # Использование:
@@ -8,12 +8,15 @@
 # Выход:
 #   0 — оба ревьюера PASS, мерж разрешён
 #   1 — хотя бы один FAIL, замечания в .maqa/adversarial-findings.md
-#   2 — ошибка окружения (нет gemini/codex, не на feature-ветке, и т.д.)
+#   2 — ошибка окружения (нет ollama/codex, не на feature-ветке, и т.д.)
 
 set -euo pipefail
 
 # ── Конфигурация ─────────────────────────────────────────────────────────────
-REPO_ROOT="$(git rev-parse --show-toplevel)"
+# Используем dirname скрипта для определения корня проекта (swarm_powerbi_bot),
+# т.к. git rev-parse --show-toplevel возвращает родительский репозиторий.
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+REPO_ROOT="$(cd "${SCRIPT_DIR}/../.." && pwd)"
 FINDINGS_DIR="${REPO_ROOT}/.maqa"
 FINDINGS_FILE="${FINDINGS_DIR}/adversarial-findings.md"
 ROUND=1
@@ -33,7 +36,7 @@ check_tool() {
   fi
 }
 
-check_tool gemini
+check_tool ollama
 check_tool codex
 
 CURRENT_BRANCH="$(git branch --show-current)"
@@ -66,7 +69,7 @@ fi
 mkdir -p "$FINDINGS_DIR"
 
 # ── Промпты ──────────────────────────────────────────────────────────────────
-GEMINI_PROMPT="Ты adversarial ревьюер. Твоя задача — найти баги, edge cases, нарушения спецификации, проблемы безопасности и логические ошибки.
+DEEPSEEK_PROMPT="Ты adversarial ревьюер. Твоя задача — найти баги, edge cases, нарушения спецификации, проблемы безопасности и логические ошибки.
 
 Правила ответа:
 - Первая строка: PASS или FAIL
@@ -92,23 +95,37 @@ Spec: see .specify/specs/*/spec.md
 Changes: git diff main...HEAD"
 
 # ── Запуск ревьюеров параллельно ─────────────────────────────────────────────
-GEMINI_OUT="${FINDINGS_DIR}/.gemini-result.txt"
+DEEPSEEK_OUT="${FINDINGS_DIR}/.deepseek-result.txt"
 CODEX_OUT="${FINDINGS_DIR}/.codex-result.txt"
 
-echo "🔍 Раунд ${ROUND}: запуск Gemini и Codex параллельно..."
+echo "🔍 Раунд ${ROUND}: запуск DeepSeek V3.2 и Codex параллельно..."
 
-# Gemini — получает контекст через stdin
-echo "$GEMINI_PROMPT" | gemini > "$GEMINI_OUT" 2>/dev/null &
-GEMINI_PID=$!
+# DeepSeek V3.2 — через Ollama REST API (chat endpoint, think=false)
+# CLI pipe не работает: ANSI escape-коды + thinking mode → пустой response
+python3 -c "
+import json, sys, urllib.request
+payload = json.dumps({
+    'model': 'deepseek-v3.2:cloud',
+    'messages': [{'role': 'user', 'content': sys.stdin.read()}],
+    'stream': False,
+    'think': False,
+    'options': {'num_predict': 4096}
+}).encode()
+req = urllib.request.Request('http://localhost:11434/api/chat', data=payload,
+                             headers={'Content-Type': 'application/json'})
+resp = json.loads(urllib.request.urlopen(req, timeout=300).read())
+print(resp.get('message', {}).get('content', ''))
+" <<< "$DEEPSEEK_PROMPT" > "$DEEPSEEK_OUT" 2>/dev/null &
+DEEPSEEK_PID=$!
 
-# Codex — получает инструкцию как аргумент, читает файлы сам
-codex --approval-mode suggest --quiet "$CODEX_PROMPT" > "$CODEX_OUT" 2>/dev/null &
+# Codex — review mode анализирует diff от main автоматически
+codex exec "$CODEX_PROMPT" > "$CODEX_OUT" 2>&1 &
 CODEX_PID=$!
 
 # Ждём завершения обоих
-GEMINI_EXIT=0
+DEEPSEEK_EXIT=0
 CODEX_EXIT=0
-wait "$GEMINI_PID" || GEMINI_EXIT=$?
+wait "$DEEPSEEK_PID" || DEEPSEEK_EXIT=$?
 wait "$CODEX_PID" || CODEX_EXIT=$?
 
 # ── Парсинг результатов ──────────────────────────────────────────────────────
@@ -132,16 +149,16 @@ parse_verdict() {
   fi
 }
 
-GEMINI_VERDICT="$(parse_verdict "$GEMINI_OUT" "Gemini")"
+DEEPSEEK_VERDICT="$(parse_verdict "$DEEPSEEK_OUT" "DeepSeek")"
 CODEX_VERDICT="$(parse_verdict "$CODEX_OUT" "Codex")"
 
 echo ""
 echo "Результаты раунда ${ROUND}:"
-echo "  Gemini: ${GEMINI_VERDICT}"
-echo "  Codex:  ${CODEX_VERDICT}"
+echo "  DeepSeek: ${DEEPSEEK_VERDICT}"
+echo "  Codex:    ${CODEX_VERDICT}"
 
 # ── Формируем отчёт ──────────────────────────────────────────────────────────
-if [[ "$GEMINI_VERDICT" == "PASS" && "$CODEX_VERDICT" == "PASS" ]]; then
+if [[ "$DEEPSEEK_VERDICT" == "PASS" && "$CODEX_VERDICT" == "PASS" ]]; then
   echo ""
   echo "✅ MERGE ALLOWED — оба ревьюера дали PASS"
 
@@ -153,8 +170,8 @@ if [[ "$GEMINI_VERDICT" == "PASS" && "$CODEX_VERDICT" == "PASS" ]]; then
 **Дата**: $(date -u +"%Y-%m-%dT%H:%M:%SZ")
 **Ветка**: ${CURRENT_BRANCH}
 
-Gemini: ✅ PASS
-Codex:  ✅ PASS
+DeepSeek V3.2: ✅ PASS
+Codex:         ✅ PASS
 
 Мерж разрешён.
 EOF
@@ -173,15 +190,15 @@ else
     echo "**Ветка**: ${CURRENT_BRANCH}"
     echo ""
 
-    if [[ "$GEMINI_VERDICT" != "PASS" ]]; then
-      echo "## Gemini — ${GEMINI_VERDICT}"
+    if [[ "$DEEPSEEK_VERDICT" != "PASS" ]]; then
+      echo "## DeepSeek V3.2 — ${DEEPSEEK_VERDICT}"
       echo ""
       echo '```'
-      cat "$GEMINI_OUT"
+      cat "$DEEPSEEK_OUT"
       echo '```'
       echo ""
     else
-      echo "## Gemini — ✅ PASS"
+      echo "## DeepSeek V3.2 — ✅ PASS"
       echo ""
     fi
 
@@ -205,7 +222,7 @@ else
   } > "$FINDINGS_FILE"
 
   # Чистим временные файлы
-  rm -f "$GEMINI_OUT" "$CODEX_OUT"
+  rm -f "$DEEPSEEK_OUT" "$CODEX_OUT"
 
   exit 1
 fi

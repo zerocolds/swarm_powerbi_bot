@@ -41,7 +41,7 @@ pytest + pytest-asyncio — единственный тестовый фрейм
 - Команда: `/speckit.adversarial-review` (`.claude/commands/speckit.adversarial-review.md`)
 - Замечания: `.maqa/adversarial-findings.md`
 
-**Участники**: Gemini CLI и Codex CLI — запускаются параллельно, изолированно друг от друга.
+**Участники**: DeepSeek V3.2 (Ollama cloud) и Codex CLI — запускаются параллельно, изолированно друг от друга.
 Каждый получает: спецификацию из `.specify/specs/*/spec.md` + diff `main...HEAD`.
 Каждый возвращает вердикт: **PASS** или **FAIL** + список замечаний с severity.
 
@@ -54,12 +54,10 @@ pytest + pytest-asyncio — единственный тестовый фрейм
 
 **Протокол при PASS**: PASS от обоих ревьюеров → мерж разрешён.
 
-**Исключение (2026-04-15, feature/001)**: Gemini review отложен — требуется настройка GOOGLE_CLOUD_PROJECT env var для workspace OAuth. Codex (GPT-5.4) дал PASS после 2 раундов (5 fixes). Adversarial diversity соблюдена: GPT ревьюил код Claude. Gemini будет выполнен при первом следующем PR.
-
 ### VI. Adversarial Diversity (NON-NEGOTIABLE)
 Качество кода обеспечивается разнообразием ревьюеров — ни один провайдер не ревьюирует только свой код.
 - Claude (Opus) пишет и проводит внутреннее QA через MAQA.
-- Gemini и Codex проводят независимое adversarial-ревью.
+- DeepSeek V3.2 (Ollama cloud) и Codex (GPT) проводят независимое adversarial-ревью.
 - Каждый ревьюер работает без доступа к замечаниям другого (параллельно, изолированно).
 - Совпадение замечаний от разных провайдеров повышает приоритет исправления.
 
@@ -103,7 +101,7 @@ SQL-инъекции предотвращаются whitelist-валидацие
 - **Линтинг**: ruff
 - **Пакеты**: uv (не pip)
 - **CI/CD**: GitHub Actions → Docker → GHCR
-- **AI-агенты**: Claude (Haiku/Sonnet/Opus), Gemini CLI, Codex CLI
+- **AI-агенты**: Claude (Haiku/Sonnet/Opus), DeepSeek V3.2 (Ollama cloud), Codex CLI
 - **Язык комментариев/коммитов**: русский
 
 ## Процесс разработки
@@ -120,7 +118,7 @@ SQL-инъекции предотвращаются whitelist-валидацие
  8. staff-review     Архитектурное ревью (5 проходов)
  9. verify           Верификация требований и сценариев
 10. verify-tasks     Проверка выполнения задач
-11. adversarial      Gemini ∥ Codex (≤3 раундов → эскалация)
+11. adversarial      DeepSeek ∥ Codex (≤3 раундов → эскалация)
 12. merge            PR и мерж в main
 ```
 
@@ -134,7 +132,7 @@ SQL-инъекции предотвращаются whitelist-валидацие
 | 5 | Верификация | `verify` + `verify-tasks` | Мерж | Исправление → повтор |
 | 6 | Тесты | `pytest -q` (≥60%) | Мерж | Исправление → повтор |
 | 7 | Линтинг | `ruff check && ruff format --check` | Мерж | Автоформат → повтор |
-| 8 | Adversarial | Gemini CLI ∥ Codex CLI | Мерж | До 3 раундов → эскалация |
+| 8 | Adversarial | DeepSeek V3.2 ∥ Codex CLI | Мерж | До 3 раундов → эскалация |
 | 9 | Проверка секретов | `.env` не в коммите | Мерж | Блокер, ручная очистка |
 | 10 | Docker build | `docker build` | Деплой | Исправление → повтор |
 
@@ -142,9 +140,9 @@ SQL-инъекции предотвращаются whitelist-валидацие
 ```
 speckit-ревью PASSED
   │
-  ├──► Gemini CLI (параллельно) ──► PASS / FAIL + замечания
-  │                                    │
-  └──► Codex CLI  (параллельно) ──► PASS / FAIL + замечания
+  ├──► DeepSeek V3.2 (параллельно) ──► PASS / FAIL + замечания
+  │                                       │
+  └──► Codex CLI     (параллельно) ──► PASS / FAIL + замечания
                                        │
                     ┌──────────────────┘
                     ▼
@@ -188,4 +186,4 @@ speckit-ревью PASSED
 Все агенты и ревьюеры обязаны проверять соответствие конституции.
 Нарушение NON-NEGOTIABLE принципов является блокером для любого PR.
 
-**Version**: 1.2.0 | **Ratified**: 2026-04-15 | **Last Amended**: 2026-04-15
+**Version**: 1.3.0 | **Ratified**: 2026-04-15 | **Last Amended**: 2026-04-15

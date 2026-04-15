@@ -76,9 +76,10 @@ class TestNoContext:
         topic = detect_topic("сравни по неделям")
         assert topic == "trend"
 
-    def test_gibberish_goes_statistics(self):
+    def test_gibberish_returns_unknown(self):
+        # score=0, нет контекста — возвращаем sentinel "unknown" вместо дефолта
         topic = detect_topic("привет как дела")
-        assert topic == "statistics"
+        assert topic == "unknown"
 
     def test_clear_topic_without_context(self):
         topic = detect_topic("отток за месяц")
@@ -100,8 +101,10 @@ class TestEdgeCases:
         assert topic == "outflow"
 
     def test_invalid_last_topic_ignored(self):
+        # invalid last_topic не попадает в _TOPICS_BY_ID, поэтому контекст не используется.
+        # score=0 → возвращаем "unknown"
         topic = detect_topic("привет", last_topic="nonexistent_topic")
-        assert topic == "statistics"
+        assert topic == "unknown"
 
     def test_trend_with_explicit_revenue_switches(self):
         """'тренд выручки' — явно про тренд, не follow-up."""

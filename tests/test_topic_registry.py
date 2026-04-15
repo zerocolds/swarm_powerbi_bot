@@ -75,8 +75,9 @@ def test_detect_training():
     assert detect_topic("Какие обучения прошли мастера?") == "training"
 
 
-def test_detect_fallback_to_statistics():
-    assert detect_topic("Привет, как дела?") == "statistics"
+def test_detect_no_match_returns_unknown():
+    # score=0, нет контекста — возвращаем sentinel "unknown" для защиты от выполнения SQL
+    assert detect_topic("Привет, как дела?") == "unknown"
 
 
 def test_get_topic_exists():

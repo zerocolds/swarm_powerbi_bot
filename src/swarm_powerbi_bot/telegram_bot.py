@@ -163,7 +163,10 @@ class TelegramSwarmBot:
         # Убираем кнопки, показываем что выбрал пользователь
         await query.edit_message_text(f"📊 {pending} — *{period_text}*", parse_mode="Markdown")
 
-        # Выполняем запрос
+        # Выполняем запрос — используем query.message для отправки ответа,
+        # но user_id берём из callback_query.from_user (пользователь, не бот)
+        if query.from_user:
+            context.user_data["_callback_user_id"] = str(query.from_user.id)
         await self._process_question(query.message, full_question, context=context)
 
         # Очищаем pending
@@ -194,7 +197,13 @@ class TelegramSwarmBot:
         await message.chat.send_action(action=ChatAction.TYPING)
 
         user_id = "unknown"
-        if hasattr(message, "from_user") and message.from_user:
+        # Для callback-запросов (period_callback) user_id сохранён из callback_query.from_user,
+        # т.к. query.message.from_user — это бот, а не пользователь.
+        user_data_raw = context.user_data if context else {}
+        callback_uid = (user_data_raw or {}).pop("_callback_user_id", None)
+        if callback_uid:
+            user_id = callback_uid
+        elif hasattr(message, "from_user") and message.from_user:
             user_id = str(message.from_user.id)
         elif hasattr(message, "chat") and message.chat:
             user_id = str(message.chat.id)

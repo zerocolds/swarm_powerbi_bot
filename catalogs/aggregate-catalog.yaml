@@ -239,6 +239,7 @@ aggregates:
       - name: filter
         type: string
         required: false
+        allowed_values: [all, birthday, forecast, leaving, noshow, outflow, quality]
         default: outflow
       - name: group_by
         type: string
@@ -276,6 +277,7 @@ aggregates:
       - name: filter
         type: string
         required: false
+        allowed_values: [all, birthday, forecast, leaving, noshow, outflow, quality]
         default: leaving
       - name: group_by
         type: string
@@ -313,6 +315,7 @@ aggregates:
       - name: filter
         type: string
         required: false
+        allowed_values: [all, birthday, forecast, leaving, noshow, outflow, quality]
         default: forecast
       - name: group_by
         type: string
@@ -350,6 +353,7 @@ aggregates:
       - name: filter
         type: string
         required: false
+        allowed_values: [all, birthday, forecast, leaving, noshow, outflow, quality]
         default: noshow
       - name: group_by
         type: string
@@ -387,6 +391,7 @@ aggregates:
       - name: filter
         type: string
         required: false
+        allowed_values: [all, birthday, forecast, leaving, noshow, outflow, quality]
         default: quality
       - name: group_by
         type: string
@@ -412,10 +417,12 @@ aggregates:
       - name: date_from
         type: date
         required: false
+        default: "today"
         description: "Начало диапазона дат рождения (по умолчанию сегодня)"
       - name: date_to
         type: date
         required: false
+        default: "today+7d"
         description: "Конец диапазона дат рождения (по умолчанию +7 дней)"
       - name: object_id
         type: int
@@ -423,6 +430,7 @@ aggregates:
       - name: filter
         type: string
         required: false
+        allowed_values: [all, birthday, forecast, leaving, noshow, outflow, quality]
         default: birthday
       - name: top
         type: int
@@ -456,6 +464,7 @@ aggregates:
       - name: filter
         type: string
         required: false
+        allowed_values: [all, birthday, forecast, leaving, noshow, outflow, quality]
         default: all
       - name: group_by
         type: string
@@ -495,6 +504,7 @@ aggregates:
       - name: reason
         type: string
         required: false
+        allowed_values: [all, birthday, forecast, leaving, noshow, opz, outflow, quality, waitlist]
         default: all
       - name: group_by
         type: string
@@ -529,6 +539,7 @@ aggregates:
       - name: reason
         type: string
         required: false
+        allowed_values: [all, birthday, forecast, leaving, noshow, opz, outflow, quality, waitlist]
         default: all
       - name: group_by
         type: string
@@ -563,6 +574,7 @@ aggregates:
       - name: reason
         type: string
         required: false
+        allowed_values: [all, birthday, forecast, leaving, noshow, opz, outflow, quality, waitlist]
         default: all
       - name: group_by
         type: string
@@ -597,6 +609,7 @@ aggregates:
       - name: reason
         type: string
         required: false
+        allowed_values: [all, birthday, forecast, leaving, noshow, opz, outflow, quality, waitlist]
         default: all
       - name: group_by
         type: string
@@ -630,6 +643,7 @@ aggregates:
       - name: reason
         type: string
         required: false
+        allowed_values: [all, birthday, forecast, leaving, noshow, opz, outflow, quality, waitlist]
         default: outflow
       - name: group_by
         type: string
@@ -664,6 +678,7 @@ aggregates:
       - name: reason
         type: string
         required: false
+        allowed_values: [all, birthday, forecast, leaving, noshow, opz, outflow, quality, waitlist]
         default: leaving
       - name: group_by
         type: string
@@ -697,6 +712,7 @@ aggregates:
       - name: reason
         type: string
         required: false
+        allowed_values: [all, birthday, forecast, leaving, noshow, opz, outflow, quality, waitlist]
         default: forecast
       - name: group_by
         type: string
@@ -730,6 +746,7 @@ aggregates:
       - name: reason
         type: string
         required: false
+        allowed_values: [all, birthday, forecast, leaving, noshow, opz, outflow, quality, waitlist]
         default: noshow
       - name: group_by
         type: string
@@ -763,6 +780,7 @@ aggregates:
       - name: reason
         type: string
         required: false
+        allowed_values: [all, birthday, forecast, leaving, noshow, opz, outflow, quality, waitlist]
         default: quality
       - name: group_by
         type: string
@@ -797,6 +815,7 @@ aggregates:
       - name: reason
         type: string
         required: false
+        allowed_values: [all, birthday, forecast, leaving, noshow, opz, outflow, quality, waitlist]
         default: birthday
       - name: group_by
         type: string
@@ -830,6 +849,7 @@ aggregates:
       - name: reason
         type: string
         required: false
+        allowed_values: [all, birthday, forecast, leaving, noshow, opz, outflow, quality, waitlist]
         default: waitlist
       - name: group_by
         type: string
@@ -864,6 +884,7 @@ aggregates:
       - name: reason
         type: string
         required: false
+        allowed_values: [all, birthday, forecast, leaving, noshow, opz, outflow, quality, waitlist]
         default: opz
       - name: group_by
         type: string

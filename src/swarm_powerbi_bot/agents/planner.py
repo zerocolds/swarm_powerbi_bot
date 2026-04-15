@@ -289,10 +289,24 @@ class PlannerAgent(Agent):
                     agg_id,
                 )
                 return None  # ANY invalid → полный fallback
+            raw_params = dict(q.get("params", {}))
+            # Инжектим object_id из подписки пользователя, только если каталог
+            # требует его (required: true). Для salon-wide агрегатов (required: false)
+            # object_id намеренно не подставляем.
+            if "object_id" not in raw_params and question.object_id is not None:
+                entry = registry.get_aggregate(agg_id)
+                if entry:
+                    params_meta = entry.get("parameters", [])
+                    obj_required = any(
+                        p.get("name") == "object_id" and p.get("required", False)
+                        for p in params_meta
+                    )
+                    if obj_required:
+                        raw_params["object_id"] = question.object_id
             queries.append(
                 AggregateQuery(
                     aggregate_id=agg_id,
-                    params=AggregateParams(q.get("params", {})),
+                    params=AggregateParams(raw_params),
                     label=q.get("label", ""),
                 )
             )
@@ -303,8 +317,15 @@ class PlannerAgent(Agent):
         topic = raw_dict.get("topic", "statistics")
         # intent was already extracted above for query limit calculation
 
+        # Разрешаем period_hint → конкретные даты для ВСЕХ интентов
+        for q_obj in queries:
+            period_hint = q_obj.params.get("period_hint", "")
+            if period_hint and "date_from" not in q_obj.params:
+                resolved_from, resolved_to = _resolve_period(period_hint)
+                q_obj.params["date_from"] = resolved_from
+                q_obj.params["date_to"] = resolved_to
+
         # T034: для intent="comparison" убеждаемся что есть ровно 2 запроса
-        # и разрешаем period_hint → конкретные даты
         if intent == "comparison":
             if len(queries) < 2:
                 logger.warning(
@@ -312,12 +333,6 @@ class PlannerAgent(Agent):
                     len(queries),
                 )
                 return None
-            for q_obj in queries:
-                period_hint = q_obj.params.get("period_hint", "")
-                if period_hint and "date_from" not in q_obj.params:
-                    resolved_from, resolved_to = _resolve_period(period_hint)
-                    q_obj.params["date_from"] = resolved_from
-                    q_obj.params["date_to"] = resolved_to
 
         return MultiPlan(
             objective=question.text,
@@ -471,6 +486,8 @@ class PlannerAgent(Agent):
             date_from=result.get("date_from", ""),
             date_to=result.get("date_to", ""),
             object_id=question.object_id,  # ObjectId всегда из подписки
+            # TODO: master_name нужно разрешить в master_id через MasterResolver
+            # (async-операция, требует изменения интерфейса планировщика — отдельный PR).
             master_name=result.get("master_name", ""),
             top=result.get("top", 20),
             group_by=result.get("group_by", ""),

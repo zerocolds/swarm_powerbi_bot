@@ -329,7 +329,8 @@ class SQLClient:
             )
             return [], aggregate_id, {"DateFrom": d_from, "DateTo": d_to}
 
-        top_n = params.get("top_n", max_rows)
+        # Каталог использует "top", LLM может передать "top_n" — принимаем оба
+        top_n = params.get("top", params.get("top_n", max_rows))
 
         sql_parts = [f"EXEC {procedure} @DateFrom=?, @DateTo=?"]
         sql_args: list[Any] = [d_from, d_to]
@@ -543,8 +544,9 @@ class SQLClient:
             )
             return [], topic_id, date_params
 
-        # Извлекаем ObjectId и MasterId из вопроса (или используем переданный/дефолтный)
-        obj_id = object_id if object_id is not None else _extract_object_id(question)
+        # ObjectId берётся только из переданного параметра (подписка пользователя) или дефолта.
+        # Парсинг из текста запроса намеренно убран — он позволял угадать чужой салон.
+        obj_id = object_id
         if obj_id is None and self.settings.default_object_id:
             obj_id = self.settings.default_object_id
 
