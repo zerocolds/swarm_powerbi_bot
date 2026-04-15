@@ -19,6 +19,7 @@ For each aggregate in the catalog:
 If <sql_connection_string> is the literal string "dry-run", only the catalog
 structure is validated (no database connection is made).
 """
+
 from __future__ import annotations
 
 import argparse
@@ -33,6 +34,7 @@ import yaml
 # ---------------------------------------------------------------------------
 # YAML loading
 # ---------------------------------------------------------------------------
+
 
 def _load_yaml(path: Path) -> dict:
     if not path.exists():
@@ -90,6 +92,7 @@ def _validate_catalog_structure(aggregates: list[dict]) -> list[str]:
 # ---------------------------------------------------------------------------
 # Live SQL validation helpers
 # ---------------------------------------------------------------------------
+
 
 def _build_test_params(aggregate: dict, object_id: int) -> dict[str, Any]:
     """Build a minimal set of test parameters for executing the procedure."""
@@ -149,10 +152,14 @@ def _check_procedure_exists(cursor: Any, proc_name: str) -> bool:
 
 
 def _derive_proc_name(aggregate: dict) -> str:
-    """Derive a stored procedure name from the aggregate id."""
-    agg_id: str = aggregate.get("id", "")
-    # Convention: usp_<id> or sp_<id> — prefer explicit field if set
-    return aggregate.get("proc_name", f"usp_{agg_id}")
+    """Derive a stored procedure name from the aggregate entry.
+
+    Priority: explicit 'procedure' field (from catalog) > 'proc_name' > fallback.
+    Real catalog uses spKDO_* naming convention.
+    """
+    if aggregate.get("procedure"):
+        return aggregate["procedure"]
+    return aggregate.get("proc_name", f"spKDO_{aggregate.get('id', 'Unknown')}")
 
 
 def _percent_diff(a: float, b: float) -> float:
@@ -172,6 +179,7 @@ def _load_baseline(path: Path) -> dict[str, dict[str, float]]:
 # ---------------------------------------------------------------------------
 # Result helpers
 # ---------------------------------------------------------------------------
+
 
 class AggResult:
     def __init__(self, agg_id: str, name: str) -> None:
@@ -199,6 +207,7 @@ class AggResult:
 # Dry-run validator
 # ---------------------------------------------------------------------------
 
+
 def _run_dry(aggregates: list[dict]) -> list[AggResult]:
     """Validate catalog structure only, no DB connection."""
     results: list[AggResult] = []
@@ -221,7 +230,9 @@ def _run_dry(aggregates: list[dict]) -> list[AggResult]:
             r.issues.append(f"columns: {', '.join(cols)}")
         # Check test params buildable
         params = _build_test_params(agg, 506770)
-        required_params = [p["name"] for p in agg.get("parameters", []) if p.get("required", True)]
+        required_params = [
+            p["name"] for p in agg.get("parameters", []) if p.get("required", True)
+        ]
         missing = [p for p in required_params if p not in params]
         if missing:
             r.fail(f"Could not derive test values for required params: {missing}")
@@ -236,6 +247,7 @@ def _run_dry(aggregates: list[dict]) -> list[AggResult]:
 # Live SQL validator
 # ---------------------------------------------------------------------------
 
+
 def _run_live(
     aggregates: list[dict],
     conn_string: str,
@@ -247,7 +259,10 @@ def _run_live(
     try:
         import pyodbc  # type: ignore[import]
     except ImportError:
-        print("ERROR: pyodbc is not installed. Install it with: uv add pyodbc", file=sys.stderr)
+        print(
+            "ERROR: pyodbc is not installed. Install it with: uv add pyodbc",
+            file=sys.stderr,
+        )
         sys.exit(1)
 
     # First validate structure
@@ -283,7 +298,9 @@ def _run_live(
                     continue
 
                 if not exists:
-                    r.fail(f"Stored procedure '{proc_name}' not found in INFORMATION_SCHEMA")
+                    r.fail(
+                        f"Stored procedure '{proc_name}' not found in INFORMATION_SCHEMA"
+                    )
                     results.append(r)
                     if fail_fast and not r.passed:
                         break
@@ -297,7 +314,11 @@ def _run_live(
 
                 try:
                     cursor.execute(exec_sql, param_values)
-                    columns_returned = [desc[0] for desc in cursor.description] if cursor.description else []
+                    columns_returned = (
+                        [desc[0] for desc in cursor.description]
+                        if cursor.description
+                        else []
+                    )
                     rows = cursor.fetchall()
                 except Exception as exc:  # noqa: BLE001
                     r.fail(f"Execution failed: {exc}")
@@ -309,7 +330,9 @@ def _run_live(
                 # 3. Verify expected columns present
                 expected_cols = _expected_columns(agg)
                 returned_lower = {c.lower() for c in columns_returned}
-                missing_cols = [c for c in expected_cols if c.lower() not in returned_lower]
+                missing_cols = [
+                    c for c in expected_cols if c.lower() not in returned_lower
+                ]
                 if missing_cols:
                     r.fail(f"Missing expected columns: {missing_cols}")
                 else:
@@ -346,7 +369,9 @@ def _run_live(
                                     f"baseline '{col_name}': diff={diff:.2%} OK"
                                 )
                         except (TypeError, ValueError):
-                            r.warn(f"Cannot compare non-numeric baseline value for '{col_name}'")
+                            r.warn(
+                                f"Cannot compare non-numeric baseline value for '{col_name}'"
+                            )
 
                 results.append(r)
                 if fail_fast and not r.passed:
@@ -360,6 +385,7 @@ def _run_live(
 # ---------------------------------------------------------------------------
 # Report rendering
 # ---------------------------------------------------------------------------
+
 
 def _print_report(results: list[AggResult], dry_run: bool) -> int:
     """Print results to stdout, return exit code (0 = all pass, 1 = failures)."""
@@ -379,6 +405,7 @@ def _print_report(results: list[AggResult], dry_run: bool) -> int:
 # ---------------------------------------------------------------------------
 # Main
 # ---------------------------------------------------------------------------
+
 
 def _parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
@@ -421,7 +448,10 @@ def main() -> None:
     aggregates: list[dict] = catalog_data.get("aggregates", [])
 
     if not aggregates:
-        print("WARNING: No aggregates found in catalog ('aggregates' list is empty).", file=sys.stderr)
+        print(
+            "WARNING: No aggregates found in catalog ('aggregates' list is empty).",
+            file=sys.stderr,
+        )
 
     dry_run = args.sql_connection_string.strip().lower() == "dry-run"
 
@@ -432,7 +462,9 @@ def main() -> None:
         baseline = _load_baseline(baseline_path)
 
     if dry_run:
-        print(f"Mode: DRY-RUN (catalog structure validation only, {len(aggregates)} aggregate(s))")
+        print(
+            f"Mode: DRY-RUN (catalog structure validation only, {len(aggregates)} aggregate(s))"
+        )
         results = _run_dry(aggregates)
     else:
         print(

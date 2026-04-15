@@ -1,4 +1,5 @@
 """T028: Тесты для SQLAgent.run_multi (Phase 7 — Multi-query SQLAgent)."""
+
 from __future__ import annotations
 
 import asyncio
@@ -81,11 +82,14 @@ def _make_plan(queries: list[AggregateQuery]) -> MultiPlan:
 
 # ── T028-1: 2 запроса → оба выполняются → список из 2 AggregateResult ────────
 
+
 @pytest.mark.asyncio
 async def test_two_queries_both_execute(registry, settings):
     agent, sql_client_mock = _make_agent(settings)
 
-    sql_client_mock.execute_aggregate = AsyncMock(side_effect=lambda agg_id, params, reg: _ok_result(agg_id))
+    sql_client_mock.execute_aggregate = AsyncMock(
+        side_effect=lambda agg_id, params, reg: _ok_result(agg_id)
+    )
 
     queries = [
         AggregateQuery(aggregate_id="revenue_by_master", params={}, label="выручка"),
@@ -97,11 +101,14 @@ async def test_two_queries_both_execute(registry, settings):
 
     assert len(results) == 2
     assert all(r.status == "ok" for r in results)
-    called_ids = {call.args[0] for call in sql_client_mock.execute_aggregate.call_args_list}
+    called_ids = {
+        call.args[0] for call in sql_client_mock.execute_aggregate.call_args_list
+    }
     assert called_ids == {"revenue_by_master", "visits_by_object"}
 
 
 # ── T028-2: 12 запросов → только первые 10 выполняются (лимит) ───────────────
+
 
 @pytest.mark.asyncio
 async def test_limit_enforced_to_max_queries(registry, settings):
@@ -126,6 +133,7 @@ async def test_limit_enforced_to_max_queries(registry, settings):
 
 # ── T028-3: Частичный сбой: 1 из 3 запросов → timeout ───────────────────────
 
+
 @pytest.mark.asyncio
 async def test_partial_timeout_other_queries_succeed(registry, settings):
     agent, sql_client_mock = _make_agent(settings)
@@ -146,7 +154,7 @@ async def test_partial_timeout_other_queries_succeed(registry, settings):
     fast_settings = Settings(
         sql_max_queries=10,
         sql_max_concurrency=5,
-        sql_query_timeout=0.01,  # 10 мс
+        sql_query_timeout=0.1,  # 100 мс — достаточно мало для timeout теста, но стабильно на CI
     )
     agent_fast = SQLAgent(client=sql_client_mock, settings=fast_settings)
 
@@ -168,6 +176,7 @@ async def test_partial_timeout_other_queries_succeed(registry, settings):
 
 
 # ── T028-4: Семафор ограничивает конкурентность до 5 ─────────────────────────
+
 
 @pytest.mark.asyncio
 async def test_semaphore_limits_concurrency(registry, settings):
@@ -204,6 +213,7 @@ async def test_semaphore_limits_concurrency(registry, settings):
 
 # ── T032: QueryLogger вызывается для каждого агрегата ────────────────────────
 
+
 @pytest.mark.asyncio
 async def test_query_logger_called_for_each_aggregate(registry, settings):
     agent, sql_client_mock = _make_agent(settings)
@@ -221,18 +231,23 @@ async def test_query_logger_called_for_each_aggregate(registry, settings):
     ]
     plan = _make_plan(queries)
 
-    results = await agent.run_multi(plan, registry, sql_client=sql_client_mock, logger_=mock_logger)
+    results = await agent.run_multi(
+        plan, registry, sql_client=sql_client_mock, logger_=mock_logger
+    )
 
     assert len(results) == 2
     assert mock_logger.log.call_count == 2
 
-    logged_agg_ids = {call.kwargs.get("aggregate_id") or call.args[1]
-                      for call in mock_logger.log.call_args_list}
+    logged_agg_ids = {
+        call.kwargs.get("aggregate_id") or call.args[1]
+        for call in mock_logger.log.call_args_list
+    }
     assert "revenue_by_master" in logged_agg_ids
     assert "visits_by_object" in logged_agg_ids
 
 
 # ── Дополнительно: ошибка в одном запросе не ломает весь батч ────────────────
+
 
 @pytest.mark.asyncio
 async def test_error_in_one_query_does_not_fail_batch(registry, settings):
@@ -260,6 +275,7 @@ async def test_error_in_one_query_does_not_fail_batch(registry, settings):
 
 
 # ── Дополнительно: пустой план возвращает пустой список ──────────────────────
+
 
 @pytest.mark.asyncio
 async def test_empty_plan_returns_empty_list(registry, settings):

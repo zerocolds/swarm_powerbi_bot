@@ -87,7 +87,7 @@ _JSON_RE = re.compile(r"\{[^{}]*\}", re.DOTALL)
 
 
 class LLMClient:
-    """Клиент для Ollama Cloud API (GLM-5 и другие :cloud модели)."""
+    """Клиент для Ollama-совместимого LLM API (модель задаётся в settings.ollama_model)."""
 
     def __init__(self, settings: Settings):
         self.settings = settings
@@ -95,7 +95,9 @@ class LLMClient:
         self._cb_failures: int = 0
         self._cb_open_until: float = 0.0
 
-    async def plan_query(self, question: str, today: str, last_topic: str = "") -> dict[str, Any] | None:
+    async def plan_query(
+        self, question: str, today: str, last_topic: str = ""
+    ) -> dict[str, Any] | None:
         """LLM-планировщик: определяет процедуру, group_by, filter из вопроса.
 
         Возвращает dict с ключами: procedure, group_by, filter, reason,
@@ -200,7 +202,8 @@ class LLMClient:
                 self._cb_open_until = time.monotonic() + cooldown
                 logger.warning(
                     "LLM circuit breaker opened for %ds after %d consecutive failures",
-                    cooldown, self._cb_failures,
+                    cooldown,
+                    self._cb_failures,
                 )
             return None
 
@@ -271,7 +274,8 @@ class LLMClient:
         }
 
         try:
-            async with httpx.AsyncClient(timeout=30.0) as client:
+            timeout = float(getattr(self.settings, "llm_plan_timeout", 30))
+            async with httpx.AsyncClient(timeout=timeout) as client:
                 resp = await client.post(url, headers=headers, json=payload)
                 resp.raise_for_status()
                 data = resp.json()
@@ -281,7 +285,9 @@ class LLMClient:
 
         return self._extract_content(data)
 
-    async def synthesize(self, system_prompt: str, user_prompt: str, fallback_text: str) -> str:
+    async def synthesize(
+        self, system_prompt: str, user_prompt: str, fallback_text: str
+    ) -> str:
         if not self.settings.ollama_api_key:
             return fallback_text
 

@@ -5,16 +5,16 @@ import logging
 import logging.handlers
 import sys
 from datetime import datetime, timezone
+from pathlib import Path
 
 
-_SENSITIVE_KEYS = frozenset({"password", "token", "secret", "connection_string", "conn_str", "dsn", "pwd"})
+_SENSITIVE_KEYS = frozenset(
+    {"password", "token", "secret", "connection_string", "conn_str", "dsn", "pwd"}
+)
 
 
 def _sanitize(params: dict) -> dict:
-    return {
-        k: "***" if k.lower() in _SENSITIVE_KEYS else v
-        for k, v in params.items()
-    }
+    return {k: "***" if k.lower() in _SENSITIVE_KEYS else v for k, v in params.items()}
 
 
 class _JsonFormatter(logging.Formatter):
@@ -29,6 +29,7 @@ class QueryLogger:
         self._logger.propagate = False
 
         if not self._logger.handlers:
+            Path(log_path).parent.mkdir(parents=True, exist_ok=True)
             formatter = _JsonFormatter()
 
             file_handler = logging.handlers.RotatingFileHandler(

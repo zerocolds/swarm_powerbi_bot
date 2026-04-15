@@ -22,16 +22,19 @@ class QueryParams:
     - spKDO_ClientList: filter определяет статус (outflow/leaving/forecast/noshow/quality/birthday/all)
     - spKDO_CommAgg: reason + group_by определяют срез коммуникаций
     """
-    procedure: str = ""           # spKDO_Aggregate / spKDO_ClientList / spKDO_CommAgg
-    date_from: str = ""           # ISO: 2026-03-15
-    date_to: str = ""             # ISO: 2026-04-14
+
+    procedure: str = ""  # spKDO_Aggregate / spKDO_ClientList / spKDO_CommAgg
+    date_from: str = ""  # ISO: 2026-03-15
+    date_to: str = ""  # ISO: 2026-04-14
     object_id: int | None = None  # SalonId (из подписки)
     master_id: int | None = None
-    master_name: str = ""         # имя мастера из вопроса
+    master_name: str = ""  # имя мастера из вопроса
     top: int = 20
-    group_by: str = ""            # total/week/month/master/service/salon/channel/list/status/reason/result/manager
-    filter: str = ""              # outflow/leaving/forecast/noshow/quality/birthday/all (для ClientList)
-    reason: str = ""              # all/outflow/leaving/.../waitlist/opz (для CommAgg)
+    group_by: str = ""  # total/week/month/master/service/salon/channel/list/status/reason/result/manager
+    filter: str = (
+        ""  # outflow/leaving/forecast/noshow/quality/birthday/all (для ClientList)
+    )
+    reason: str = ""  # all/outflow/leaving/.../waitlist/opz (для CommAgg)
 
 
 @dataclass
@@ -81,6 +84,7 @@ class AnalysisResult:
 @dataclass
 class AggregateQuery:
     """Один запрос к агрегату из каталога (whitelist)."""
+
     aggregate_id: str
     params: dict[str, Any] = field(default_factory=dict)
     label: str = ""
@@ -89,8 +93,11 @@ class AggregateQuery:
 @dataclass
 class MultiPlan:
     """План выполнения для одного вопроса (результат одношагового LLM planning)."""
+
     objective: str
-    intent: str = "single"  # single | comparison | decomposition | trend | ranking
+    intent: Literal["single", "comparison", "decomposition", "trend", "ranking"] = (
+        "single"
+    )
     queries: list[AggregateQuery] = field(default_factory=list)
     topic: str = "statistics"
     render_needed: bool = True
@@ -100,18 +107,20 @@ class MultiPlan:
 @dataclass
 class AggregateResult:
     """Результат одного агрегатного запроса."""
+
     aggregate_id: str = ""
     label: str = ""
     rows: list[dict[str, Any]] = field(default_factory=list)
     row_count: int = 0
     duration_ms: int = 0
-    status: str = "ok"  # ok | error | timeout
+    status: Literal["ok", "error", "timeout"] = "ok"
     error: str | None = None
 
 
 @dataclass
 class ComparisonResult:
     """Результат сравнения двух наборов данных."""
+
     period_a: str = ""
     period_b: str = ""
     results_a: AggregateResult = field(default_factory=AggregateResult)

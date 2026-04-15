@@ -12,6 +12,7 @@ Priority classification for not_covered measures:
   P2 (important)       — client / клиент / master / мастер keywords
   P3 (nice-to-have)    — everything else
 """
+
 from __future__ import annotations
 
 import re
@@ -49,6 +50,7 @@ def _priority(measure_name: str, expression_preview: str) -> str:
 # ---------------------------------------------------------------------------
 # YAML loading
 # ---------------------------------------------------------------------------
+
 
 def _load_yaml(path: Path) -> dict:
     if not path.exists():
@@ -89,8 +91,8 @@ def _render_markdown(
     sc = stats["sql_covered"]
     lines.append("## Summary")
     lines.append("")
-    lines.append(f"| Classification       | Count | Share |")
-    lines.append(f"|----------------------|------:|------:|")
+    lines.append("| Classification       | Count | Share |")
+    lines.append("|----------------------|------:|------:|")
     share = lambda n: f"{n / total * 100:.1f}%" if total else "—"  # noqa: E731
     lines.append(f"| sql_covered          | {sc:5} | {share(sc):>6} |")
     lines.append(f"| python_postprocess   | {pp:5} | {share(pp):>6} |")
@@ -130,7 +132,11 @@ def _render_markdown(
         for m in sorted(measures, key=lambda x: x["priority"]):
             priority = m["priority"]
             name = m["name"].replace("|", "\\|")
-            preview = (m.get("expression_preview") or "").replace("\n", " ").replace("|", "\\|")
+            preview = (
+                (m.get("expression_preview") or "")
+                .replace("\n", " ")
+                .replace("|", "\\|")
+            )
             preview = preview[:100] + "…" if len(preview) > 100 else preview
             lines.append(f"| `{priority}` | {name} | `{preview}` |")
         lines.append("")
@@ -146,9 +152,9 @@ def _render_markdown(
             preview = (item.get("expression_preview") or "").strip().replace("\n", " ")
             lines.append(f"- **{item['name']}** _(table: {item['pbix_table']})_")
             if preview:
-                lines.append(f"  ```")
+                lines.append("  ```")
                 lines.append(f"  {preview[:200]}")
-                lines.append(f"  ```")
+                lines.append("  ```")
         lines.append("")
 
     return "\n".join(lines)
@@ -157,6 +163,7 @@ def _render_markdown(
 # ---------------------------------------------------------------------------
 # Main
 # ---------------------------------------------------------------------------
+
 
 def main() -> None:
     if len(sys.argv) < 2 or len(sys.argv) > 3:
@@ -168,14 +175,19 @@ def main() -> None:
         sys.exit(1)
 
     mapping_path = Path(sys.argv[1])
-    output_path = Path(sys.argv[2]) if len(sys.argv) == 3 else Path("catalogs/bootstrap/gaps.md")
+    output_path = (
+        Path(sys.argv[2]) if len(sys.argv) == 3 else Path("catalogs/bootstrap/gaps.md")
+    )
 
     print(f"Loading mapping: {mapping_path}")
     data = _load_yaml(mapping_path)
 
     mapping: list[dict] = data.get("mapping", [])
     if not mapping:
-        print("WARNING: 'mapping' key is empty or missing in the input YAML.", file=sys.stderr)
+        print(
+            "WARNING: 'mapping' key is empty or missing in the input YAML.",
+            file=sys.stderr,
+        )
 
     # Collect stats and not_covered items
     stats: dict[str, int] = {
@@ -219,7 +231,9 @@ def main() -> None:
     p_counts = {"P1": 0, "P2": 0, "P3": 0}
     for item in not_covered:
         p_counts[item["priority"]] += 1
-    print(f"Not-covered priorities — P1: {p_counts['P1']}, P2: {p_counts['P2']}, P3: {p_counts['P3']}")
+    print(
+        f"Not-covered priorities — P1: {p_counts['P1']}, P2: {p_counts['P2']}, P3: {p_counts['P3']}"
+    )
 
     markdown = _render_markdown(not_covered, stats, mapping_path)
 

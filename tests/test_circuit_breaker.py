@@ -1,4 +1,5 @@
 """C5: Тесты circuit breaker в LLMClient.plan_aggregates."""
+
 from __future__ import annotations
 
 import time
@@ -62,9 +63,7 @@ class TestCircuitBreaker:
     async def test_breaker_resets_on_success(self, client):
         """Successful plan_aggregates resets failure counter."""
         client._cb_failures = 2
-        resp = _mock_response(
-            '{"intent": "single", "queries": ["test"]}'
-        )
+        resp = _mock_response('{"intent": "single", "queries": ["test"]}')
 
         with patch("httpx.AsyncClient.post", new_callable=AsyncMock, return_value=resp):
             result = await client.plan_aggregates("вопрос", "каталог", "семантика")
@@ -76,9 +75,7 @@ class TestCircuitBreaker:
         client._cb_failures = settings.llm_circuit_breaker_threshold
         client._cb_open_until = time.monotonic() - 1
 
-        resp = _mock_response(
-            '{"intent": "single", "queries": ["x"]}'
-        )
+        resp = _mock_response('{"intent": "single", "queries": ["x"]}')
 
         with patch("httpx.AsyncClient.post", new_callable=AsyncMock, return_value=resp):
             result = await client.plan_aggregates("вопрос", "каталог", "семантика")

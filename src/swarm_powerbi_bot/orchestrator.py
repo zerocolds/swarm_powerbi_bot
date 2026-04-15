@@ -5,7 +5,14 @@ import logging
 from typing import TYPE_CHECKING
 
 from .agents import AnalystAgent, PlannerAgent, PowerBIModelAgent, RenderAgent, SQLAgent
-from .models import AggregateResult, ModelInsight, MultiPlan, SQLInsight, SwarmResponse, UserQuestion
+from .models import (
+    AggregateResult,
+    ModelInsight,
+    MultiPlan,
+    SQLInsight,
+    SwarmResponse,
+    UserQuestion,
+)
 from .services.chart_renderer import render_chart
 
 if TYPE_CHECKING:
@@ -58,7 +65,17 @@ class SwarmOrchestrator:
                 diagnostics["planner_v2_error"] = str(exc)
                 multi_plan = None
 
-        plan = await self.planner.run(question)
+        # I1: Пропускаем legacy planner.run() если multi_plan с запросами уже получен —
+        # иначе два LLM-вызова на каждый вопрос (двойной cost/latency)
+        if multi_plan and multi_plan.queries:
+            plan = self.planner.multi_plan_to_plan(multi_plan, question)
+        else:
+            try:
+                plan = await self.planner.run(question)
+            except Exception as exc:
+                logger.error("[PLAN] ERROR: %s", exc)
+                diagnostics["plan_error"] = str(exc)
+                plan = self.planner.empty_plan(question.text)
 
         # T031: Если есть MultiPlan и aggregate_registry — выполняем все запросы через SQLAgent.run_multi()
         multi_results: list[AggregateResult] = []
@@ -75,7 +92,8 @@ class SwarmOrchestrator:
                 diagnostics["multi_plan_ok"] = str(ok_count)
                 logger.info(
                     "[MULTI_SQL] queries=%d ok=%d",
-                    len(multi_results), ok_count,
+                    len(multi_results),
+                    ok_count,
                 )
             except Exception as exc:
                 logger.error("[MULTI_SQL] ERROR: %s", exc)
@@ -92,11 +110,19 @@ class SwarmOrchestrator:
         if qp:
             logger.info(
                 "[PLAN] %s | topic=%s | proc=%s group_by=%s filter=%s reason=%s | %s..%s",
-                planner_mode, plan.topic, qp.procedure, qp.group_by, qp.filter,
-                qp.reason, qp.date_from, qp.date_to,
+                planner_mode,
+                plan.topic,
+                qp.procedure,
+                qp.group_by,
+                qp.filter,
+                qp.reason,
+                qp.date_from,
+                qp.date_to,
             )
         else:
-            logger.info("[PLAN] %s | topic=%s | no query_params", planner_mode, plan.topic)
+            logger.info(
+                "[PLAN] %s | topic=%s | no query_params", planner_mode, plan.topic
+            )
 
         sql_task = asyncio.create_task(self._run_sql(question, plan, diagnostics))
         pbi_task = asyncio.create_task(self._run_pbi(question, plan, diagnostics))
@@ -113,7 +139,10 @@ class SwarmOrchestrator:
                 chart_params = dict(sql_insight.params)
                 chart_params["topic"] = plan.topic
                 chart_bytes = await asyncio.to_thread(
-                    render_chart, plan.topic, sql_insight.rows, chart_params,
+                    render_chart,
+                    plan.topic,
+                    sql_insight.rows,
+                    chart_params,
                 )
                 if chart_bytes:
                     image = chart_bytes
@@ -167,7 +196,9 @@ class SwarmOrchestrator:
             diagnostics["sql_error"] = str(exc)
             return SQLInsight(rows=[], summary="SQL step failed")
 
-    async def _run_pbi(self, question, plan, diagnostics: dict[str, str]) -> ModelInsight:
+    async def _run_pbi(
+        self, question, plan, diagnostics: dict[str, str]
+    ) -> ModelInsight:
         try:
             return await self.powerbi_agent.run(question, plan)
         except Exception as exc:

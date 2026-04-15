@@ -50,13 +50,27 @@ _LEGACY_PROCEDURE_TOPIC = {
 
 # Допустимые имена процедур (whitelist)
 _ALLOWED_PROCEDURES = {
-    "spKDO_Aggregate", "spKDO_ClientList", "spKDO_CommAgg",
-    "spKDO_Attachments", "spKDO_Training",
+    "spKDO_Aggregate",
+    "spKDO_ClientList",
+    "spKDO_CommAgg",
+    "spKDO_Attachments",
+    "spKDO_Training",
     # Старые — для обратной совместимости fallback
-    "spKDO_Statistics", "spKDO_Trend", "spKDO_Outflow", "spKDO_Leaving",
-    "spKDO_Forecast", "spKDO_Masters", "spKDO_Services", "spKDO_Communications",
-    "spKDO_Referrals", "spKDO_Quality", "spKDO_NoShow", "spKDO_AllClients",
-    "spKDO_Birthday", "spKDO_WaitList", "spKDO_OPZ",
+    "spKDO_Statistics",
+    "spKDO_Trend",
+    "spKDO_Outflow",
+    "spKDO_Leaving",
+    "spKDO_Forecast",
+    "spKDO_Masters",
+    "spKDO_Services",
+    "spKDO_Communications",
+    "spKDO_Referrals",
+    "spKDO_Quality",
+    "spKDO_NoShow",
+    "spKDO_AllClients",
+    "spKDO_Birthday",
+    "spKDO_WaitList",
+    "spKDO_OPZ",
 }
 
 # Маппинг v2 → v1: topic → старая процедура (для работы до деплоя v2)
@@ -149,6 +163,29 @@ class PlannerAgent(Agent):
         self.llm_client = llm_client
         self.aggregate_registry = aggregate_registry
 
+    def multi_plan_to_plan(self, multi_plan: MultiPlan, question: UserQuestion) -> Plan:
+        """Конвертирует MultiPlan в legacy Plan для обратной совместимости."""
+        return Plan(
+            objective=multi_plan.objective,
+            topic=multi_plan.topic,
+            sql_needed=bool(multi_plan.queries),
+            powerbi_needed=False,
+            render_needed=multi_plan.render_needed,
+            notes=list(multi_plan.notes),
+        )
+
+    @staticmethod
+    def empty_plan(text: str) -> Plan:
+        """Минимальный Plan при сбое планировщика."""
+        return Plan(
+            objective=text,
+            topic="statistics",
+            sql_needed=False,
+            powerbi_needed=False,
+            render_needed=False,
+            notes=["planner:error"],
+        )
+
     async def run_multi(self, question: UserQuestion) -> MultiPlan:
         """T024: Одношаговое LLM-планирование с каталогом агрегатов → MultiPlan.
 
@@ -176,7 +213,8 @@ class PlannerAgent(Agent):
     ) -> MultiPlan | None:
         """Вызывает LLM для получения MultiPlan с каталогом агрегатов."""
         registry = self.aggregate_registry
-        assert registry is not None
+        if registry is None:
+            return None
 
         # Формируем промпт из каталога агрегатов
         catalog_lines: list[str] = []
@@ -186,8 +224,7 @@ class PlannerAgent(Agent):
             desc = agg.get("description", "")
             allowed = ", ".join(agg.get("allowed_group_by", []))
             catalog_lines.append(
-                f"- {agg_id}: {name}. {desc} "
-                f"(allowed_group_by: {allowed})"
+                f"- {agg_id}: {name}. {desc} (allowed_group_by: {allowed})"
             )
         catalog_prompt = "\n".join(catalog_lines) if catalog_lines else "(пусто)"
         semantic_prompt = "(нет семантического каталога)"
@@ -211,7 +248,8 @@ class PlannerAgent(Agent):
         _MAX_QUERIES_DECOMPOSITION = 5
         _MAX_QUERIES_DEFAULT = 10
         max_queries = (
-            _MAX_QUERIES_DECOMPOSITION if intent == "decomposition"
+            _MAX_QUERIES_DECOMPOSITION
+            if intent == "decomposition"
             else _MAX_QUERIES_DEFAULT
         )
         queries_raw = queries_raw[:max_queries]
@@ -226,11 +264,13 @@ class PlannerAgent(Agent):
                     agg_id,
                 )
                 return None  # ANY invalid → полный fallback
-            queries.append(AggregateQuery(
-                aggregate_id=agg_id,
-                params=q.get("params", {}),
-                label=q.get("label", ""),
-            ))
+            queries.append(
+                AggregateQuery(
+                    aggregate_id=agg_id,
+                    params=q.get("params", {}),
+                    label=q.get("label", ""),
+                )
+            )
 
         if not queries:
             return None
@@ -344,14 +384,23 @@ class PlannerAgent(Agent):
                 query_params.procedure = get_procedure("trend")
 
         # Если v2 процедуры не задеплоены — маппим обратно на старые
-        if not _USE_V2 and query_params and query_params.procedure in (
-            "spKDO_Aggregate", "spKDO_ClientList", "spKDO_CommAgg",
+        if (
+            not _USE_V2
+            and query_params
+            and query_params.procedure
+            in (
+                "spKDO_Aggregate",
+                "spKDO_ClientList",
+                "spKDO_CommAgg",
+            )
         ):
             old_proc = _V2_TO_V1.get(topic)
             if old_proc:
                 logger.info(
                     "v2→v1 fallback: %s → %s (topic=%s)",
-                    query_params.procedure, old_proc, topic,
+                    query_params.procedure,
+                    old_proc,
+                    topic,
                 )
                 query_params.procedure = old_proc
                 # Убираем v2-параметры — старые процедуры их не принимают
@@ -379,7 +428,9 @@ class PlannerAgent(Agent):
 
         today = date.today().isoformat()
         result = await self.llm_client.plan_query(
-            question.text, today=today, last_topic=question.last_topic,
+            question.text,
+            today=today,
+            last_topic=question.last_topic,
         )
         if not result:
             return None
@@ -426,16 +477,21 @@ class PlannerAgent(Agent):
         # Если LLM вернул старую процедуру — нормализуем
         raw = proc.replace("spKDO_", "").lower()
         from ..services.topic_registry import _TOPICS_BY_ID
+
         if raw in _TOPICS_BY_ID:
             return raw
         _ALIASES = {
-            "allclients": "all_clients", "all_clients": "all_clients",
+            "allclients": "all_clients",
+            "all_clients": "all_clients",
         }
-        return _ALIASES.get(raw, detect_topic(question.text, last_topic=question.last_topic))
+        return _ALIASES.get(
+            raw, detect_topic(question.text, last_topic=question.last_topic)
+        )
 
     def _fallback_params(self, question: UserQuestion, topic: str) -> QueryParams:
         """Fallback: формирует QueryParams из keyword-детекции (старые процедуры)."""
         from ..services.sql_client import extract_date_params
+
         dates = extract_date_params(question.text)
         procedure = get_procedure(topic)
 

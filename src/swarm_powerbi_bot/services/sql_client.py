@@ -25,9 +25,19 @@ except Exception:  # pragma: no cover
 # ── Извлечение дат из русского текста ────────────────────────
 
 _MONTH_MAP: dict[str, int] = {
-    "январ": 1, "феврал": 2, "март": 3, "апрел": 4,
-    "мая": 5, "май": 5, "июн": 6, "июл": 7, "август": 8,
-    "сентябр": 9, "октябр": 10, "ноябр": 11, "декабр": 12,
+    "январ": 1,
+    "феврал": 2,
+    "март": 3,
+    "апрел": 4,
+    "мая": 5,
+    "май": 5,
+    "июн": 6,
+    "июл": 7,
+    "август": 8,
+    "сентябр": 9,
+    "октябр": 10,
+    "ноябр": 11,
+    "декабр": 12,
 }
 
 _RE_MONTH = re.compile(
@@ -55,9 +65,16 @@ def _match_month(text: str) -> int:
 
 
 _PERIOD_HINTS = (
-    "недел", "месяц", "месяч", "меся",
-    "квартал", "год", "вчера", "сегодн",
-    "полугод", "полгод",
+    "недел",
+    "месяц",
+    "месяч",
+    "меся",
+    "квартал",
+    "год",
+    "вчера",
+    "сегодн",
+    "полугод",
+    "полгод",
 )
 
 
@@ -94,7 +111,10 @@ def extract_date_params(question: str) -> dict[str, date]:
         month = _match_month(m.group(3))
         year = int(m.group(4)) if m.group(4) else today.year
         if month:
-            return {"DateFrom": date(year, month, day_from), "DateTo": date(year, month, day_to)}
+            return {
+                "DateFrom": date(year, month, day_from),
+                "DateTo": date(year, month, day_to),
+            }
 
     # «вчера»
     if "вчера" in text:
@@ -150,7 +170,9 @@ class SQLClient:
         self.settings = settings
 
     async def execute_query(
-        self, sql: str, params: dict[str, Any] | None = None,
+        self,
+        sql: str,
+        params: dict[str, Any] | None = None,
     ) -> list[dict[str, Any]]:
         """Выполняет произвольный параметризованный SELECT-запрос.
 
@@ -167,9 +189,12 @@ class SQLClient:
                 sql_args = list((params or {}).values())
                 # Заменяем @Name на ? для pyodbc
                 import re as _re
+
                 query = _re.sub(r"@\w+", "?", sql)
                 cursor.execute(query, sql_args)
-                columns = [col[0] for col in cursor.description] if cursor.description else []
+                columns = (
+                    [col[0] for col in cursor.description] if cursor.description else []
+                )
                 rows = []
                 for row in cursor.fetchall():
                     rows.append(dict(zip(columns, row)))
@@ -194,7 +219,9 @@ class SQLClient:
         # Валидация
         ok, msg = registry.validate(aggregate_id, params)
         if not ok:
-            logger.warning("execute_aggregate: validation failed for %r: %s", aggregate_id, msg)
+            logger.warning(
+                "execute_aggregate: validation failed for %r: %s", aggregate_id, msg
+            )
             return AggregateResult(
                 aggregate_id=aggregate_id,
                 label=params.get("label", ""),
@@ -265,7 +292,11 @@ class SQLClient:
 
         d_from_raw = params.get("date_from")
         d_to_raw = params.get("date_to")
-        d_from = date.fromisoformat(d_from_raw) if d_from_raw else date.today() - timedelta(days=30)
+        d_from = (
+            date.fromisoformat(d_from_raw)
+            if d_from_raw
+            else date.today() - timedelta(days=30)
+        )
         d_to = date.fromisoformat(d_to_raw) if d_to_raw else date.today()
 
         conn_str = self.settings.sql_connection_string()
@@ -334,15 +365,22 @@ class SQLClient:
         return rows, aggregate_id, {"DateFrom": d_from, "DateTo": d_to}
 
     async def fetch_rows_with_params(
-        self, qp: QueryParams, *, max_rows: int = 20,
+        self,
+        qp: QueryParams,
+        *,
+        max_rows: int = 20,
     ) -> tuple[list[dict[str, Any]], str, dict[str, Any]]:
         """Выполняет запрос с LLM-определёнными параметрами."""
         return await asyncio.to_thread(
-            self._fetch_with_query_params, qp, max_rows,
+            self._fetch_with_query_params,
+            qp,
+            max_rows,
         )
 
     def _fetch_with_query_params(
-        self, qp: QueryParams, max_rows: int,
+        self,
+        qp: QueryParams,
+        max_rows: int,
     ) -> tuple[list[dict[str, Any]], str, dict[str, Any]]:
         """Вызывает процедуру с параметрами из QueryParams."""
         procedure = qp.procedure or "spKDO_Aggregate"
@@ -352,7 +390,11 @@ class SQLClient:
         topic_id = procedure.replace("dbo.spKDO_", "").lower()
 
         # Парсим даты
-        d_from = date.fromisoformat(qp.date_from) if qp.date_from else date.today() - timedelta(days=30)
+        d_from = (
+            date.fromisoformat(qp.date_from)
+            if qp.date_from
+            else date.today() - timedelta(days=30)
+        )
         d_to = date.fromisoformat(qp.date_to) if qp.date_to else date.today()
 
         conn_str = self.settings.sql_connection_string()
@@ -368,7 +410,9 @@ class SQLClient:
         if not obj_id:
             # salon допускает без ObjectId (cross-salon comparison)
             if qp.group_by != "salon":
-                logger.warning("No ObjectId for %s — returning empty to protect DB", procedure)
+                logger.warning(
+                    "No ObjectId for %s — returning empty to protect DB", procedure
+                )
                 return [], topic_id, {"DateFrom": d_from, "DateTo": d_to}
 
         top = qp.top or max_rows
@@ -432,16 +476,27 @@ class SQLClient:
         return rows, topic_id, params
 
     async def fetch_rows(
-        self, question: str, *, topic: str | None = None, max_rows: int = 20,
+        self,
+        question: str,
+        *,
+        topic: str | None = None,
+        max_rows: int = 20,
         object_id: int | None = None,
     ) -> tuple[list[dict[str, Any]], str, dict[str, Any]]:
         """Возвращает (rows, topic_id, params). Fallback путь."""
         return await asyncio.to_thread(
-            self._fetch_rows_sync, question, topic, max_rows, object_id,
+            self._fetch_rows_sync,
+            question,
+            topic,
+            max_rows,
+            object_id,
         )
 
     def _fetch_rows_sync(
-        self, question: str, topic: str | None, max_rows: int,
+        self,
+        question: str,
+        topic: str | None,
+        max_rows: int,
         object_id: int | None,
     ) -> tuple[list[dict[str, Any]], str, dict[str, Any]]:
         topic_id = topic or detect_topic(question)
@@ -459,7 +514,9 @@ class SQLClient:
 
         # GUARD: без ObjectId — full scan на миллионы строк
         if not obj_id:
-            logger.warning("No ObjectId for %s — returning empty to protect DB", procedure)
+            logger.warning(
+                "No ObjectId for %s — returning empty to protect DB", procedure
+            )
             return [], topic_id, date_params
 
         master_id = _extract_master_id(question)

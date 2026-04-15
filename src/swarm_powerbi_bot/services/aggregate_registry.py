@@ -24,6 +24,7 @@ _FILTER_VALUES = frozenset(
 
 # ── helpers ────────────────────────────────────────────────────────────────────
 
+
 def _is_date(value: object) -> bool:
     return isinstance(value, str) and bool(_DATE_RE.match(value))
 
@@ -61,7 +62,9 @@ def _load_catalog(path: str) -> dict[str, dict]:
 
 
 def _validate_entry_params(
-    aggregate_id: str, entry: dict, params: dict,
+    aggregate_id: str,
+    entry: dict,
+    params: dict,
 ) -> tuple[bool, str]:
     """Общая валидация параметров для записи каталога."""
     allowed_group_by: list[str] = entry.get("allowed_group_by", [])
@@ -77,7 +80,10 @@ def _validate_entry_params(
 
         elif key == "master_id":
             if value is not None and not isinstance(value, int):
-                return False, f"master_id must be int or None, got {type(value).__name__}"
+                return (
+                    False,
+                    f"master_id must be int or None, got {type(value).__name__}",
+                )
 
         elif key == "group_by":
             if value not in allowed_group_by:
@@ -112,6 +118,7 @@ def load_catalog(path: str) -> None:
 
 # ── public functions ───────────────────────────────────────────────────────────
 
+
 def validate_aggregate_id(aggregate_id: str) -> bool:
     """True, если aggregate_id есть в загруженном каталоге."""
     return aggregate_id in _catalog
@@ -129,6 +136,7 @@ def validate_params(aggregate_id: str, params: dict) -> tuple[bool, str]:
 
 
 # ── Registry class ─────────────────────────────────────────────────────────────
+
 
 class AggregateRegistry:
     def __init__(self, catalog_path: str) -> None:
