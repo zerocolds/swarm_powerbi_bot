@@ -149,6 +149,36 @@ class SQLClient:
     def __init__(self, settings: Settings):
         self.settings = settings
 
+    async def execute_query(
+        self, sql: str, params: dict[str, Any] | None = None,
+    ) -> list[dict[str, Any]]:
+        """Выполняет произвольный параметризованный SELECT-запрос.
+
+        Используется MasterResolver для поиска мастеров.
+        """
+        conn_str = self.settings.sql_connection_string()
+        if not conn_str or pyodbc is None:
+            return []
+
+        def _sync() -> list[dict[str, Any]]:
+            conn = pyodbc.connect(conn_str, timeout=10)
+            try:
+                cursor = conn.cursor()
+                sql_args = list((params or {}).values())
+                # Заменяем @Name на ? для pyodbc
+                import re as _re
+                query = _re.sub(r"@\w+", "?", sql)
+                cursor.execute(query, sql_args)
+                columns = [col[0] for col in cursor.description] if cursor.description else []
+                rows = []
+                for row in cursor.fetchall():
+                    rows.append(dict(zip(columns, row)))
+                return rows
+            finally:
+                conn.close()
+
+        return await asyncio.to_thread(_sync)
+
     async def execute_aggregate(
         self,
         aggregate_id: str,
