@@ -18,9 +18,9 @@
 
 **Purpose**: Создание структуры проекта и базовых зависимостей
 
-- [ ] T001 Создать директории: `catalogs/`, `catalogs/bootstrap/`, `scripts/bootstrap/`, `sql/` в корне проекта
-- [ ] T002 [P] Расширить `src/swarm_powerbi_bot/config.py`: добавить пути к каталогам (CATALOG_DIR, SEMANTIC_CATALOG_PATH, AGGREGATE_CATALOG_PATH)
-- [ ] T003 [P] Расширить `src/swarm_powerbi_bot/models.py`: добавить dataclass-ы AggregateQuery, MultiPlan, AggregateResult, ComparisonResult по data-model.md
+- [x] T001 Создать директории: `catalogs/`, `catalogs/bootstrap/`, `scripts/bootstrap/`, `sql/` в корне проекта
+- [x] T002 [P] Расширить `src/swarm_powerbi_bot/config.py`: добавить пути к каталогам (CATALOG_DIR, SEMANTIC_CATALOG_PATH, AGGREGATE_CATALOG_PATH)
+- [x] T003 [P] Расширить `src/swarm_powerbi_bot/models.py`: добавить dataclass-ы AggregateQuery, MultiPlan, AggregateResult, ComparisonResult по data-model.md
 - [ ] T004 [P] Замерить baseline latency для 17 типовых вопросов текущей архитектуры (для верификации SC-007). Результат сохранить в `specs/001-semantic-aggregate-layer/baseline-latency.md`
 
 **Checkpoint**: Структура проекта готова, модели определены
@@ -33,12 +33,12 @@
 
 **⚠️ CRITICAL**: User stories фаз 5-9 не могут начаться до завершения этой фазы
 
-- [ ] T005 Создать `src/swarm_powerbi_bot/services/aggregate_registry.py`: загрузка YAML-каталогов (PyYAML), whitelist-валидация aggregate_id, типизированная валидация параметров (date, enum, int range), per-aggregate allowed_group_by. Один модуль = catalog_loader + parameter_validator + registry
-- [ ] T006 [P] Создать `src/swarm_powerbi_bot/services/master_resolver.py`: fuzzy-match по tbMasters (per-request SQL + difflib.SequenceMatcher, порог ≥0.6 короткие / ≥0.7 длинные)
-- [ ] T007 [P] Создать `src/swarm_powerbi_bot/services/query_logger.py`: structured JSON logging агрегатных вызовов (timestamp, user_id, aggregate_id, params, duration_ms, row_count, status). Rotation 10MB×5. НЕ логировать данные ответа/токены
-- [ ] T008 Написать тесты `tests/test_aggregate_registry.py`: загрузка каталогов, whitelist-валидация, типизация параметров (date format, enum membership, int range), per-aggregate allowed_group_by, невалидный aggregate_id → reject
-- [ ] T009 [P] Написать тесты `tests/test_master_resolver.py`: fuzzy-match "Ана"→"Анна", 0 кандидатов, несколько кандидатов, mock SQL
-- [ ] T010 [P] Написать тесты `tests/test_query_logger.py`: JSON формат, поля присутствуют, rotation, отсутствие чувствительных данных
+- [x] T005 Создать `src/swarm_powerbi_bot/services/aggregate_registry.py`: загрузка YAML-каталогов (PyYAML), whitelist-валидация aggregate_id, типизированная валидация параметров (date, enum, int range), per-aggregate allowed_group_by. Один модуль = catalog_loader + parameter_validator + registry
+- [x] T006 [P] Создать `src/swarm_powerbi_bot/services/master_resolver.py`: fuzzy-match по tbMasters (per-request SQL + difflib.SequenceMatcher, порог ≥0.6 короткие / ≥0.7 длинные)
+- [x] T007 [P] Создать `src/swarm_powerbi_bot/services/query_logger.py`: structured JSON logging агрегатных вызовов (timestamp, user_id, aggregate_id, params, duration_ms, row_count, status). Rotation 10MB×5. НЕ логировать данные ответа/токены
+- [x] T008 Написать тесты `tests/test_aggregate_registry.py`: загрузка каталогов, whitelist-валидация, типизация параметров (date format, enum membership, int range), per-aggregate allowed_group_by, невалидный aggregate_id → reject
+- [x] T009 [P] Написать тесты `tests/test_master_resolver.py`: fuzzy-match "Ана"→"Анна", 0 кандидатов, несколько кандидатов, mock SQL
+- [x] T010 [P] Написать тесты `tests/test_query_logger.py`: JSON формат, поля присутствуют, rotation, отсутствие чувствительных данных
 
 **Checkpoint**: Foundation ready — можно начинать bootstrap и runtime user stories
 
@@ -52,15 +52,15 @@
 
 ### Тесты
 
-- [ ] T011 [P] [US1] Написать тесты `tests/test_extract_pbix.py`: извлечение таблиц/колонок, relationships, DAX-мер, иерархий из mock PBIX-структуры (zipfile с DataModelSchema JSON)
+- [ ] T011 [P] [US1] Написать тесты `tests/test_extract_pbix.py`: извлечение таблиц/колонок, relationships, DAX-мер, иерархий из mock PBIX-структуры (zipfile с DataModelSchema JSON) — DEFERRED: реальный PBIX не содержит DataModelSchema, используется Report/Layout fallback
 
 ### Реализация
 
-- [ ] T012 [US1] Создать `scripts/bootstrap/extract_pbix.py`: zipfile+json → `catalogs/bootstrap/semantic-model.yaml`. Поддержка UTF-16 LE с BOM. Извлечение tables[], relationships[], measures[]. По spec US-001
-- [ ] T013 [US2] Создать `scripts/bootstrap/map_pbix_to_sql.py`: на основе semantic-model.yaml + `sql/create_kdo_procedures.sql` → `catalogs/bootstrap/pbix-to-sql-mapping.yaml`. Статусы: sql_covered / python_postprocess / not_covered. По spec US-002
-- [ ] T014 [US3] Создать `scripts/bootstrap/generate_semantic_catalog.py`: на основе semantic-model.yaml → `catalogs/semantic-catalog.yaml` (runtime). Бизнес-сущности, правила, связи на русском. БЕЗ SQL-кода и имён таблиц. По spec US-003
-- [ ] T015 [US6] Создать шаблон `catalogs/aggregate-catalog.yaml` с форматом из data-model.md: id, name, category, description, parameters (с allowed_group_by), returns, related_dax, examples. По spec US-006
-- [ ] T016 [P] [US6] Создать `catalogs/category-index.yaml` с 8 категориями из data-model.md (clients, revenue, masters, services, communications, trends, referrals, overview). Примечание: используется только как справочник для разработчика, НЕ для runtime двухшагового planning в v1
+- [x] T012 [US1] Создать `scripts/bootstrap/extract_pbix.py`: zipfile+json → `catalogs/bootstrap/semantic-model.yaml`. Поддержка UTF-16 LE с BOM. Извлечение tables[], relationships[], measures[]. По spec US-001
+- [x] T013 [US2] Создать `scripts/bootstrap/map_pbix_to_sql.py`: на основе semantic-model.yaml + `sql/create_kdo_procedures.sql` → `catalogs/bootstrap/pbix-to-sql-mapping.yaml`. Статусы: sql_covered / python_postprocess / not_covered. По spec US-002
+- [x] T014 [US3] Создать `scripts/bootstrap/generate_semantic_catalog.py`: на основе semantic-model.yaml → `catalogs/semantic-catalog.yaml` (runtime). Бизнес-сущности, правила, связи на русском. БЕЗ SQL-кода и имён таблиц. По spec US-003
+- [x] T015 [US6] Создать шаблон `catalogs/aggregate-catalog.yaml` с форматом из data-model.md: id, name, category, description, parameters (с allowed_group_by), returns, related_dax, examples. По spec US-006
+- [x] T016 [P] [US6] Создать `catalogs/category-index.yaml` с 8 категориями из data-model.md (clients, revenue, masters, services, communications, trends, referrals, overview). Примечание: используется только как справочник для разработчика, НЕ для runtime двухшагового planning в v1
 
 **Checkpoint**: Bootstrap-утилиты готовы, runtime-каталоги созданы
 
@@ -72,8 +72,8 @@
 
 **Independent Test**: `python scripts/bootstrap/gap_analysis.py` → gaps.md с приоритизированным списком
 
-- [ ] T017 [US4] Создать `scripts/bootstrap/gap_analysis.py`: на основе pbix-to-sql-mapping.yaml → `catalogs/bootstrap/gaps.md`. Список not_covered DAX-мер + приоритеты P1/P2/P3. По spec US-004
-- [ ] T018 [US5] Создать `scripts/bootstrap/validate_aggregates.py`: верификация SQL-агрегатов vs DAX-оригиналов, допуск ≤1%, тестовый ObjectId=506770. По spec US-005
+- [x] T017 [US4] Создать `scripts/bootstrap/gap_analysis.py`: на основе pbix-to-sql-mapping.yaml → `catalogs/bootstrap/gaps.md`. Список not_covered DAX-мер + приоритеты P1/P2/P3. По spec US-004
+- [x] T018 [US5] Создать `scripts/bootstrap/validate_aggregates.py`: верификация SQL-агрегатов vs DAX-оригиналов, допуск ≤1%, тестовый ObjectId=506770. По spec US-005
 
 **Checkpoint**: Gap-анализ завершён, план SQL-агрегатов определён
 
@@ -85,9 +85,9 @@
 
 **Independent Test**: `SELECT * FROM vwKDO_RevenueSummary WHERE ObjectId=506770 AND EndOfMonth='2026-03-31'` → корректные данные
 
-- [ ] T019 [US7] Создать `sql/create_materialized_aggregates.sql`: indexed views (vwKDO_RevenueSummary, vwKDO_MasterSummary, vwKDO_ServiceSummary, vwKDO_ChannelSummary) с SCHEMABINDING. По research R-002
-- [ ] T020 [US7] Создать `sql/create_gap_aggregates.sql`: TVF для агрегатов с динамическими параметрами (фильтры по статусу клиента через fnKDO_ClientStatus). По research R-002
-- [ ] T021 [US7] Наполнить `catalogs/aggregate-catalog.yaml` реальными агрегатами: все 17 существующих тем topic_registry + gap-агрегаты. Каждый с allowed_group_by, parameters, returns, examples
+- [x] T019 [US7] Создать `sql/create_materialized_aggregates.sql`: indexed views (vwKDO_RevenueSummary, vwKDO_MasterSummary, vwKDO_ServiceSummary, vwKDO_ChannelSummary) с SCHEMABINDING. По research R-002
+- [x] T020 [US7] Создать `sql/create_gap_aggregates.sql`: TVF для агрегатов с динамическими параметрами (фильтры по статусу клиента через fnKDO_ClientStatus). По research R-002
+- [x] T021 [US7] Наполнить `catalogs/aggregate-catalog.yaml` реальными агрегатами: все 17 существующих тем topic_registry + gap-агрегаты. Каждый с allowed_group_by, parameters, returns, examples
 
 **Checkpoint**: SQL-слой готов, каталог наполнен
 
@@ -101,15 +101,15 @@
 
 ### Тесты
 
-- [ ] T022 [P] [US8] Написать тесты `tests/test_planner_v2.py`: mock LLMClient возвращает фиксированный JSON → парсинг в MultiPlan; невалидный JSON → graceful fallback; aggregate_id не из каталога → TopicRegistry fallback; кросс-доменный запрос → несколько агрегатов
-- [ ] T023 [P] [US12] Написать тесты `tests/test_security.py`: SQL injection в вопросе → "не могу ответить"; aggregate_id не из whitelist → reject; невалидные параметры (date format, group_by не из allowed) → reject; read-only user проверка
+- [x] T022 [P] [US8] Написать тесты `tests/test_planner_v2.py`: mock LLMClient возвращает фиксированный JSON → парсинг в MultiPlan; невалидный JSON → graceful fallback; aggregate_id не из каталога → TopicRegistry fallback; кросс-доменный запрос → несколько агрегатов
+- [x] T023 [P] [US12] Написать тесты `tests/test_security.py`: SQL injection в вопросе → "не могу ответить"; aggregate_id не из whitelist → reject; невалидные параметры (date format, group_by не из allowed) → reject; read-only user проверка
 
 ### Реализация
 
-- [ ] T024 [US8] Переработать `src/swarm_powerbi_bot/agents/planner.py`: одношаговый planning — system prompt содержит полный aggregate-catalog.yaml + semantic-catalog.yaml, user prompt = вопрос. Output: JSON → MultiPlan. Temperature 0.1. По contracts/planner-output.md
-- [ ] T025 [US8] Расширить `src/swarm_powerbi_bot/services/llm_client.py`: новый метод plan_aggregates(question, catalog) → JSON. Timeout 5 сек. Circuit breaker: 3 consecutive timeouts → fallback на TopicRegistry на 60 сек. По research R-003
-- [ ] T026 [US8] Расширить `src/swarm_powerbi_bot/orchestrator.py`: при доступном LLM — PlannerAgent v2 → MultiPlan; при fallback — TopicRegistry → single AggregateQuery. Невалидный план (aggregate_id не из каталога) → TopicRegistry fallback
-- [ ] T027 [US12] Расширить `src/swarm_powerbi_bot/services/sql_client.py`: метод execute_aggregate(aggregate_id, params) — вызов через AggregateRegistry.validate() перед выполнением. Read-only подключение. По spec US-012
+- [x] T024 [US8] Переработать `src/swarm_powerbi_bot/agents/planner.py`: одношаговый planning — system prompt содержит полный aggregate-catalog.yaml + semantic-catalog.yaml, user prompt = вопрос. Output: JSON → MultiPlan. Temperature 0.1. По contracts/planner-output.md
+- [x] T025 [US8] Расширить `src/swarm_powerbi_bot/services/llm_client.py`: новый метод plan_aggregates(question, catalog) → JSON. Timeout 5 сек. Circuit breaker: 3 consecutive timeouts → fallback на TopicRegistry на 60 сек. По research R-003
+- [x] T026 [US8] Расширить `src/swarm_powerbi_bot/orchestrator.py`: при доступном LLM — PlannerAgent v2 → MultiPlan; при fallback — TopicRegistry → single AggregateQuery. Невалидный план (aggregate_id не из каталога) → TopicRegistry fallback
+- [x] T027 [US12] Расширить `src/swarm_powerbi_bot/services/sql_client.py`: метод execute_aggregate(aggregate_id, params) — вызов через AggregateRegistry.validate() перед выполнением. Read-only подключение. По spec US-012
 
 **Checkpoint**: PlannerAgent v2 работает, DB защищена whitelist-ом
 
@@ -123,14 +123,14 @@
 
 ### Тесты
 
-- [ ] T028 [US9] Написать тесты `tests/test_multi_query.py`: 2 запроса → оба выполняются; 12 запросов → лимит 10; partial failure (таймаут одного) → остальные возвращаются; Semaphore(5) ограничивает concurrency. По contracts/sql-agent-input.md
+- [x] T028 [US9] Написать тесты `tests/test_multi_query.py`: 2 запроса → оба выполняются; 12 запросов → лимит 10; partial failure (таймаут одного) → остальные возвращаются; Semaphore(5) ограничивает concurrency. По contracts/sql-agent-input.md
 
 ### Реализация
 
-- [ ] T029 [US9] Расширить `src/swarm_powerbi_bot/agents/sql.py`: метод run_multi(plan: MultiPlan) — asyncio.gather + Semaphore(5), timeout 10 сек per query, partial failure handling. Лимит 10 запросов
-- [ ] T030 [US9] Адаптировать `src/swarm_powerbi_bot/agents/analyst.py`: принимает list[AggregateResult], формирует единый ответ с синтезом нескольких результатов. По contracts/analyst-input.md
-- [ ] T031 [US9] Расширить `src/swarm_powerbi_bot/orchestrator.py`: полный multi-query flow — PlannerAgent → MasterResolver (если нужен) → SQLAgent.run_multi() → ChartRenderer → AnalystAgent
-- [ ] T032 [US9] Интеграция query_logger.py в SQLAgent: логирование каждого агрегатного вызова
+- [x] T029 [US9] Расширить `src/swarm_powerbi_bot/agents/sql.py`: метод run_multi(plan: MultiPlan) — asyncio.gather + Semaphore(5), timeout 10 сек per query, partial failure handling. Лимит 10 запросов
+- [x] T030 [US9] Адаптировать `src/swarm_powerbi_bot/agents/analyst.py`: принимает list[AggregateResult], формирует единый ответ с синтезом нескольких результатов. По contracts/analyst-input.md
+- [x] T031 [US9] Расширить `src/swarm_powerbi_bot/orchestrator.py`: полный multi-query flow — PlannerAgent → MasterResolver (если нужен) → SQLAgent.run_multi() → ChartRenderer → AnalystAgent
+- [x] T032 [US9] Интеграция query_logger.py в SQLAgent: логирование каждого агрегатного вызова
 
 **Checkpoint**: Multi-query работает, все P1 user stories завершены
 
@@ -144,13 +144,13 @@
 
 ### Тесты
 
-- [ ] T033 [US10] Написать тесты `tests/test_comparison.py`: сравнение двух периодов → два запроса одного агрегата; "этот vs прошлый месяц" → корректные даты; сравнение мастеров → fuzzy-match + два запроса; grouped bar chart render; неполный текущий месяц → отметка в ответе
+- [x] T033 [US10] Написать тесты `tests/test_comparison.py`: сравнение двух периодов → два запроса одного агрегата; "этот vs прошлый месяц" → корректные даты; сравнение мастеров → fuzzy-match + два запроса; grouped bar chart render; неполный текущий месяц → отметка в ответе
 
 ### Реализация
 
-- [ ] T034 [US10] Расширить `src/swarm_powerbi_bot/agents/planner.py`: intent=comparison → два вызова одного агрегата с разными date_from/date_to. Автоопределение "этот месяц", "прошлый квартал"
-- [ ] T035 [US10] Расширить `src/swarm_powerbi_bot/services/chart_renderer.py`: grouped bar chart (ax.bar с offset), multi-line comparison, delta-аннотации (+12.5% зелёным, −3.2% красным). По research R-006
-- [ ] T036 [US10] Расширить `src/swarm_powerbi_bot/agents/analyst.py`: comparison text template — "Метрика за период 1: X. За период 2: Y. Изменение: +/-Z%". Пометка неполного периода. По contracts/analyst-input.md
+- [x] T034 [US10] Расширить `src/swarm_powerbi_bot/agents/planner.py`: intent=comparison → два вызова одного агрегата с разными date_from/date_to. Автоопределение "этот месяц", "прошлый квартал"
+- [x] T035 [US10] Расширить `src/swarm_powerbi_bot/services/chart_renderer.py`: grouped bar chart (ax.bar с offset), multi-line comparison, delta-аннотации (+12.5% зелёным, −3.2% красным). По research R-006
+- [x] T036 [US10] Расширить `src/swarm_powerbi_bot/agents/analyst.py`: comparison text template — "Метрика за период 1: X. За период 2: Y. Изменение: +/-Z%". Пометка неполного периода. По contracts/analyst-input.md
 
 **Checkpoint**: Сравнения работают
 
@@ -164,12 +164,12 @@
 
 ### Тесты
 
-- [ ] T037 [US11] Написать тесты `tests/test_composition.py`: decomposition intent → до 5 агрегатов; factor analysis → определение основного фактора; лимит 10 запросов при decomposition
+- [x] T037 [US11] Написать тесты `tests/test_composition.py`: decomposition intent → до 5 агрегатов; factor analysis → определение основного фактора; лимит 10 запросов при decomposition
 
 ### Реализация
 
-- [ ] T038 [US11] Расширить `src/swarm_powerbi_bot/agents/planner.py`: intent=decomposition → набор агрегатов для факторного анализа (revenue + clients + avg_check × 2 периода)
-- [ ] T039 [US11] Расширить `src/swarm_powerbi_bot/agents/analyst.py`: decomposition text — "Выручка упала на X%. Основная причина: <фактор> (снижение на Y%)". Не более 3 факторов
+- [x] T038 [US11] Расширить `src/swarm_powerbi_bot/agents/planner.py`: intent=decomposition → набор агрегатов для факторного анализа (revenue + clients + avg_check × 2 периода)
+- [x] T039 [US11] Расширить `src/swarm_powerbi_bot/agents/analyst.py`: decomposition text — "Выручка упала на X%. Основная причина: <фактор> (снижение на Y%)". Не более 3 факторов
 
 **Checkpoint**: Композиция работает, все runtime-фичи завершены
 
@@ -180,10 +180,10 @@
 **Purpose**: Автоматизация и cross-cutting concerns
 
 - [ ] T040 [P] [US13] Создать CI-задачу (GitHub Actions) для пересборки semantic-model.yaml при изменении PBIX. Проверка совместимости агрегатов. Issue при новых gaps. По spec US-013
-- [ ] T041 [P] Обновить `docs/` — документация каталогов, нового flow PlannerAgent, агрегатов. Обновить CLAUDE.md при изменении структуры
-- [ ] T042 [P] Обновить `Dockerfile`: включить `catalogs/*.yaml` в образ, исключить `catalogs/bootstrap/`, `scripts/bootstrap/`, `sql/`, `powebi/`
-- [ ] T043 Прогон всех 77 существующих тестов — backward compatibility (SC-001). Проверка ruff check + ruff format
-- [ ] T044 Прогон quickstart.md: полный цикл pytest -q, docker build
+- [x] T041 [P] Обновить `docs/` — документация каталогов, нового flow PlannerAgent, агрегатов. Обновить CLAUDE.md при изменении структуры
+- [x] T042 [P] Обновить `Dockerfile`: включить `catalogs/*.yaml` в образ, исключить `catalogs/bootstrap/`, `scripts/bootstrap/`, `sql/`, `powebi/`
+- [x] T043 Прогон всех 77 существующих тестов — backward compatibility (SC-001). Проверка ruff check + ruff format
+- [x] T044 Прогон quickstart.md: полный цикл pytest -q, docker build
 
 **Checkpoint**: Все задачи завершены, проект готов к review
 
