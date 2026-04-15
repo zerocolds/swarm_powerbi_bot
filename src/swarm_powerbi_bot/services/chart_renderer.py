@@ -402,3 +402,139 @@ def _fig_to_bytes(fig) -> bytes:
     plt.close(fig)
     buf.seek(0)
     return buf.read()
+
+
+def render_comparison(
+    topic: str,
+    results_a: list[dict[str, Any]],
+    results_b: list[dict[str, Any]],
+    label_a: str,
+    label_b: str,
+) -> bytes:
+    """Рендерит сгруппированный столбчатый график для сравнения двух периодов.
+
+    Args:
+        topic: тема данных (для заголовка)
+        results_a: строки первого набора данных
+        results_b: строки второго набора данных
+        label_a: подпись первого периода (например, "этот месяц")
+        label_b: подпись второго периода (например, "прошлый месяц")
+
+    Returns:
+        PNG bytes
+    """
+    if not HAS_MPL:
+        raise RuntimeError("matplotlib не установлен")
+
+    # Определяем числовые метрики для сравнения
+    skip = {"ObjectId", "MasterId", "ClientId", "Id", "CRMId", "Top"}
+
+    # Аггрегируем значения по метрикам (суммируем если несколько строк)
+    def _aggregate_rows(rows: list[dict[str, Any]]) -> dict[str, float]:
+        totals: dict[str, float] = {}
+        for row in rows:
+            for k, v in row.items():
+                if isinstance(v, (int, float)) and k not in skip:
+                    totals[k] = totals.get(k, 0.0) + float(v)
+        return totals
+
+    agg_a = _aggregate_rows(results_a) if results_a else {}
+    agg_b = _aggregate_rows(results_b) if results_b else {}
+
+    # Объединяем ключи из обоих наборов данных
+    all_keys = list(dict.fromkeys(list(agg_a.keys()) + list(agg_b.keys())))
+    if not all_keys:
+        # Нет числовых данных — возвращаем пустой график
+        fig, ax = plt.subplots(figsize=(6, 3))
+        ax.text(0.5, 0.5, "Нет числовых данных для сравнения",
+                ha="center", va="center", fontsize=12, color="gray")
+        ax.axis("off")
+        ax.set_title(f"Сравнение: {label_a} vs {label_b}", fontsize=11)
+        fig.tight_layout()
+        return _fig_to_bytes(fig)
+
+    # Ограничиваем количество метрик для читаемости
+    all_keys = all_keys[:8]
+
+    values_a = [agg_a.get(k, 0.0) for k in all_keys]
+    values_b = [agg_b.get(k, 0.0) for k in all_keys]
+
+    # Вычисляем дельты
+    deltas: list[float | None] = []
+    for va, vb in zip(values_a, values_b):
+        if vb != 0:
+            deltas.append((va - vb) / abs(vb) * 100)
+        elif va != 0:
+            deltas.append(None)  # нельзя делить на 0
+        else:
+            deltas.append(0.0)
+
+    x = list(range(len(all_keys)))
+    width = 0.35
+
+    fig, ax = plt.subplots(figsize=(max(8, len(all_keys) * 1.5), 6))
+
+    bars_a = ax.bar(
+        [xi - width / 2 for xi in x],
+        values_a,
+        width=width,
+        label=label_a,
+        color="#4472C4",
+    )
+    bars_b = ax.bar(
+        [xi + width / 2 for xi in x],
+        values_b,
+        width=width,
+        label=label_b,
+        color="#ED7D31",
+    )
+
+    # Аннотации значений на столбцах
+    for bar, v in zip(bars_a, values_a):
+        if v:
+            ax.text(
+                bar.get_x() + bar.get_width() / 2,
+                bar.get_height(),
+                _format_number(v),
+                ha="center", va="bottom", fontsize=7, color="#4472C4",
+            )
+    for bar, v in zip(bars_b, values_b):
+        if v:
+            ax.text(
+                bar.get_x() + bar.get_width() / 2,
+                bar.get_height(),
+                _format_number(v),
+                ha="center", va="bottom", fontsize=7, color="#ED7D31",
+            )
+
+    # Дельта-аннотации над парой столбцов
+    for i, (va, vb, delta) in enumerate(zip(values_a, values_b, deltas)):
+        if delta is None:
+            continue
+        top_val = max(va, vb)
+        # Позиционируем чуть выше самого высокого столбца пары
+        y_pos = top_val * 1.03 if top_val > 0 else 0.03
+        if delta > 0:
+            delta_text = f"+{delta:.1f}%"
+            color = "green"
+        elif delta < 0:
+            delta_text = f"\u2212{abs(delta):.1f}%"
+            color = "red"
+        else:
+            delta_text = "0%"
+            color = "gray"
+        ax.text(
+            i, y_pos, delta_text,
+            ha="center", va="bottom", fontsize=8,
+            color=color, fontweight="bold",
+        )
+
+    ax.set_xticks(x)
+    ax.set_xticklabels([k[:20] for k in all_keys], rotation=30, ha="right", fontsize=9)
+    ax.legend(fontsize=9)
+    ax.set_title(f"Сравнение: {label_a} vs {label_b}", fontsize=11)
+    ax.yaxis.set_major_formatter(ticker.FuncFormatter(lambda val, _: _format_number(val)))
+    ax.set_ylabel("Значение")
+
+    fig.tight_layout()
+    return _fig_to_bytes(fig)

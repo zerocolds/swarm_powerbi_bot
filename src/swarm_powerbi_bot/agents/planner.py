@@ -1,9 +1,10 @@
 from __future__ import annotations
 
+import calendar
 import logging
 import os
 import re
-from datetime import date
+from datetime import date, timedelta
 
 from .base import Agent
 from ..models import AggregateQuery, MultiPlan, Plan, QueryParams, UserQuestion
@@ -80,6 +81,61 @@ _V2_TO_V1: dict[str, str] = {
 }
 
 
+def _resolve_period(hint: str) -> tuple[str, str]:
+    """Преобразует словесный период в пару (date_from, date_to) в формате ISO.
+
+    Поддерживаемые значения hint:
+    - "этот месяц" / "текущий месяц" → 1-й день текущего месяца .. сегодня
+    - "прошлый месяц" / "предыдущий месяц" → полный предыдущий месяц
+    - "прошлый квартал" / "предыдущий квартал" → полный предыдущий квартал
+    - "эта неделя" / "текущая неделя" → понедельник текущей недели .. сегодня
+    - "прошлая неделя" / "предыдущая неделя" → полная предыдущая неделя (пн-вс)
+    - Всё остальное → текущий месяц (как "этот месяц")
+    """
+    today = date.today()
+    hint_lower = hint.lower().strip()
+
+    if hint_lower in ("этот месяц", "текущий месяц"):
+        date_from = today.replace(day=1)
+        date_to = today
+        return date_from.isoformat(), date_to.isoformat()
+
+    if hint_lower in ("прошлый месяц", "предыдущий месяц"):
+        first_of_current = today.replace(day=1)
+        last_of_prev = first_of_current - timedelta(days=1)
+        date_from = last_of_prev.replace(day=1)
+        date_to = last_of_prev
+        return date_from.isoformat(), date_to.isoformat()
+
+    if hint_lower in ("прошлый квартал", "предыдущий квартал"):
+        current_quarter = (today.month - 1) // 3 + 1
+        if current_quarter == 1:
+            # Q4 прошлого года
+            date_from = date(today.year - 1, 10, 1)
+            date_to = date(today.year - 1, 12, 31)
+        else:
+            prev_q_start_month = (current_quarter - 2) * 3 + 1
+            date_from = date(today.year, prev_q_start_month, 1)
+            last_month = prev_q_start_month + 2
+            last_day = calendar.monthrange(today.year, last_month)[1]
+            date_to = date(today.year, last_month, last_day)
+        return date_from.isoformat(), date_to.isoformat()
+
+    if hint_lower in ("эта неделя", "текущая неделя"):
+        monday = today - timedelta(days=today.weekday())
+        return monday.isoformat(), today.isoformat()
+
+    if hint_lower in ("прошлая неделя", "предыдущая неделя"):
+        monday_this = today - timedelta(days=today.weekday())
+        monday_prev = monday_this - timedelta(weeks=1)
+        sunday_prev = monday_this - timedelta(days=1)
+        return monday_prev.isoformat(), sunday_prev.isoformat()
+
+    # По умолчанию — текущий месяц
+    date_from = today.replace(day=1)
+    return date_from.isoformat(), today.isoformat()
+
+
 class PlannerAgent(Agent):
     name = "planner"
 
@@ -149,6 +205,17 @@ class PlannerAgent(Agent):
             logger.warning("plan_aggregates: 'queries' is missing or empty")
             return None
 
+        intent = raw_dict.get("intent", "single")
+
+        # T037/T038: для декомпозиции допускаем до 5 запросов; глобальный max — 10
+        _MAX_QUERIES_DECOMPOSITION = 5
+        _MAX_QUERIES_DEFAULT = 10
+        max_queries = (
+            _MAX_QUERIES_DECOMPOSITION if intent == "decomposition"
+            else _MAX_QUERIES_DEFAULT
+        )
+        queries_raw = queries_raw[:max_queries]
+
         # Валидируем каждый aggregate_id против whitelist
         queries: list[AggregateQuery] = []
         for q in queries_raw:
@@ -169,7 +236,23 @@ class PlannerAgent(Agent):
             return None
 
         topic = raw_dict.get("topic", "statistics")
-        intent = raw_dict.get("intent", "single")
+        # intent was already extracted above for query limit calculation
+
+        # T034: для intent="comparison" убеждаемся что есть ровно 2 запроса
+        # и разрешаем period_hint → конкретные даты
+        if intent == "comparison":
+            if len(queries) < 2:
+                logger.warning(
+                    "plan_aggregates: comparison intent but only %d queries — falling back",
+                    len(queries),
+                )
+                return None
+            for q_obj in queries:
+                period_hint = q_obj.params.get("period_hint", "")
+                if period_hint and "date_from" not in q_obj.params:
+                    resolved_from, resolved_to = _resolve_period(period_hint)
+                    q_obj.params["date_from"] = resolved_from
+                    q_obj.params["date_to"] = resolved_to
 
         return MultiPlan(
             objective=question.text,

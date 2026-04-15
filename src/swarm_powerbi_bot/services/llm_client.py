@@ -153,7 +153,19 @@ class LLMClient:
             "Выбери подходящие агрегаты из каталога и верни JSON:\n"
             '{"intent": "single|comparison|decomposition|trend|ranking", '
             '"queries": [{"aggregate_id": "...", "params": {...}, "label": "..."}], '
-            '"topic": "statistics", "render_needed": true}\n'
+            '"topic": "statistics", "render_needed": true}\n\n'
+            "ПРАВИЛА DECOMPOSITION:\n"
+            "Если вопрос содержит «почему», «из-за чего», «что повлияло», «причина» "
+            "или аналогичные запросы на факторный анализ — используй intent=decomposition.\n"
+            "При decomposition запроси ВСЕ связанные метрики за ДВА периода:\n"
+            "Пример: «почему упала выручка?» → 5 запросов:\n"
+            "  1. revenue_summary за текущий период\n"
+            "  2. revenue_summary за предыдущий период\n"
+            "  3. client_count за текущий период\n"
+            "  4. client_count за предыдущий период\n"
+            "  5. avg_check (один период достаточно)\n"
+            "Максимум 5 запросов при decomposition. "
+            "Ставь понятный label: «Выручка (апрель)», «Клиенты (март)» и т.д.\n\n"
             "ВАЖНО: используй только aggregate_id из каталога выше. "
             "Ответь ТОЛЬКО JSON, без пояснений."
         )

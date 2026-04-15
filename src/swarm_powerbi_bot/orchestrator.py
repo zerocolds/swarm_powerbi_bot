@@ -2,10 +2,15 @@ from __future__ import annotations
 
 import asyncio
 import logging
+from typing import TYPE_CHECKING
 
 from .agents import AnalystAgent, PlannerAgent, PowerBIModelAgent, RenderAgent, SQLAgent
-from .models import ModelInsight, MultiPlan, SQLInsight, SwarmResponse, UserQuestion
+from .models import AggregateResult, ModelInsight, MultiPlan, SQLInsight, SwarmResponse, UserQuestion
 from .services.chart_renderer import render_chart
+
+if TYPE_CHECKING:
+    from .services.aggregate_registry import AggregateRegistry
+    from .services.query_logger import QueryLogger
 
 logger = logging.getLogger(__name__)
 
@@ -18,12 +23,16 @@ class SwarmOrchestrator:
         powerbi_agent: PowerBIModelAgent,
         render_agent: RenderAgent,
         analyst_agent: AnalystAgent,
+        aggregate_registry: "AggregateRegistry | None" = None,
+        query_logger: "QueryLogger | None" = None,
     ):
         self.planner = planner
         self.sql_agent = sql_agent
         self.powerbi_agent = powerbi_agent
         self.render_agent = render_agent
         self.analyst_agent = analyst_agent
+        self.aggregate_registry = aggregate_registry
+        self.query_logger = query_logger
 
     async def handle_question(self, question: UserQuestion) -> SwarmResponse:
         diagnostics: dict[str, str] = {}
@@ -51,9 +60,28 @@ class SwarmOrchestrator:
 
         plan = await self.planner.run(question)
 
-        # Если есть MultiPlan — передаём в SQLAgent первый запрос
-        # (multi-query execution будет в Phase 7)
-        if multi_plan and multi_plan.queries:
+        # T031: Если есть MultiPlan и aggregate_registry — выполняем все запросы через SQLAgent.run_multi()
+        multi_results: list[AggregateResult] = []
+        if multi_plan and multi_plan.queries and self.aggregate_registry is not None:
+            diagnostics["multi_plan_intent"] = multi_plan.intent
+            diagnostics["multi_plan_queries"] = str(len(multi_plan.queries))
+            try:
+                multi_results = await self.sql_agent.run_multi(
+                    multi_plan,
+                    self.aggregate_registry,
+                    logger_=self.query_logger,
+                )
+                ok_count = sum(1 for r in multi_results if r.status == "ok")
+                diagnostics["multi_plan_ok"] = str(ok_count)
+                logger.info(
+                    "[MULTI_SQL] queries=%d ok=%d",
+                    len(multi_results), ok_count,
+                )
+            except Exception as exc:
+                logger.error("[MULTI_SQL] ERROR: %s", exc)
+                diagnostics["multi_sql_error"] = str(exc)
+        elif multi_plan and multi_plan.queries:
+            # Нет registry — логируем только первый агрегат для диагностики
             first_query = multi_plan.queries[0]
             diagnostics["multi_plan_aggregate"] = first_query.aggregate_id
             diagnostics["multi_plan_intent"] = multi_plan.intent
