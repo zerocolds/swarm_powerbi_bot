@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import asyncio
 import json
 import logging
 import re
@@ -110,6 +111,7 @@ class LLMClient:
         # Circuit breaker state для plan_aggregates
         self._cb_failures: int = 0
         self._cb_open_until: float = 0.0
+        self._cb_lock: asyncio.Lock = asyncio.Lock()
 
     async def plan_query(
         self, question: str, today: str, last_topic: str = ""
@@ -154,14 +156,15 @@ class LLMClient:
         if not self.settings.ollama_api_key:
             return None
 
-        # Проверяем circuit breaker
-        now = time.monotonic()
-        if self._cb_open_until > now:
-            logger.warning(
-                "LLM circuit breaker open: %.0fs remaining",
-                self._cb_open_until - now,
-            )
-            return None
+        # Проверяем circuit breaker (под локом — потокобезопасно)
+        async with self._cb_lock:
+            now = time.monotonic()
+            if self._cb_open_until > now:
+                logger.warning(
+                    "LLM circuit breaker open: %.0fs remaining",
+                    self._cb_open_until - now,
+                )
+                return None
 
         system_prompt = (
             "Ты — планировщик аналитических запросов. "
@@ -213,47 +216,38 @@ class LLMClient:
                 data = resp.json()
         except Exception as exc:
             logger.error("plan_aggregates request failed: %s", exc)
-            self._cb_failures += 1
-            if self._cb_failures >= self.settings.llm_circuit_breaker_threshold:
-                cooldown = self.settings.llm_circuit_breaker_cooldown
-                self._cb_open_until = time.monotonic() + cooldown
-                logger.warning(
-                    "LLM circuit breaker opened for %ds after %d consecutive failures",
-                    cooldown,
-                    self._cb_failures,
-                )
+            await self._record_cb_failure("request error")
             return None
 
         raw = self._extract_content(data)
         if not raw:
             logger.warning("plan_aggregates: LLM returned empty content")
-            self._cb_failures += 1
-            if self._cb_failures >= self.settings.llm_circuit_breaker_threshold:
-                cooldown = self.settings.llm_circuit_breaker_cooldown
-                self._cb_open_until = time.monotonic() + cooldown
-                logger.warning(
-                    "LLM circuit breaker opened for %ds after %d consecutive failures (empty content)",
-                    cooldown,
-                    self._cb_failures,
-                )
+            await self._record_cb_failure("empty content")
             return None
 
         result = self._parse_multiplan_json(raw)
         if result is None:
+            await self._record_cb_failure("parse error")
+            return None
+
+        # Успех — сбрасываем счётчик ошибок (под локом)
+        async with self._cb_lock:
+            self._cb_failures = 0
+        return result
+
+    async def _record_cb_failure(self, reason: str) -> None:
+        """Инкрементирует счётчик ошибок CB под локом, открывает CB при превышении порога."""
+        async with self._cb_lock:
             self._cb_failures += 1
             if self._cb_failures >= self.settings.llm_circuit_breaker_threshold:
                 cooldown = self.settings.llm_circuit_breaker_cooldown
                 self._cb_open_until = time.monotonic() + cooldown
                 logger.warning(
-                    "LLM circuit breaker opened for %ds after %d consecutive failures (parse error)",
+                    "LLM circuit breaker opened for %ds after %d consecutive failures (%s)",
                     cooldown,
                     self._cb_failures,
+                    reason,
                 )
-            return None
-
-        # Успех — сбрасываем счётчик ошибок
-        self._cb_failures = 0
-        return result
 
     def _parse_multiplan_json(self, raw: str) -> dict[str, Any] | None:
         """Извлекает JSON MultiPlan из ответа LLM (поддерживает вложенные объекты)."""
@@ -348,12 +342,13 @@ class LLMClient:
         }
 
         try:
-            async with httpx.AsyncClient(timeout=60.0) as client:
+            timeout = min(float(self.settings.llm_plan_timeout) * 3, 15.0)
+            async with httpx.AsyncClient(timeout=timeout) as client:
                 resp = await client.post(url, headers=headers, json=payload)
                 resp.raise_for_status()
                 data = resp.json()
         except Exception as exc:
-            logger.error("LLM request failed: %s", exc)
+            logger.error("LLM synthesize request failed: %s", exc)
             return fallback_text
 
         text = self._extract_content(data)

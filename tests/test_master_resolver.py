@@ -3,6 +3,7 @@ from __future__ import annotations
 
 from unittest.mock import AsyncMock, MagicMock
 
+import pytest
 
 from swarm_powerbi_bot.services.master_resolver import MasterResolver
 
@@ -26,6 +27,7 @@ MASTERS = [
 
 # ── tests ─────────────────────────────────────────────────────────────────────
 
+@pytest.mark.asyncio
 class TestMasterResolver:
     async def test_fuzzy_match_returns_similar_name(self):
         """'Ана' should fuzzy-match 'Анна' (short name → threshold 0.6)."""

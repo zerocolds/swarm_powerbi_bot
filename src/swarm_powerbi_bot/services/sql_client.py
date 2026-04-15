@@ -319,11 +319,11 @@ class SQLClient:
             return [], aggregate_id, {"DateFrom": d_from, "DateTo": d_to}
 
         obj_id = params.get("object_id")
-        if not obj_id and self.settings.default_object_id:
+        if obj_id is None and self.settings.default_object_id:
             obj_id = self.settings.default_object_id
 
         group_by = params.get("group_by", "")
-        if not obj_id and group_by != "salon":
+        if obj_id is None and group_by != "salon":
             logger.warning(
                 "execute_aggregate: no ObjectId for %s — returning empty", aggregate_id
             )
@@ -430,11 +430,11 @@ class SQLClient:
 
         # ObjectId: из QueryParams, или дефолтный
         obj_id = qp.object_id
-        if not obj_id and self.settings.default_object_id:
+        if obj_id is None and self.settings.default_object_id:
             obj_id = self.settings.default_object_id
 
         # GUARD: без ObjectId большинство процедур делают full scan
-        if not obj_id:
+        if obj_id is None:
             # salon допускает без ObjectId (cross-salon comparison)
             if qp.group_by != "salon":
                 logger.warning(
@@ -545,11 +545,11 @@ class SQLClient:
 
         # Извлекаем ObjectId и MasterId из вопроса (или используем переданный/дефолтный)
         obj_id = object_id or _extract_object_id(question)
-        if not obj_id and self.settings.default_object_id:
+        if obj_id is None and self.settings.default_object_id:
             obj_id = self.settings.default_object_id
 
         # GUARD: без ObjectId — full scan на миллионы строк
-        if not obj_id:
+        if obj_id is None:
             logger.warning(
                 "No ObjectId for %s — returning empty to protect DB", procedure
             )

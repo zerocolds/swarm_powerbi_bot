@@ -13,7 +13,7 @@ from .models import (
     SwarmResponse,
     UserQuestion,
 )
-from .services.chart_renderer import render_chart
+from .services.chart_renderer import render_chart, render_comparison
 
 if TYPE_CHECKING:
     from .services.aggregate_registry import AggregateRegistry
@@ -131,12 +131,39 @@ class SwarmOrchestrator:
 
         sql_insight, pbi_insight = await asyncio.gather(sql_task, pbi_task)
 
-        # Генерируем график из SQL-данных (matplotlib)
+        # Генерируем график
         image = None
         mime_type = None
         has_chart = False
 
-        if sql_insight.rows:
+        # Comparison chart из multi_results (два периода → grouped bar)
+        if (
+            multi_results
+            and multi_plan
+            and multi_plan.intent == "comparison"
+            and len(multi_results) >= 2
+        ):
+            ok_results = [r for r in multi_results if r.status == "ok" and r.rows]
+            if len(ok_results) >= 2:
+                try:
+                    chart_bytes = await asyncio.to_thread(
+                        render_comparison,
+                        multi_plan.topic,
+                        ok_results[0].rows,
+                        ok_results[1].rows,
+                        ok_results[0].label or ok_results[0].aggregate_id,
+                        ok_results[1].label or ok_results[1].aggregate_id,
+                    )
+                    if chart_bytes:
+                        image = chart_bytes
+                        mime_type = "image/png"
+                        has_chart = True
+                        diagnostics["chart_type"] = "matplotlib_comparison"
+                except Exception as exc:
+                    diagnostics["chart_error"] = str(exc)
+
+        # Обычный график из legacy SQL-данных (single query)
+        if image is None and sql_insight.rows:
             try:
                 chart_params = dict(sql_insight.params)
                 chart_params["topic"] = plan.topic

@@ -161,29 +161,35 @@ class TestExpectedColumns:
         assert self.MASTERS_COLS.issubset(actual)
 
 
-# ── Адекватность числовых значений ───────────────────────────
+# ── Адекватность данных и моделей ───────────────────────────
 
 class TestDataSanity:
-    """Проверяем что baseline данные содержат адекватные числа."""
+    """Проверяем инварианты моделей данных и результатов."""
 
-    def test_outflow_days_positive(self):
-        """DaysSinceLastVisit > 0 для оттока."""
-        # Baseline: 259-285 дней
-        assert 259 > 0
+    def test_aggregate_result_ok_clears_error(self):
+        """AggregateResult с status='ok' не может иметь error."""
+        from swarm_powerbi_bot.models import AggregateResult
 
-    def test_outflow_total_spent_positive(self):
-        """TotalSpent > 0 для оттока."""
-        # Baseline: 3658 - 8112
-        min_spent, max_spent = 3658, 8112
-        assert min_spent > 0
-        assert max_spent > min_spent
+        result = AggregateResult(aggregate_id="test", status="ok", error="stale")
+        assert result.error is None
 
-    def test_statistics_has_one_row(self):
-        """Statistics — сводка, должна быть 1 строка."""
-        # Baseline: 1 row
-        assert 1 == 1
+    def test_aggregate_result_error_preserves_message(self):
+        """AggregateResult с status='error' сохраняет error message."""
+        from swarm_powerbi_bot.models import AggregateResult
 
-    def test_trend_has_multiple_weeks(self):
-        """Trend за 90 дней — несколько недель."""
-        # Baseline: 17 rows
-        assert 17 > 4
+        result = AggregateResult(aggregate_id="test", status="error", error="timeout")
+        assert result.error == "timeout"
+
+    def test_aggregate_result_row_count_synced(self):
+        """row_count автоматически считается из rows если передан 0."""
+        from swarm_powerbi_bot.models import AggregateResult
+
+        rows = [{"Revenue": 100}, {"Revenue": 200}]
+        result = AggregateResult(aggregate_id="test", rows=rows)
+        assert result.row_count == 2
+
+    def test_default_date_params_30_days(self):
+        """Без указания периода — ровно 30 дней."""
+        params = extract_date_params("покажи KPI")
+        delta = (params["DateTo"] - params["DateFrom"]).days
+        assert delta == 30

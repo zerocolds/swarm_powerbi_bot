@@ -29,7 +29,11 @@ def build_orchestrator(settings: Settings) -> SwarmOrchestrator:
         except Exception as exc:
             logger.error("Failed to load AggregateRegistry from %s: %s", catalog_path, exc)
 
-    planner = PlannerAgent(llm_client=llm_client, aggregate_registry=aggregate_registry)
+    planner = PlannerAgent(
+        llm_client=llm_client,
+        aggregate_registry=aggregate_registry,
+        semantic_catalog_path=settings.semantic_catalog_path,
+    )
     sql_agent = SQLAgent(SQLClient(settings))
     powerbi_agent = PowerBIModelAgent(PowerBIModelClient(settings))
     render_agent = RenderAgent(PowerBIRenderClient(settings), settings)

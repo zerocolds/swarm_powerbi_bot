@@ -159,9 +159,27 @@ class PlannerAgent(Agent):
         self,
         llm_client: LLMClient | None = None,
         aggregate_registry: AggregateRegistry | None = None,
+        semantic_catalog_path: str = "",
     ):
         self.llm_client = llm_client
         self.aggregate_registry = aggregate_registry
+        self._semantic_prompt = self._load_semantic_catalog(semantic_catalog_path)
+
+    @staticmethod
+    def _load_semantic_catalog(path: str) -> str:
+        """Загружает semantic-catalog.yaml как текст для LLM промпта."""
+        if not path:
+            return "(нет семантического каталога)"
+        try:
+            with open(path, encoding="utf-8") as f:
+                content = f.read().strip()
+            if content:
+                return content
+        except FileNotFoundError:
+            logger.info("Semantic catalog not found at %s — using placeholder", path)
+        except Exception as exc:
+            logger.warning("Failed to load semantic catalog from %s: %s", path, exc)
+        return "(нет семантического каталога)"
 
     def multi_plan_to_plan(self, multi_plan: MultiPlan, question: UserQuestion) -> Plan:
         """Конвертирует MultiPlan в legacy Plan для обратной совместимости."""
@@ -227,7 +245,7 @@ class PlannerAgent(Agent):
                 f"- {agg_id}: {name}. {desc} (allowed_group_by: {allowed})"
             )
         catalog_prompt = "\n".join(catalog_lines) if catalog_lines else "(пусто)"
-        semantic_prompt = "(нет семантического каталога)"
+        semantic_prompt = self._semantic_prompt
 
         raw_dict = await self.llm_client.plan_aggregates(  # type: ignore[union-attr]
             question=question.text,
