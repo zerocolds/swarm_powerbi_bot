@@ -13,9 +13,12 @@ from swarm_powerbi_bot.orchestrator import SwarmOrchestrator
 
 pytestmark = pytest.mark.integration
 
+# Общая константа с conftest.py (не импортируем — pytest резолвит conftest по иерархии)
+_TEST_OBJECT_ID = 506770
+
 
 def _question(text: str, **kwargs) -> UserQuestion:
-    defaults = {"user_id": "e2e-test", "object_id": 506770}
+    defaults = {"user_id": "e2e-test", "object_id": _TEST_OBJECT_ID}
     defaults.update(kwargs)
     return UserQuestion(text=text, **defaults)
 

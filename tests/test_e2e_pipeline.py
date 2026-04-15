@@ -24,7 +24,7 @@ from conftest import build_mock_orchestrator_multi
 # ── Mock агенты с реалистичными данными ──────────────────────
 
 class MockSQL:
-    """Возвращает данные как настоящие хранимки — все 10 тем из checklist."""
+    """Возвращает данные как настоящие хранимки — 11 тем (10 из checklist + leaving)."""
     MOCK_DATA = {
         "outflow": [
             {"ClientName": "Козлова Р.", "Phone": "79001111111", "TotalSpent": 8112.6,
@@ -216,13 +216,13 @@ class TestMultiPlanPipeline:
         assert "Сравнение" in result.answer
         assert result.confidence in ("low", "medium", "high")
 
-    def test_composition_pipeline(self):
-        """MultiPlan decomposition → SwarmResponse с multi_results."""
+    def test_comparison_pipeline_second_question(self):
+        """Второй comparison-вопрос через MultiPlan → корректный ответ."""
         orch = build_mock_orchestrator_multi(intent="comparison", topic="clients_outflow")
         result = asyncio.run(orch.handle_question(
-            UserQuestion(user_id="1", text="разложи отток по факторам"),
+            UserQuestion(user_id="1", text="сравни отток по салонам"),
         ))
-        assert result.answer is not None
+        assert result.answer
         assert len(result.answer) > 0
 
 
@@ -295,15 +295,17 @@ class TestNegativeScenarios:
         result = asyncio.run(orch.handle_question(
             UserQuestion(user_id="1", text="'; DROP TABLE clients; --"),
         ))
-        assert result.answer is not None
+        assert result.answer
+        assert "sql_error" not in result.diagnostics
 
     def test_negative_off_topic(self):
-        """Вопрос не по теме → всё равно ответ (fallback на statistics)."""
+        """Вопрос не по теме → всё равно ответ (fallback topic)."""
         orch = _build_orchestrator()
         result = asyncio.run(orch.handle_question(
             UserQuestion(user_id="1", text="какая погода в Москве?"),
         ))
-        assert result.answer is not None
+        assert result.answer
+        assert result.topic  # непустой topic (fallback)
 
     def test_negative_empty_period(self):
         """Пустой текст запроса → не падаем."""
@@ -311,7 +313,8 @@ class TestNegativeScenarios:
         result = asyncio.run(orch.handle_question(
             UserQuestion(user_id="1", text=""),
         ))
-        assert result.answer is not None
+        assert result.answer
+        assert result.topic
 
     def test_negative_long_text(self):
         """Очень длинный текст → не падаем."""
@@ -320,7 +323,8 @@ class TestNegativeScenarios:
         result = asyncio.run(orch.handle_question(
             UserQuestion(user_id="1", text=long_text),
         ))
-        assert result.answer is not None
+        assert result.answer
+        assert result.topic == "outflow"
 
 
 # ── T008: Smoke / fallback quality ──────────────────────────────
@@ -336,21 +340,21 @@ class TestFallbackQuality:
         for field in raw_fields:
             assert field not in result.answer, f"Сырое поле {field} в ответе"
 
-    def test_statistics_fallback_russian_labels(self):
-        """Fallback статистики использует русские лейблы для метрик."""
+    def test_statistics_pipeline_returns_correct_topic(self):
+        """Pipeline корректно маршрутизирует statistics и возвращает непустой ответ."""
         orch = _build_orchestrator()
         result = asyncio.run(orch.handle_question(
             UserQuestion(user_id="1", text="покажи статистику за неделю"),
         ))
-        # Ответ mock-аналитика: "Тема: statistics, строк: 1" — не содержит raw fields
-        assert "TotalVisits" not in result.answer or "Визиты" in result.answer
-
-    def test_statistics_has_period(self):
-        """Ответ содержит информацию о периоде (DateFrom/DateTo)."""
-        orch = _build_orchestrator()
-        result = asyncio.run(orch.handle_question(
-            UserQuestion(user_id="1", text="покажи статистику за неделю"),
-        ))
-        # MockAnalyst возвращает "Тема: statistics, строк: 1" — тест проверяет что pipeline не падает
-        assert result.answer is not None
         assert result.topic == "statistics"
+        assert result.answer
+        assert result.confidence in ("low", "medium", "high")
+
+    def test_statistics_pipeline_has_follow_ups(self):
+        """Pipeline statistics возвращает follow-up подсказки."""
+        orch = _build_orchestrator()
+        result = asyncio.run(orch.handle_question(
+            UserQuestion(user_id="1", text="покажи статистику за неделю"),
+        ))
+        assert result.topic == "statistics"
+        assert len(result.follow_ups) > 0

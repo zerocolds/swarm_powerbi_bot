@@ -22,7 +22,7 @@ def test_orchestrator_happy_path():
 
     result = asyncio.run(orchestrator.handle_question(UserQuestion(user_id="1", text="test")))
     assert result.answer == "analysis"
-    # Графики: matplotlib генерирует PNG из SQL данных, или Power BI рендер
+    # Изображение из DummyRender (fallback после matplotlib)
     assert result.image is not None
     assert result.confidence == "high"
 
@@ -84,3 +84,32 @@ def test_multi_all_failed_skips_legacy_sql():
     result = asyncio.run(orchestrator.handle_question(UserQuestion(user_id="1", text="сравни отток")))
     assert not sql_spy.run_called, "Legacy SQL should NOT be called when all multi_results failed"
     assert result.diagnostics.get("multi_all_failed") == "true"
+
+
+# ── planner_v2_error → graceful degradation to legacy ──────────
+
+
+class DummyPlannerV2Error(DummyPlanner):
+    """Planner с aggregate_registry, но run_multi() всегда падает."""
+    def __init__(self, registry):
+        self.aggregate_registry = registry
+
+    async def run_multi(self, question):
+        raise RuntimeError("LLM unavailable")
+
+
+def test_planner_v2_error_degrades_to_legacy():
+    """Если run_multi() падает — orchestrator деградирует на legacy planner.run()."""
+    registry = MockRegistry()
+    orchestrator = SwarmOrchestrator(
+        planner=DummyPlannerV2Error(registry),
+        sql_agent=DummySQL(),
+        powerbi_agent=DummyPBI(),
+        render_agent=DummyRender(),
+        analyst_agent=DummyAnalyst(),
+        aggregate_registry=registry,
+    )
+
+    result = asyncio.run(orchestrator.handle_question(UserQuestion(user_id="1", text="выручка")))
+    assert result.answer == "analysis"
+    assert "planner_v2_error" in result.diagnostics

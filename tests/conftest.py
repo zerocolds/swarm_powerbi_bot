@@ -73,7 +73,7 @@ class MockPlannerWithRegistry(DummyPlanner):
         return MultiPlan(
             objective=question.text,
             intent=self._intent,
-            queries=[{"aggregate_id": self._topic}] * self._n_queries,
+            queries=[{"aggregate_id": self._topic} for _ in range(self._n_queries)],
             topic=self._topic,
             render_needed=True,
             notes=["planner_v2:llm"],
@@ -117,8 +117,14 @@ class MockSQLMulti(DummySQL):
 class MockAnalystMulti(DummyAnalyst):
     async def run_multi(self, question, results, plan):
         ok = [r for r in results if r.status == "ok"]
+        if len(ok) >= 2:
+            answer = f"Сравнение: {ok[0].label} vs {ok[1].label}\n• Клиенты: +17%"
+        elif ok:
+            answer = f"Анализ: {ok[0].label}, {ok[0].row_count} строк"
+        else:
+            answer = "Нет данных для анализа"
         return AnalysisResult(
-            answer=f"Сравнение: {ok[0].label} vs {ok[1].label}\n• Клиенты: +17%",
+            answer=answer,
             confidence="medium",
             diagnostics={},
         )

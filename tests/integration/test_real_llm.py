@@ -51,7 +51,7 @@ def test_simple_completion(real_settings, ollama_ok):
 # ── 3. Planner keyword fallback ──────────────────────────────────────────────
 
 async def test_planner_keyword_fallback(real_settings):
-    """PlannerAgent без LLM (только keyword) должен вернуть Plan."""
+    """PlannerAgent без registry → keyword fallback должен вернуть Plan."""
     llm_client = LLMClient(real_settings)
     # Без registry — keyword mode
     planner = PlannerAgent(llm_client=llm_client, aggregate_registry=None)
