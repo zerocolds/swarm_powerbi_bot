@@ -1,0 +1,16 @@
+# Dev-only directories — not copied into Docker image
+catalogs/bootstrap/
+scripts/
+sql/
+
+# Python artifacts
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+.env
+
+# Tests and docs
+tests/
+docs/
+specs/

@@ -1,0 +1,901 @@
+# Каталог агрегатов КДО
+# Phase 5 (SQL Layer) — T021
+# Автоматически заполнен на основе 3 универсальных процедур:
+#   spKDO_Aggregate  — факт-таблица tbRecords
+#   spKDO_ClientList — fnKDO_ClientStatus + tbClients
+#   spKDO_CommAgg    — tbClientCommunicationHistory
+# Последнее обновление: 2026-04-15
+
+aggregates:
+
+  # ══════════════════════════════════════════════════════
+  # spKDO_Aggregate — группировки по записям (tbRecords)
+  # ══════════════════════════════════════════════════════
+
+  - id: revenue_total
+    name: "Общая выручка"
+    category: revenue
+    procedure: spKDO_Aggregate
+    description: "Суммарная выручка по салону за период. Единственная строка KPI: визиты, уникальные клиенты, средний чек, возвращаемость."
+    allowed_group_by: [total]
+    parameters:
+      - name: date_from
+        type: date
+        required: true
+      - name: date_to
+        type: date
+        required: true
+      - name: object_id
+        type: int
+        required: true
+      - name: master_id
+        type: int
+        required: false
+      - name: top
+        type: int
+        required: false
+        default: 20
+    returns: [Visits, UniqueClients, ActiveMasters, Revenue, AvgCheck, TotalHours, ReturningClients, SalonName]
+    examples:
+      - question: "покажи общую выручку за месяц"
+      - question: "сколько выручили за апрель"
+      - question: "общая статистика по салону"
+
+  - id: revenue_by_week
+    name: "Выручка по неделям"
+    category: revenue
+    procedure: spKDO_Aggregate
+    description: "Динамика выручки с разбивкой по неделям. Каждая строка — одна неделя (EndOfWeek)."
+    allowed_group_by: [week]
+    parameters:
+      - name: date_from
+        type: date
+        required: true
+      - name: date_to
+        type: date
+        required: true
+      - name: object_id
+        type: int
+        required: true
+      - name: master_id
+        type: int
+        required: false
+      - name: top
+        type: int
+        required: false
+        default: 20
+    returns: [Period, Visits, UniqueClients, Revenue, AvgCheck, ActiveMasters]
+    examples:
+      - question: "выручка по неделям за последние 2 месяца"
+      - question: "недельный тренд"
+      - question: "динамика по неделям"
+
+  - id: revenue_by_month
+    name: "Выручка по месяцам"
+    category: revenue
+    procedure: spKDO_Aggregate
+    description: "Динамика выручки с разбивкой по месяцам. Каждая строка — один месяц (EndOfMonth)."
+    allowed_group_by: [month]
+    parameters:
+      - name: date_from
+        type: date
+        required: true
+      - name: date_to
+        type: date
+        required: true
+      - name: object_id
+        type: int
+        required: true
+      - name: master_id
+        type: int
+        required: false
+      - name: top
+        type: int
+        required: false
+        default: 20
+    returns: [Period, Visits, UniqueClients, Revenue, AvgCheck, ActiveMasters]
+    examples:
+      - question: "выручка по месяцам за год"
+      - question: "помесячная динамика"
+      - question: "тренд по месяцам"
+
+  - id: revenue_by_master
+    name: "Выручка по мастерам"
+    category: masters
+    procedure: spKDO_Aggregate
+    description: "Выручка, количество визитов и средний чек в разрезе мастеров. Включает выручку в час и общие часы работы."
+    allowed_group_by: [master]
+    parameters:
+      - name: date_from
+        type: date
+        required: true
+      - name: date_to
+        type: date
+        required: true
+      - name: object_id
+        type: int
+        required: true
+      - name: master_id
+        type: int
+        required: false
+      - name: top
+        type: int
+        required: false
+        default: 20
+    returns: [MasterName, Rating, Visits, UniqueClients, Revenue, AvgCheck, TotalHours, RevenuePerHour, SalonName]
+    examples:
+      - question: "топ мастеров по выручке"
+      - question: "производительность мастеров за месяц"
+      - question: "кто из мастеров заработал больше всего"
+
+  - id: revenue_by_service
+    name: "Выручка по услугам"
+    category: services
+    procedure: spKDO_Aggregate
+    description: "Выручка и количество оказанных услуг по каждой услуге (ServiceId + tbServicesSettings)."
+    allowed_group_by: [service]
+    parameters:
+      - name: date_from
+        type: date
+        required: true
+      - name: date_to
+        type: date
+        required: true
+      - name: object_id
+        type: int
+        required: true
+      - name: master_id
+        type: int
+        required: false
+      - name: top
+        type: int
+        required: false
+        default: 20
+    returns: [ServiceName, ServiceCategory, ServiceCount, UniqueClients, Revenue, AvgCheck, SalonName]
+    examples:
+      - question: "топ услуг по выручке"
+      - question: "какие услуги пользуются спросом"
+      - question: "выручка по услугам за квартал"
+
+  - id: revenue_by_salon
+    name: "Выручка по салонам"
+    category: revenue
+    procedure: spKDO_Aggregate
+    description: "Сравнительная выручка по всем салонам сети за период. Не требует object_id — охватывает все салоны."
+    allowed_group_by: [salon]
+    parameters:
+      - name: date_from
+        type: date
+        required: true
+      - name: date_to
+        type: date
+        required: true
+      - name: object_id
+        type: int
+        required: false
+        description: "Если не указан — показывает все салоны (период ограничен 90 днями)"
+      - name: master_id
+        type: int
+        required: false
+      - name: top
+        type: int
+        required: false
+        default: 20
+    returns: [SalonName, Visits, UniqueClients, ActiveMasters, Revenue, AvgCheck]
+    examples:
+      - question: "сравни салоны по выручке"
+      - question: "рейтинг филиалов"
+      - question: "выручка по всем салонам"
+
+  - id: revenue_by_channel
+    name: "Выручка по каналам привлечения"
+    category: marketing
+    procedure: spKDO_Aggregate
+    description: "Распределение клиентов и выручки по каналам привлечения (AcquisitionChannel из tbClients)."
+    allowed_group_by: [channel]
+    parameters:
+      - name: date_from
+        type: date
+        required: true
+      - name: date_to
+        type: date
+        required: true
+      - name: object_id
+        type: int
+        required: true
+      - name: top
+        type: int
+        required: false
+        default: 20
+    returns: [Channel, ClientCount, Visits, Revenue, AvgCheck, SalonName]
+    examples:
+      - question: "откуда приходят клиенты"
+      - question: "каналы привлечения"
+      - question: "эффективность каналов маркетинга"
+
+  # ══════════════════════════════════════════════════════
+  # spKDO_ClientList — списки клиентов по статусу КДО
+  # ══════════════════════════════════════════════════════
+
+  - id: clients_outflow
+    name: "Отток клиентов"
+    category: clients
+    procedure: spKDO_ClientList
+    description: "Клиенты без визита 31-240 дней сверх ожидаемой даты (DaysToAwaiting от -240 до -31). Соответствует DAX-мере «Статус клиента для обработки = Отток»."
+    allowed_group_by: [list, status, master]
+    parameters:
+      - name: date_from
+        type: date
+        required: false
+      - name: date_to
+        type: date
+        required: false
+      - name: object_id
+        type: int
+        required: true
+      - name: master_id
+        type: int
+        required: false
+      - name: filter
+        type: string
+        required: false
+        allowed_values: [all, birthday, forecast, leaving, noshow, outflow, quality]
+        default: outflow
+      - name: group_by
+        type: string
+        required: false
+        default: list
+      - name: top
+        type: int
+        required: false
+        default: 20
+    returns: [ClientName, Phone, Category, ClientStatus, LastVisit, FirstVisit, ExpectedNextVisit, DaysSinceLastVisit, DaysOverdue, ServicePeriodDays, TotalVisits, TotalSpent, LastCommResult, SalonName]
+    examples:
+      - question: "покажи отток клиентов"
+      - question: "кто из клиентов уходит в отток"
+      - question: "список оттока"
+
+  - id: clients_leaving
+    name: "Уходящие клиенты"
+    category: clients
+    procedure: spKDO_ClientList
+    description: "Клиенты без визита 1-30 дней сверх ожидаемой даты (DaysToAwaiting от -30 до -1). Соответствует DAX-мере «Уходящие»."
+    allowed_group_by: [list, status, master]
+    parameters:
+      - name: date_from
+        type: date
+        required: false
+      - name: date_to
+        type: date
+        required: false
+      - name: object_id
+        type: int
+        required: true
+      - name: master_id
+        type: int
+        required: false
+      - name: filter
+        type: string
+        required: false
+        allowed_values: [all, birthday, forecast, leaving, noshow, outflow, quality]
+        default: leaving
+      - name: group_by
+        type: string
+        required: false
+        default: list
+      - name: top
+        type: int
+        required: false
+        default: 20
+    returns: [ClientName, Phone, Category, ClientStatus, LastVisit, ExpectedNextVisit, DaysSinceLastVisit, DaysOverdue, ServicePeriodDays, TotalVisits, TotalSpent, LastCommResult, SalonName]
+    examples:
+      - question: "уходящие клиенты"
+      - question: "кто скоро уйдёт"
+      - question: "список уходящих"
+
+  - id: clients_forecast
+    name: "Прогноз визитов"
+    category: clients
+    procedure: spKDO_ClientList
+    description: "Клиенты с ожидаемой датой следующего визита через 0-14 дней. Соответствует DAX-мере «Прогноз визитов»."
+    allowed_group_by: [list, status, master]
+    parameters:
+      - name: date_from
+        type: date
+        required: false
+      - name: date_to
+        type: date
+        required: false
+      - name: object_id
+        type: int
+        required: true
+      - name: master_id
+        type: int
+        required: false
+      - name: filter
+        type: string
+        required: false
+        allowed_values: [all, birthday, forecast, leaving, noshow, outflow, quality]
+        default: forecast
+      - name: group_by
+        type: string
+        required: false
+        default: list
+      - name: top
+        type: int
+        required: false
+        default: 20
+    returns: [ClientName, Phone, Category, ClientStatus, LastVisit, ExpectedNextVisit, DaysUntilExpected, ServicePeriodDays, TotalVisits, TotalSpent, LastCommResult, SalonName]
+    examples:
+      - question: "кто ожидается на визит в ближайшие две недели"
+      - question: "прогноз визитов"
+      - question: "кому скоро пора к нам"
+
+  - id: clients_noshow
+    name: "Недошедшие клиенты"
+    category: clients
+    procedure: spKDO_ClientList
+    description: "Клиенты с отменёнными записями без последующего выполненного визита (первичный или повторный)."
+    allowed_group_by: [list, status, master]
+    parameters:
+      - name: date_from
+        type: date
+        required: false
+      - name: date_to
+        type: date
+        required: false
+      - name: object_id
+        type: int
+        required: true
+      - name: master_id
+        type: int
+        required: false
+      - name: filter
+        type: string
+        required: false
+        allowed_values: [all, birthday, forecast, leaving, noshow, outflow, quality]
+        default: noshow
+      - name: group_by
+        type: string
+        required: false
+        default: list
+      - name: top
+        type: int
+        required: false
+        default: 20
+    returns: [ClientName, Phone, Category, ClientStatus, LastCancelledVisit, LastSuccessVisit, FirstVisit, LastCommResult, LastCommDate, SalonName]
+    examples:
+      - question: "недошедшие клиенты"
+      - question: "кто записывался но не пришёл"
+      - question: "список недошедших"
+
+  - id: clients_quality
+    name: "Контроль качества"
+    category: clients
+    procedure: spKDO_ClientList
+    description: "Клиенты с визитом не более 7 дней назад — первичные и повторные. Требуют обзвона для контроля качества."
+    allowed_group_by: [list, status, master]
+    parameters:
+      - name: date_from
+        type: date
+        required: false
+      - name: date_to
+        type: date
+        required: false
+      - name: object_id
+        type: int
+        required: true
+      - name: master_id
+        type: int
+        required: false
+      - name: filter
+        type: string
+        required: false
+        allowed_values: [all, birthday, forecast, leaving, noshow, outflow, quality]
+        default: quality
+      - name: group_by
+        type: string
+        required: false
+        default: list
+      - name: top
+        type: int
+        required: false
+        default: 20
+    returns: [ClientName, Phone, Category, ClientStatus, LastVisit, FirstVisit, ExpectedNextVisit, TotalVisits, TotalSpent, LastCommResult, SalonName]
+    examples:
+      - question: "кому нужен контроль качества"
+      - question: "свежие визиты для обзвона"
+      - question: "список контроля качества"
+
+  - id: clients_birthday
+    name: "Именинники"
+    category: clients
+    procedure: spKDO_ClientList
+    description: "Клиенты с днём рождения в заданный диапазон дат. По умолчанию — ближайшие 7 дней. Показывает был ли уже поздравлен."
+    allowed_group_by: [list]
+    parameters:
+      - name: date_from
+        type: date
+        required: false
+        default: "today"
+        description: "Начало диапазона дат рождения (по умолчанию сегодня)"
+      - name: date_to
+        type: date
+        required: false
+        default: "today+7d"
+        description: "Конец диапазона дат рождения (по умолчанию +7 дней)"
+      - name: object_id
+        type: int
+        required: true
+      - name: filter
+        type: string
+        required: false
+        allowed_values: [all, birthday, forecast, leaving, noshow, outflow, quality]
+        default: birthday
+      - name: top
+        type: int
+        required: false
+        default: 20
+    returns: [ClientName, Phone, BirthDate, Age, Category, SalonName, Congratulated]
+    examples:
+      - question: "именинники на этой неделе"
+      - question: "кто отмечает день рождения"
+      - question: "список именинников"
+
+  - id: clients_all
+    name: "Все клиенты"
+    category: clients
+    procedure: spKDO_ClientList
+    description: "Полная клиентская база с историей визитов и текущим статусом КДО."
+    allowed_group_by: [list, status, master]
+    parameters:
+      - name: date_from
+        type: date
+        required: false
+      - name: date_to
+        type: date
+        required: false
+      - name: object_id
+        type: int
+        required: true
+      - name: master_id
+        type: int
+        required: false
+      - name: filter
+        type: string
+        required: false
+        allowed_values: [all, birthday, forecast, leaving, noshow, outflow, quality]
+        default: all
+      - name: group_by
+        type: string
+        required: false
+        default: list
+      - name: top
+        type: int
+        required: false
+        default: 20
+    returns: [ClientName, Phone, Category, ClientStatus, LastVisit, FirstVisit, ExpectedNextVisit, DaysSinceLastVisit, DaysOverdue, ServicePeriodDays, TotalVisits, TotalSpent, LastCommResult, SalonName]
+    examples:
+      - question: "все клиенты"
+      - question: "клиентская база"
+      - question: "распределение клиентов по статусам"
+
+  # ══════════════════════════════════════════════════════
+  # spKDO_CommAgg — агрегация коммуникаций
+  # Reason × GroupBy комбинации
+  # ══════════════════════════════════════════════════════
+
+  - id: comm_all_by_reason
+    name: "Коммуникации по причинам"
+    category: communications
+    procedure: spKDO_CommAgg
+    description: "Сводка всех коммуникаций с группировкой по причине обращения. Показывает конверсию (записался / отказался)."
+    allowed_group_by: [reason]
+    parameters:
+      - name: date_from
+        type: date
+        required: true
+      - name: date_to
+        type: date
+        required: true
+      - name: object_id
+        type: int
+        required: true
+      - name: reason
+        type: string
+        required: false
+        allowed_values: [all, birthday, forecast, leaving, noshow, opz, outflow, quality, waitlist]
+        default: all
+      - name: group_by
+        type: string
+        required: false
+        default: reason
+      - name: top
+        type: int
+        required: false
+        default: 20
+    returns: [Reason, TotalCount, UniqueClients, BookedCount, RefusedCount, SalonName]
+    examples:
+      - question: "коммуникации за месяц по типам"
+      - question: "сводка обзвонов"
+      - question: "статистика коммуникаций"
+
+  - id: comm_all_by_result
+    name: "Коммуникации по результатам"
+    category: communications
+    procedure: spKDO_CommAgg
+    description: "Распределение всех коммуникаций по результату (Записался, Отказался, Пообещал и т.д.)."
+    allowed_group_by: [result]
+    parameters:
+      - name: date_from
+        type: date
+        required: true
+      - name: date_to
+        type: date
+        required: true
+      - name: object_id
+        type: int
+        required: true
+      - name: reason
+        type: string
+        required: false
+        allowed_values: [all, birthday, forecast, leaving, noshow, opz, outflow, quality, waitlist]
+        default: all
+      - name: group_by
+        type: string
+        required: false
+        default: result
+      - name: top
+        type: int
+        required: false
+        default: 20
+    returns: [Result, TotalCount, UniqueClients, SalonName]
+    examples:
+      - question: "результаты коммуникаций"
+      - question: "сколько записалось после обзвона"
+      - question: "конверсия коммуникаций"
+
+  - id: comm_all_by_manager
+    name: "Коммуникации по менеджерам"
+    category: communications
+    procedure: spKDO_CommAgg
+    description: "Производительность менеджеров по количеству коммуникаций и конверсии в запись."
+    allowed_group_by: [manager]
+    parameters:
+      - name: date_from
+        type: date
+        required: true
+      - name: date_to
+        type: date
+        required: true
+      - name: object_id
+        type: int
+        required: true
+      - name: reason
+        type: string
+        required: false
+        allowed_values: [all, birthday, forecast, leaving, noshow, opz, outflow, quality, waitlist]
+        default: all
+      - name: group_by
+        type: string
+        required: false
+        default: manager
+      - name: top
+        type: int
+        required: false
+        default: 20
+    returns: [Manager, TotalCount, UniqueClients, BookedCount, SalonName]
+    examples:
+      - question: "кто из менеджеров сделал больше всего звонков"
+      - question: "эффективность менеджеров"
+      - question: "коммуникации по менеджерам"
+
+  - id: comm_all_list
+    name: "Список коммуникаций"
+    category: communications
+    procedure: spKDO_CommAgg
+    description: "Подробный список коммуникаций без агрегации: дата, причина, тип, результат, менеджер."
+    allowed_group_by: [list]
+    parameters:
+      - name: date_from
+        type: date
+        required: true
+      - name: date_to
+        type: date
+        required: true
+      - name: object_id
+        type: int
+        required: true
+      - name: reason
+        type: string
+        required: false
+        allowed_values: [all, birthday, forecast, leaving, noshow, opz, outflow, quality, waitlist]
+        default: all
+      - name: group_by
+        type: string
+        required: false
+        default: list
+      - name: top
+        type: int
+        required: false
+        default: 20
+    returns: [CommDate, Reason, CommType, Result, Manager, ClientPhone, ClientCategory, Comment, SalonName]
+    examples:
+      - question: "покажи последние коммуникации"
+      - question: "история обзвонов за неделю"
+
+  - id: comm_outflow_by_reason
+    name: "Коммуникации по оттоку"
+    category: communications
+    procedure: spKDO_CommAgg
+    description: "Коммуникации с причиной «Отток» — эффективность работы с оттоком клиентов."
+    allowed_group_by: [reason, result, manager, list]
+    parameters:
+      - name: date_from
+        type: date
+        required: true
+      - name: date_to
+        type: date
+        required: true
+      - name: object_id
+        type: int
+        required: true
+      - name: reason
+        type: string
+        required: false
+        allowed_values: [all, birthday, forecast, leaving, noshow, opz, outflow, quality, waitlist]
+        default: outflow
+      - name: group_by
+        type: string
+        required: false
+        default: reason
+      - name: top
+        type: int
+        required: false
+        default: 20
+    returns: [Reason, TotalCount, UniqueClients, BookedCount, RefusedCount, SalonName]
+    examples:
+      - question: "как работаем с оттоком"
+      - question: "звонки оттоку"
+      - question: "конверсия по оттоку"
+
+  - id: comm_leaving_by_result
+    name: "Коммуникации по уходящим"
+    category: communications
+    procedure: spKDO_CommAgg
+    description: "Коммуникации с причиной «Уходящие» — результаты работы с уходящими клиентами."
+    allowed_group_by: [reason, result, manager, list]
+    parameters:
+      - name: date_from
+        type: date
+        required: true
+      - name: date_to
+        type: date
+        required: true
+      - name: object_id
+        type: int
+        required: true
+      - name: reason
+        type: string
+        required: false
+        allowed_values: [all, birthday, forecast, leaving, noshow, opz, outflow, quality, waitlist]
+        default: leaving
+      - name: group_by
+        type: string
+        required: false
+        default: result
+      - name: top
+        type: int
+        required: false
+        default: 20
+    returns: [Result, TotalCount, UniqueClients, SalonName]
+    examples:
+      - question: "результаты звонков уходящим"
+      - question: "коммуникации по уходящим клиентам"
+
+  - id: comm_forecast_by_result
+    name: "Коммуникации по прогнозу визитов"
+    category: communications
+    procedure: spKDO_CommAgg
+    description: "Коммуникации с причиной «Прогноз визитов» — конверсия напоминаний о визите."
+    allowed_group_by: [reason, result, manager, list]
+    parameters:
+      - name: date_from
+        type: date
+        required: true
+      - name: date_to
+        type: date
+        required: true
+      - name: object_id
+        type: int
+        required: true
+      - name: reason
+        type: string
+        required: false
+        allowed_values: [all, birthday, forecast, leaving, noshow, opz, outflow, quality, waitlist]
+        default: forecast
+      - name: group_by
+        type: string
+        required: false
+        default: result
+      - name: top
+        type: int
+        required: false
+        default: 20
+    returns: [Result, TotalCount, UniqueClients, SalonName]
+    examples:
+      - question: "сколько записалось после напоминания о визите"
+      - question: "коммуникации по прогнозу"
+
+  - id: comm_noshow_by_manager
+    name: "Коммуникации по недошедшим"
+    category: communications
+    procedure: spKDO_CommAgg
+    description: "Коммуникации с причиной «Недошедшие» — эффективность менеджеров по работе с недошедшими."
+    allowed_group_by: [reason, result, manager, list]
+    parameters:
+      - name: date_from
+        type: date
+        required: true
+      - name: date_to
+        type: date
+        required: true
+      - name: object_id
+        type: int
+        required: true
+      - name: reason
+        type: string
+        required: false
+        allowed_values: [all, birthday, forecast, leaving, noshow, opz, outflow, quality, waitlist]
+        default: noshow
+      - name: group_by
+        type: string
+        required: false
+        default: manager
+      - name: top
+        type: int
+        required: false
+        default: 20
+    returns: [Manager, TotalCount, UniqueClients, BookedCount, SalonName]
+    examples:
+      - question: "звонки недошедшим"
+      - question: "коммуникации по недошедшим"
+
+  - id: comm_quality_by_result
+    name: "Контроль качества — результаты"
+    category: communications
+    procedure: spKDO_CommAgg
+    description: "Коммуникации с причиной «Контроль качества» — доля довольных клиентов и результаты обзвона."
+    allowed_group_by: [reason, result, manager, list]
+    parameters:
+      - name: date_from
+        type: date
+        required: true
+      - name: date_to
+        type: date
+        required: true
+      - name: object_id
+        type: int
+        required: true
+      - name: reason
+        type: string
+        required: false
+        allowed_values: [all, birthday, forecast, leaving, noshow, opz, outflow, quality, waitlist]
+        default: quality
+      - name: group_by
+        type: string
+        required: false
+        default: result
+      - name: top
+        type: int
+        required: false
+        default: 20
+    returns: [Result, TotalCount, UniqueClients, SalonName]
+    examples:
+      - question: "результаты контроля качества"
+      - question: "сколько довольных клиентов"
+      - question: "NPS коммуникации"
+
+  - id: comm_birthday_by_result
+    name: "Поздравления с днём рождения"
+    category: communications
+    procedure: spKDO_CommAgg
+    description: "Коммуникации с причиной «День рождения» — итоги поздравлений клиентов."
+    allowed_group_by: [reason, result, manager, list]
+    parameters:
+      - name: date_from
+        type: date
+        required: true
+      - name: date_to
+        type: date
+        required: true
+      - name: object_id
+        type: int
+        required: true
+      - name: reason
+        type: string
+        required: false
+        allowed_values: [all, birthday, forecast, leaving, noshow, opz, outflow, quality, waitlist]
+        default: birthday
+      - name: group_by
+        type: string
+        required: false
+        default: result
+      - name: top
+        type: int
+        required: false
+        default: 20
+    returns: [Result, TotalCount, UniqueClients, SalonName]
+    examples:
+      - question: "кого поздравили с днём рождения"
+      - question: "звонки именинникам"
+
+  - id: comm_waitlist_by_manager
+    name: "Лист ожидания — коммуникации"
+    category: communications
+    procedure: spKDO_CommAgg
+    description: "Коммуникации с причиной «Лист ожидания» — работа с клиентами из листа ожидания."
+    allowed_group_by: [reason, result, manager, list]
+    parameters:
+      - name: date_from
+        type: date
+        required: true
+      - name: date_to
+        type: date
+        required: true
+      - name: object_id
+        type: int
+        required: true
+      - name: reason
+        type: string
+        required: false
+        allowed_values: [all, birthday, forecast, leaving, noshow, opz, outflow, quality, waitlist]
+        default: waitlist
+      - name: group_by
+        type: string
+        required: false
+        default: manager
+      - name: top
+        type: int
+        required: false
+        default: 20
+    returns: [Manager, TotalCount, UniqueClients, BookedCount, SalonName]
+    examples:
+      - question: "лист ожидания"
+      - question: "кто в листе ожидания"
+      - question: "коммуникации из листа ожидания"
+
+  - id: comm_opz_by_result
+    name: "ОПЗ — коммуникации"
+    category: communications
+    procedure: spKDO_CommAgg
+    description: "Коммуникации с причиной «ОПЗ» (оперативная запись на другой день) — результаты и конверсия."
+    allowed_group_by: [reason, result, manager, list]
+    parameters:
+      - name: date_from
+        type: date
+        required: true
+      - name: date_to
+        type: date
+        required: true
+      - name: object_id
+        type: int
+        required: true
+      - name: reason
+        type: string
+        required: false
+        allowed_values: [all, birthday, forecast, leaving, noshow, opz, outflow, quality, waitlist]
+        default: opz
+      - name: group_by
+        type: string
+        required: false
+        default: result
+      - name: top
+        type: int
+        required: false
+        default: 20
+    returns: [Result, TotalCount, UniqueClients, SalonName]
+    examples:
+      - question: "коммуникации ОПЗ"
+      - question: "оперативная запись"
+      - question: "результаты ОПЗ"

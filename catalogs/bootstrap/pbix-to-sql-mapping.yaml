@@ -1,0 +1,236 @@
+mapping:
+- pbix_table: Slicer. Дополнительные фильтры
+  sql_match: null
+- pbix_table: Slicer. Режим ожидания клиента
+  sql_match: null
+- pbix_table: Абонементы
+  sql_match: null
+  measures:
+  - name: Абонементы. miniCRM. AddNewItemURL
+    classification: not_covered
+    expression_preview: (extracted from visual config)
+  - name: Абонементы. miniCRM. YCClientProfileURL
+    classification: not_covered
+    expression_preview: (extracted from visual config)
+  - name: Абонементы. Заголовок таблицы
+    classification: not_covered
+    expression_preview: (extracted from visual config)
+- pbix_table: Записи
+  sql_match: null
+- pbix_table: История коммуникаций с клиентами
+  sql_match: null
+- pbix_table: Календарь
+  sql_match: null
+- pbix_table: Клиенты
+  sql_match: null
+- pbix_table: Константы
+  sql_match: null
+  measures:
+  - name: miniCRM. AddNewItemURL
+    classification: not_covered
+    expression_preview: (extracted from visual config)
+  - name: miniCRM. YCClientProfileURL
+    classification: not_covered
+    expression_preview: (extracted from visual config)
+  - name: Безопасность. ReportUserId
+    classification: not_covered
+    expression_preview: (extracted from visual config)
+  - name: Отчет. Версия
+    classification: not_covered
+    expression_preview: (extracted from visual config)
+  - name: Отчет. Заголовок
+    classification: not_covered
+    expression_preview: (extracted from visual config)
+  - name: Трекинг. URL
+    classification: not_covered
+    expression_preview: (extracted from visual config)
+- pbix_table: Мастера
+  sql_match: null
+- pbix_table: Расчеты
+  sql_match: null
+  measures:
+  - name: Абонементы. Задолженность
+    classification: not_covered
+    expression_preview: (extracted from visual config)
+  - name: Абонементы. Количество
+    classification: not_covered
+    expression_preview: (extracted from visual config)
+  - name: Абонементы. Количество (действующих без нулевого остатка)
+    classification: not_covered
+    expression_preview: (extracted from visual config)
+  - name: Абонементы. Количество клиентов
+    classification: not_covered
+    expression_preview: (extracted from visual config)
+  - name: Абонементы. Количество оставшихся сеансов
+    classification: not_covered
+    expression_preview: (extracted from visual config)
+  - name: Абонементы. Состояние
+    classification: not_covered
+    expression_preview: (extracted from visual config)
+  - name: Возвращаемость
+    classification: not_covered
+    expression_preview: (extracted from visual config)
+  - name: КДО. Дата последней несостоявшейся записи (дата)
+    classification: not_covered
+    expression_preview: (extracted from visual config)
+  - name: КДО. Дата последней несостоявшейся записи (текст)
+    classification: not_covered
+    expression_preview: (extracted from visual config)
+  - name: КДО. Дата последней несостоявшейся записи (число)
+    classification: not_covered
+    expression_preview: (extracted from visual config)
+  - name: КДО. День рождения (дата)
+    classification: not_covered
+    expression_preview: (extracted from visual config)
+  - name: КДО. День рождения (текст)
+    classification: not_covered
+    expression_preview: (extracted from visual config)
+  - name: КДО. День рождения (число)
+    classification: not_covered
+    expression_preview: (extracted from visual config)
+  - name: КДО. Имя
+    classification: not_covered
+    expression_preview: (extracted from visual config)
+  - name: КДО. Категория клиента
+    classification: not_covered
+    expression_preview: (extracted from visual config)
+  - name: КДО. Количество визитов
+    classification: not_covered
+    expression_preview: (extracted from visual config)
+  - name: КДО. Ожидаемая дата (текст)
+    classification: not_covered
+    expression_preview: (extracted from visual config)
+  - name: КДО. Ожидаемая дата (число)
+    classification: not_covered
+    expression_preview: (extracted from visual config)
+  - name: КДО. Ожидаемая дата следуюшего визита (дата)
+    classification: not_covered
+    expression_preview: (extracted from visual config)
+  - name: КДО. Ожидается к мастеру
+    classification: not_covered
+    expression_preview: (extracted from visual config)
+  - name: КДО. Ожидается на услугу (Название)
+    classification: not_covered
+    expression_preview: (extracted from visual config)
+  - name: КДО. Оперативный визит. Дата
+    classification: not_covered
+    expression_preview: (extracted from visual config)
+  - name: КДО. Оперативный визит. Мастер
+    classification: not_covered
+    expression_preview: (extracted from visual config)
+  - name: КДО. Оперативный визит. Услуга
+    classification: not_covered
+    expression_preview: (extracted from visual config)
+  - name: КДО. Первый визит (дата)
+    classification: not_covered
+    expression_preview: (extracted from visual config)
+  - name: КДО. Последний визит (дата)
+    classification: not_covered
+    expression_preview: (extracted from visual config)
+  - name: КДО. Последний визит (текст)
+    classification: not_covered
+    expression_preview: (extracted from visual config)
+  - name: КДО. Последний визит (число)
+    classification: not_covered
+    expression_preview: (extracted from visual config)
+  - name: КДО. Последний несостоявшийся визит. Мастер
+    classification: not_covered
+    expression_preview: (extracted from visual config)
+  - name: КДО. Последний несостоявшийся визит. Услуга (Название)
+    classification: not_covered
+    expression_preview: (extracted from visual config)
+  - name: КДО. Последний состоявшийся визит. Мастер
+    classification: not_covered
+    expression_preview: (extracted from visual config)
+  - name: КДО. Последний состоявшийся визит. Услуга (Название)
+    classification: not_covered
+    expression_preview: (extracted from visual config)
+  - name: КДО. Признак первого посещения выбранной категории услуг
+    classification: not_covered
+    expression_preview: (extracted from visual config)
+  - name: КДО. Признак что ближайшая будущая запись на любую категорию  сегодня
+    classification: not_covered
+    expression_preview: (extracted from visual config)
+  - name: КДО. Прошло дней с последнего визита
+    classification: not_covered
+    expression_preview: (extracted from visual config)
+  - name: КДО. Средний чек (услуги)
+    classification: not_covered
+    expression_preview: (extracted from visual config)
+  - name: КДО. Телефон
+    classification: not_covered
+    expression_preview: (extracted from visual config)
+  - name: КДО. Траты (услуги)
+    classification: not_covered
+    expression_preview: (extracted from visual config)
+  - name: КДО. Частота визитов
+    classification: not_covered
+    expression_preview: (extracted from visual config)
+  - name: Коммуникации с клиентами. %  Довольных
+    classification: not_covered
+    expression_preview: (extracted from visual config)
+  - name: Коммуникации с клиентами. %  Недовольных
+    classification: not_covered
+    expression_preview: (extracted from visual config)
+  - name: Коммуникации с клиентами. Количество визитов (all)
+    classification: not_covered
+    expression_preview: (extracted from visual config)
+  - name: Коммуникации с клиентами. Количество визитов (interval)
+    classification: not_covered
+    expression_preview: (extracted from visual config)
+  - name: Коммуникации с клиентами. Количество комммуникаций
+    classification: not_covered
+    expression_preview: (extracted from visual config)
+  - name: Коммуникации с клиентами. Количество созданных записей (interval)
+    classification: not_covered
+    expression_preview: (extracted from visual config)
+  - name: Коммуникации с клиентами. Количество уникальных клиентов с состоявшимися
+      визитами после коммуникации
+    classification: not_covered
+    expression_preview: (extracted from visual config)
+  - name: Коммуникации с клиентами. Конверсия в визиты (interval)
+    classification: not_covered
+    expression_preview: (extracted from visual config)
+  - name: Коммуникации с клиентами. Конверсия в записи (interval)
+    classification: not_covered
+    expression_preview: (extracted from visual config)
+  - name: Коммуникации с клиентами. Последняя сводка
+    classification: not_covered
+    expression_preview: (extracted from visual config)
+  - name: Коммуникации с клиентами. Последняя сводка (абонеменеты)
+    classification: not_covered
+    expression_preview: (extracted from visual config)
+  - name: Коммуникации с клиентами. Сумма визитов (all)
+    classification: not_covered
+    expression_preview: (extracted from visual config)
+  - name: Коммуникации с клиентами. Сумма визитов (interval)
+    classification: not_covered
+    expression_preview: (extracted from visual config)
+  - name: Коммуникации с клиентами. Услуги на которые вернулись (interval)
+    classification: not_covered
+    expression_preview: (extracted from visual config)
+- pbix_table: Салоны
+  sql_match: null
+- pbix_table: Справочники. Назначения коммуникаций
+  sql_match: null
+- pbix_table: Справочники. Результат коммуникаций
+  sql_match: null
+- pbix_table: Справочники. Состояния клиентов по абонементам
+  sql_match: null
+- pbix_table: Справочники. Страницы отчета
+  sql_match: null
+- pbix_table: Таблицы. Клиенты для обработки
+  sql_match: null
+  measures:
+  - name: Статус клиента для обработки
+    classification: not_covered
+    expression_preview: (extracted from visual config)
+- pbix_table: Услуги
+  sql_match: null
+summary:
+  total_tables: 17
+  sql_objects_found: 21
+  measures:
+    sql_covered: 0
+    python_postprocess: 0
+    not_covered: 63
