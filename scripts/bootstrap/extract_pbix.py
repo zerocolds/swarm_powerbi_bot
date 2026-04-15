@@ -31,7 +31,13 @@ def _detect_encoding(data: bytes) -> str:
 
 
 def _load_schema(pbix_path: Path) -> dict:
-    """Open the PBIX ZIP and parse DataModelSchema JSON."""
+    """Open the PBIX ZIP and parse DataModelSchema JSON.
+
+    Supports two PBIX formats:
+    1. Newer PBIX with ``DataModelSchema`` entry (JSON) — parsed directly.
+    2. Older PBIX with binary ``DataModel`` (ABF) — model reconstructed from
+       ``Report/Layout`` visual configs (entities, measures, columns).
+    """
     if not pbix_path.exists():
         print(f"ERROR: File not found: {pbix_path}", file=sys.stderr)
         sys.exit(1)
@@ -50,34 +56,111 @@ def _load_schema(pbix_path: Path) -> dict:
                 schema_name = candidate
                 break
 
-        if schema_name is None:
+        if schema_name is not None:
+            raw: bytes = zf.read(schema_name)
+            encoding = _detect_encoding(raw)
+            if encoding in ("utf-16-le", "utf-16-be"):
+                raw = raw[2:]
+            try:
+                text = raw.decode(encoding)
+            except UnicodeDecodeError as exc:
+                print(f"ERROR: Failed to decode schema as {encoding}: {exc}", file=sys.stderr)
+                sys.exit(1)
+            try:
+                return json.loads(text)
+            except json.JSONDecodeError as exc:
+                print(f"ERROR: Invalid JSON in DataModelSchema: {exc}", file=sys.stderr)
+                sys.exit(1)
+
+        # Fallback: reconstruct model from Report/Layout visual configs
+        if "Report/Layout" not in names:
             print(
-                "ERROR: DataModelSchema not found in PBIX. Entries present:\n  "
-                + "\n  ".join(names[:30]),
+                "ERROR: Neither DataModelSchema nor Report/Layout found in PBIX.",
                 file=sys.stderr,
             )
             sys.exit(1)
 
-        raw: bytes = zf.read(schema_name)
+        print("DataModelSchema not found — extracting model from Report/Layout...")
+        layout_raw = zf.read("Report/Layout")
+        # Report/Layout is typically UTF-16 LE (with or without BOM)
+        for enc in ("utf-16-le", "utf-16", "utf-8"):
+            try:
+                layout_text = layout_raw.decode(enc)
+                break
+            except (UnicodeDecodeError, UnicodeError):
+                continue
+        else:
+            print("ERROR: Cannot decode Report/Layout", file=sys.stderr)
+            sys.exit(1)
+        return _reconstruct_from_layout(json.loads(layout_text))
 
-    encoding = _detect_encoding(raw)
-    # Strip BOM before decoding if utf-16-le
-    if encoding == "utf-16-le":
-        raw = raw[2:]
-    elif encoding == "utf-16-be":
-        raw = raw[2:]
 
-    try:
-        text = raw.decode(encoding)
-    except UnicodeDecodeError as exc:
-        print(f"ERROR: Failed to decode schema as {encoding}: {exc}", file=sys.stderr)
-        sys.exit(1)
+def _reconstruct_from_layout(layout: dict) -> dict:
+    """Reconstruct a pseudo-DataModelSchema from Report/Layout visual configs.
 
-    try:
-        return json.loads(text)
-    except json.JSONDecodeError as exc:
-        print(f"ERROR: Invalid JSON in DataModelSchema: {exc}", file=sys.stderr)
-        sys.exit(1)
+    Parses nested JSON in visual container configs/dataTransforms to extract
+    Entity (table) references and Property (column/measure) references.
+    """
+    entities: dict[str, dict[str, set[str]]] = {}  # table -> {columns, measures}
+
+    def _find_refs(obj: object) -> None:
+        if isinstance(obj, str):
+            try:
+                _find_refs(json.loads(obj))
+            except (json.JSONDecodeError, RecursionError):
+                pass
+        elif isinstance(obj, dict):
+            # Direct Entity reference
+            entity = obj.get("Entity")
+            if isinstance(entity, str) and entity:
+                entities.setdefault(entity, {"columns": set(), "measures": set()})
+
+            # Column/Measure with Expression.SourceRef.Entity + Property
+            prop = obj.get("Property")
+            if isinstance(prop, str) and "Expression" in obj:
+                expr = obj.get("Expression", {})
+                src = expr.get("SourceRef", {})
+                tbl = src.get("Entity", "")
+                if tbl:
+                    entities.setdefault(tbl, {"columns": set(), "measures": set()})
+                    # Heuristic: if parent key is "Measure" → measure, else column
+                    entities[tbl]["columns"].add(prop)
+
+            # Measure expression at top level
+            if "Measure" in obj and isinstance(obj["Measure"], dict):
+                m = obj["Measure"]
+                m_expr = m.get("Expression", {})
+                m_src = m_expr.get("SourceRef", {})
+                m_tbl = m_src.get("Entity", "")
+                m_prop = m.get("Property", "")
+                if m_tbl and m_prop:
+                    entities.setdefault(m_tbl, {"columns": set(), "measures": set()})
+                    entities[m_tbl]["measures"].add(m_prop)
+
+            for v in obj.values():
+                _find_refs(v)
+        elif isinstance(obj, list):
+            for item in obj:
+                _find_refs(item)
+
+    for section in layout.get("sections", []):
+        for vc in section.get("visualContainers", []):
+            for key in ("config", "dataTransforms", "filters", "query"):
+                val = vc.get(key, "")
+                if isinstance(val, str) and val:
+                    _find_refs(val)
+
+    # Build pseudo-schema
+    tables = []
+    for tbl_name, refs in sorted(entities.items()):
+        cols = [{"name": c, "type": "string"} for c in sorted(refs["columns"])]
+        measures = [{"name": m, "expression": "(extracted from visual config)"} for m in sorted(refs["measures"])]
+        entry: dict = {"name": tbl_name, "columns": cols}
+        if measures:
+            entry["measures"] = measures
+        tables.append(entry)
+
+    return {"model": {"tables": tables, "relationships": []}}
 
 
 def _extract_columns(table: dict) -> list[dict]:

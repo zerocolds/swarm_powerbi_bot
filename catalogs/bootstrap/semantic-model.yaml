@@ -1,0 +1,381 @@
+tables:
+- name: Slicer. Дополнительные фильтры
+  columns:
+  - name: Категория
+    type: string
+  - name: Наименование
+    type: string
+- name: Slicer. Режим ожидания клиента
+  columns:
+  - name: Режим
+    type: string
+- name: Абонементы
+  columns:
+  - name: AbonementName
+    type: string
+  - name: AbonementNumber
+    type: string
+  - name: CountLeft
+    type: string
+  - name: CountTotal
+    type: string
+  - name: PaymentAmount
+    type: string
+  - name: PaymentAmountLeft
+    type: string
+  - name: Абонементы. miniCRM. AddNewItemURL
+    type: string
+  - name: Абонементы. miniCRM. YCClientProfileURL
+    type: string
+  - name: Абонементы. Заголовок таблицы
+    type: string
+  - name: Дата создания
+    type: string
+  - name: Состояние Абонемента
+    type: string
+  - name: Состояние Клиента
+    type: string
+  measures:
+  - name: Абонементы. miniCRM. AddNewItemURL
+    expression: (extracted from visual config)
+  - name: Абонементы. miniCRM. YCClientProfileURL
+    expression: (extracted from visual config)
+  - name: Абонементы. Заголовок таблицы
+    expression: (extracted from visual config)
+- name: Записи
+  columns:
+  - name: ClientGlobalId
+    type: string
+  - name: DateTimeOfAppointment
+    type: string
+  - name: DateTimeOfCreate
+    type: string
+  - name: Status
+    type: string
+  - name: Периодичность услуги
+    type: string
+  - name: Сумма
+    type: string
+- name: История коммуникаций с клиентами
+  columns:
+  - name: ClientName
+    type: string
+  - name: Comment
+    type: string
+  - name: LocalDateTime
+    type: string
+  - name: Manager
+    type: string
+  - name: Reason
+    type: string
+  - name: Result
+    type: string
+  - name: Type
+    type: string
+  - name: Результат (статус)
+    type: string
+  - name: Флаг что была создана запись или был визит после коммуникации
+    type: string
+- name: Календарь
+  columns:
+  - name: Дата
+    type: string
+  - name: Месяц (год и номер / текущий)
+    type: string
+  - name: Период Месяц
+    type: string
+  - name: Период Неделя
+    type: string
+  - name: Признак будущего периода
+    type: string
+- name: Клиенты
+  columns:
+  - name: Category
+    type: string
+  - name: Name
+    type: string
+- name: Константы
+  columns:
+  - name: miniCRM. AddNewItemURL
+    type: string
+  - name: miniCRM. YCClientProfileURL
+    type: string
+  - name: Безопасность. ReportUserId
+    type: string
+  - name: Отчет. Версия
+    type: string
+  - name: Отчет. Заголовок
+    type: string
+  - name: Трекинг. URL
+    type: string
+  measures:
+  - name: miniCRM. AddNewItemURL
+    expression: (extracted from visual config)
+  - name: miniCRM. YCClientProfileURL
+    expression: (extracted from visual config)
+  - name: Безопасность. ReportUserId
+    expression: (extracted from visual config)
+  - name: Отчет. Версия
+    expression: (extracted from visual config)
+  - name: Отчет. Заголовок
+    expression: (extracted from visual config)
+  - name: Трекинг. URL
+    expression: (extracted from visual config)
+- name: Мастера
+  columns:
+  - name: Name
+    type: string
+- name: Расчеты
+  columns:
+  - name: Абонементы. Задолженность
+    type: string
+  - name: Абонементы. Количество
+    type: string
+  - name: Абонементы. Количество (действующих без нулевого остатка)
+    type: string
+  - name: Абонементы. Количество клиентов
+    type: string
+  - name: Абонементы. Количество оставшихся сеансов
+    type: string
+  - name: Абонементы. Состояние
+    type: string
+  - name: Возвращаемость
+    type: string
+  - name: КДО. Дата последней несостоявшейся записи (дата)
+    type: string
+  - name: КДО. Дата последней несостоявшейся записи (текст)
+    type: string
+  - name: КДО. Дата последней несостоявшейся записи (число)
+    type: string
+  - name: КДО. День рождения (дата)
+    type: string
+  - name: КДО. День рождения (текст)
+    type: string
+  - name: КДО. День рождения (число)
+    type: string
+  - name: КДО. Имя
+    type: string
+  - name: КДО. Категория клиента
+    type: string
+  - name: КДО. Количество визитов
+    type: string
+  - name: КДО. Ожидаемая дата (текст)
+    type: string
+  - name: КДО. Ожидаемая дата (число)
+    type: string
+  - name: КДО. Ожидаемая дата следуюшего визита (дата)
+    type: string
+  - name: КДО. Ожидается к мастеру
+    type: string
+  - name: КДО. Ожидается на услугу (Название)
+    type: string
+  - name: КДО. Оперативный визит. Дата
+    type: string
+  - name: КДО. Оперативный визит. Мастер
+    type: string
+  - name: КДО. Оперативный визит. Услуга
+    type: string
+  - name: КДО. Первый визит (дата)
+    type: string
+  - name: КДО. Последний визит (дата)
+    type: string
+  - name: КДО. Последний визит (текст)
+    type: string
+  - name: КДО. Последний визит (число)
+    type: string
+  - name: КДО. Последний несостоявшийся визит. Мастер
+    type: string
+  - name: КДО. Последний несостоявшийся визит. Услуга (Название)
+    type: string
+  - name: КДО. Последний состоявшийся визит. Мастер
+    type: string
+  - name: КДО. Последний состоявшийся визит. Услуга (Название)
+    type: string
+  - name: КДО. Признак первого посещения выбранной категории услуг
+    type: string
+  - name: КДО. Признак что ближайшая будущая запись на любую категорию  сегодня
+    type: string
+  - name: КДО. Прошло дней с последнего визита
+    type: string
+  - name: КДО. Средний чек (услуги)
+    type: string
+  - name: КДО. Телефон
+    type: string
+  - name: КДО. Траты (услуги)
+    type: string
+  - name: КДО. Частота визитов
+    type: string
+  - name: Коммуникации с клиентами. %  Довольных
+    type: string
+  - name: Коммуникации с клиентами. %  Недовольных
+    type: string
+  - name: Коммуникации с клиентами. Количество визитов (all)
+    type: string
+  - name: Коммуникации с клиентами. Количество визитов (interval)
+    type: string
+  - name: Коммуникации с клиентами. Количество комммуникаций
+    type: string
+  - name: Коммуникации с клиентами. Количество созданных записей (interval)
+    type: string
+  - name: Коммуникации с клиентами. Количество уникальных клиентов с состоявшимися
+      визитами после коммуникации
+    type: string
+  - name: Коммуникации с клиентами. Конверсия в визиты (interval)
+    type: string
+  - name: Коммуникации с клиентами. Конверсия в записи (interval)
+    type: string
+  - name: Коммуникации с клиентами. Последняя сводка
+    type: string
+  - name: Коммуникации с клиентами. Последняя сводка (абонеменеты)
+    type: string
+  - name: Коммуникации с клиентами. Сумма визитов (all)
+    type: string
+  - name: Коммуникации с клиентами. Сумма визитов (interval)
+    type: string
+  - name: Коммуникации с клиентами. Услуги на которые вернулись (interval)
+    type: string
+  measures:
+  - name: Абонементы. Задолженность
+    expression: (extracted from visual config)
+  - name: Абонементы. Количество
+    expression: (extracted from visual config)
+  - name: Абонементы. Количество (действующих без нулевого остатка)
+    expression: (extracted from visual config)
+  - name: Абонементы. Количество клиентов
+    expression: (extracted from visual config)
+  - name: Абонементы. Количество оставшихся сеансов
+    expression: (extracted from visual config)
+  - name: Абонементы. Состояние
+    expression: (extracted from visual config)
+  - name: Возвращаемость
+    expression: (extracted from visual config)
+  - name: КДО. Дата последней несостоявшейся записи (дата)
+    expression: (extracted from visual config)
+  - name: КДО. Дата последней несостоявшейся записи (текст)
+    expression: (extracted from visual config)
+  - name: КДО. Дата последней несостоявшейся записи (число)
+    expression: (extracted from visual config)
+  - name: КДО. День рождения (дата)
+    expression: (extracted from visual config)
+  - name: КДО. День рождения (текст)
+    expression: (extracted from visual config)
+  - name: КДО. День рождения (число)
+    expression: (extracted from visual config)
+  - name: КДО. Имя
+    expression: (extracted from visual config)
+  - name: КДО. Категория клиента
+    expression: (extracted from visual config)
+  - name: КДО. Количество визитов
+    expression: (extracted from visual config)
+  - name: КДО. Ожидаемая дата (текст)
+    expression: (extracted from visual config)
+  - name: КДО. Ожидаемая дата (число)
+    expression: (extracted from visual config)
+  - name: КДО. Ожидаемая дата следуюшего визита (дата)
+    expression: (extracted from visual config)
+  - name: КДО. Ожидается к мастеру
+    expression: (extracted from visual config)
+  - name: КДО. Ожидается на услугу (Название)
+    expression: (extracted from visual config)
+  - name: КДО. Оперативный визит. Дата
+    expression: (extracted from visual config)
+  - name: КДО. Оперативный визит. Мастер
+    expression: (extracted from visual config)
+  - name: КДО. Оперативный визит. Услуга
+    expression: (extracted from visual config)
+  - name: КДО. Первый визит (дата)
+    expression: (extracted from visual config)
+  - name: КДО. Последний визит (дата)
+    expression: (extracted from visual config)
+  - name: КДО. Последний визит (текст)
+    expression: (extracted from visual config)
+  - name: КДО. Последний визит (число)
+    expression: (extracted from visual config)
+  - name: КДО. Последний несостоявшийся визит. Мастер
+    expression: (extracted from visual config)
+  - name: КДО. Последний несостоявшийся визит. Услуга (Название)
+    expression: (extracted from visual config)
+  - name: КДО. Последний состоявшийся визит. Мастер
+    expression: (extracted from visual config)
+  - name: КДО. Последний состоявшийся визит. Услуга (Название)
+    expression: (extracted from visual config)
+  - name: КДО. Признак первого посещения выбранной категории услуг
+    expression: (extracted from visual config)
+  - name: КДО. Признак что ближайшая будущая запись на любую категорию  сегодня
+    expression: (extracted from visual config)
+  - name: КДО. Прошло дней с последнего визита
+    expression: (extracted from visual config)
+  - name: КДО. Средний чек (услуги)
+    expression: (extracted from visual config)
+  - name: КДО. Телефон
+    expression: (extracted from visual config)
+  - name: КДО. Траты (услуги)
+    expression: (extracted from visual config)
+  - name: КДО. Частота визитов
+    expression: (extracted from visual config)
+  - name: Коммуникации с клиентами. %  Довольных
+    expression: (extracted from visual config)
+  - name: Коммуникации с клиентами. %  Недовольных
+    expression: (extracted from visual config)
+  - name: Коммуникации с клиентами. Количество визитов (all)
+    expression: (extracted from visual config)
+  - name: Коммуникации с клиентами. Количество визитов (interval)
+    expression: (extracted from visual config)
+  - name: Коммуникации с клиентами. Количество комммуникаций
+    expression: (extracted from visual config)
+  - name: Коммуникации с клиентами. Количество созданных записей (interval)
+    expression: (extracted from visual config)
+  - name: Коммуникации с клиентами. Количество уникальных клиентов с состоявшимися
+      визитами после коммуникации
+    expression: (extracted from visual config)
+  - name: Коммуникации с клиентами. Конверсия в визиты (interval)
+    expression: (extracted from visual config)
+  - name: Коммуникации с клиентами. Конверсия в записи (interval)
+    expression: (extracted from visual config)
+  - name: Коммуникации с клиентами. Последняя сводка
+    expression: (extracted from visual config)
+  - name: Коммуникации с клиентами. Последняя сводка (абонеменеты)
+    expression: (extracted from visual config)
+  - name: Коммуникации с клиентами. Сумма визитов (all)
+    expression: (extracted from visual config)
+  - name: Коммуникации с клиентами. Сумма визитов (interval)
+    expression: (extracted from visual config)
+  - name: Коммуникации с клиентами. Услуги на которые вернулись (interval)
+    expression: (extracted from visual config)
+- name: Салоны
+  columns:
+  - name: Название
+    type: string
+- name: Справочники. Назначения коммуникаций
+  columns:
+  - name: Назначение
+    type: string
+- name: Справочники. Результат коммуникаций
+  columns:
+  - name: Результат
+    type: string
+- name: Справочники. Состояния клиентов по абонементам
+  columns:
+  - name: Состояние
+    type: string
+- name: Справочники. Страницы отчета
+  columns: []
+- name: Таблицы. Клиенты для обработки
+  columns:
+  - name: ClientGlobalId
+    type: string
+  - name: Статус клиента для обработки
+    type: string
+  measures:
+  - name: Статус клиента для обработки
+    expression: (extracted from visual config)
+- name: Услуги
+  columns:
+  - name: Name
+    type: string
+  - name: Категория
+    type: string
+  - name: Периодичность
+    type: string
+relationships: []
+hierarchies: []
