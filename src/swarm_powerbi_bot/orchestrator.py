@@ -133,10 +133,15 @@ class SwarmOrchestrator:
                 "[PLAN] %s | topic=%s | no query_params", planner_mode, plan.topic
             )
 
-        sql_task = asyncio.create_task(self._run_sql(question, plan, diagnostics))
-        pbi_task = asyncio.create_task(self._run_pbi(question, plan, diagnostics))
-
-        sql_insight, pbi_insight = await asyncio.gather(sql_task, pbi_task)
+        # Пропускаем legacy SQL если run_multi() уже получил данные — иначе дублируем запрос
+        has_multi_ok = any(r.status == "ok" for r in multi_results) if multi_results else False
+        if has_multi_ok:
+            sql_insight = SQLInsight(rows=[], summary="skipped: multi_results available")
+            pbi_insight = await self._run_pbi(question, plan, diagnostics)
+        else:
+            sql_task = asyncio.create_task(self._run_sql(question, plan, diagnostics))
+            pbi_task = asyncio.create_task(self._run_pbi(question, plan, diagnostics))
+            sql_insight, pbi_insight = await asyncio.gather(sql_task, pbi_task)
 
         # Генерируем график
         image = None
