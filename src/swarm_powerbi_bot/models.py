@@ -127,6 +127,9 @@ class AggregateResult:
     def __post_init__(self) -> None:
         if self.row_count == 0 and self.rows:
             self.row_count = len(self.rows)
+        # Инвариант: status="ok" не может иметь error
+        if self.status == "ok" and self.error:
+            self.error = None
 
 
 @dataclass

@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import json
 from datetime import date
+from typing import Literal
 
 from .base import Agent
 from ..models import AggregateResult, AnalysisResult, ComparisonResult, ModelInsight, MultiPlan, Plan, SQLInsight, UserQuestion
@@ -298,7 +299,7 @@ class AnalystAgent(Agent):
         user_prompt = json.dumps(data, ensure_ascii=False)
         answer = await self.llm_client.synthesize(self.SYSTEM_PROMPT, user_prompt, fallback)
 
-        confidence: str
+        confidence: Literal["low", "medium", "high"]
         if ok_results:
             confidence = "high" if len(ok_results) == len(results) else "medium"
         else:
@@ -308,7 +309,7 @@ class AnalystAgent(Agent):
 
         return AnalysisResult(
             answer=answer,
-            confidence=confidence,  # type: ignore[arg-type]
+            confidence=confidence,
             follow_ups=follow_ups,
         )
 
@@ -384,10 +385,10 @@ class AnalystAgent(Agent):
         if skipped:
             lines.append(f"_Пропущено запросов с ошибкой: {skipped}._")
 
-        confidence: str = "high" if len(ok_results) >= 2 else "medium"
+        confidence: Literal["low", "medium", "high"] = "high" if len(ok_results) >= 2 else "medium"
         return AnalysisResult(
             answer="\n".join(lines),
-            confidence=confidence,  # type: ignore[arg-type]
+            confidence=confidence,
             follow_ups=_TOPIC_FOLLOW_UPS.get(plan.topic, _DEFAULT_FOLLOW_UPS),
         )
 

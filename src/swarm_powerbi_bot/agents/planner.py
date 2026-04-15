@@ -7,7 +7,7 @@ import re
 from datetime import date, timedelta
 
 from .base import Agent
-from ..models import AggregateQuery, MultiPlan, Plan, QueryParams, UserQuestion
+from ..models import AggregateParams, AggregateQuery, MultiPlan, Plan, QueryParams, UserQuestion
 from ..services.aggregate_registry import AggregateRegistry
 from ..services.llm_client import LLMClient
 from ..services.topic_registry import detect_topic, get_procedure
@@ -242,7 +242,14 @@ class PlannerAgent(Agent):
             logger.warning("plan_aggregates: 'queries' is missing or empty")
             return None
 
-        intent = raw_dict.get("intent", "single")
+        _ALLOWED_INTENTS = {"single", "comparison", "decomposition", "trend", "ranking"}
+        raw_intent = raw_dict.get("intent", "single")
+        intent = raw_intent if raw_intent in _ALLOWED_INTENTS else "single"
+        if raw_intent != intent:
+            logger.warning(
+                "plan_aggregates: unknown intent %r from LLM, falling back to 'single'",
+                raw_intent,
+            )
 
         # T037/T038: для декомпозиции допускаем до 5 запросов; глобальный max — 10
         _MAX_QUERIES_DECOMPOSITION = 5
@@ -267,7 +274,7 @@ class PlannerAgent(Agent):
             queries.append(
                 AggregateQuery(
                     aggregate_id=agg_id,
-                    params=q.get("params", {}),
+                    params=AggregateParams(q.get("params", {})),
                     label=q.get("label", ""),
                 )
             )

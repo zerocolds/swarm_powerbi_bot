@@ -289,6 +289,11 @@ class SQLClient:
         max_rows: int = 20,
     ) -> tuple[list[dict[str, Any]], str, dict[str, Any]]:
         """Синхронное выполнение агрегатного запроса."""
+        # Защита от SQL injection: только alphanumeric + underscore + точка
+        bare = procedure.replace("dbo.", "", 1) if procedure.startswith("dbo.") else procedure
+        if not re.fullmatch(r"[a-zA-Z0-9_.]+", bare):
+            logger.error("Invalid procedure name rejected: %r", procedure)
+            return [], aggregate_id, {}
         if not procedure.startswith("dbo."):
             procedure = f"dbo.{procedure}"
 
@@ -515,6 +520,11 @@ class SQLClient:
     ) -> tuple[list[dict[str, Any]], str, dict[str, Any]]:
         topic_id = topic or detect_topic(question)
         procedure = get_procedure(topic_id)
+        # Защита от SQL injection: только alphanumeric + underscore + точка
+        bare = procedure.replace("dbo.", "", 1) if procedure.startswith("dbo.") else procedure
+        if not re.fullmatch(r"[a-zA-Z0-9_.]+", bare):
+            logger.error("Invalid procedure name rejected: %r", procedure)
+            return [], topic_id, {}
         date_params = extract_date_params(question)
 
         conn_str = self.settings.sql_connection_string()
