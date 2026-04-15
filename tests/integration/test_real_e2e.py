@@ -13,7 +13,8 @@ from swarm_powerbi_bot.orchestrator import SwarmOrchestrator
 
 pytestmark = pytest.mark.integration
 
-# Общая константа с conftest.py (не импортируем — pytest резолвит conftest по иерархии)
+# Совпадает с TEST_OBJECT_ID в tests/integration/conftest.py.
+# Прямой import невозможен — pytest резолвит `from conftest` на tests/conftest.py.
 _TEST_OBJECT_ID = 506770
 
 

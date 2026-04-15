@@ -22,7 +22,7 @@ def test_orchestrator_happy_path():
 
     result = asyncio.run(orchestrator.handle_question(UserQuestion(user_id="1", text="test")))
     assert result.answer == "analysis"
-    # Изображение из DummyRender (fallback после matplotlib)
+    # Изображение из DummyRender
     assert result.image is not None
     assert result.confidence == "high"
 
@@ -82,6 +82,7 @@ def test_multi_all_failed_skips_legacy_sql():
     )
 
     result = asyncio.run(orchestrator.handle_question(UserQuestion(user_id="1", text="сравни отток")))
+    assert result.answer, "Orchestrator должен вернуть ответ даже при all-failed multi"
     assert not sql_spy.run_called, "Legacy SQL should NOT be called when all multi_results failed"
     assert result.diagnostics.get("multi_all_failed") == "true"
 
