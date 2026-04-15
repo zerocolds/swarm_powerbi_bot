@@ -112,6 +112,7 @@ _METRIC_LABELS: dict[str, str] = {
     "TotalVisits": "Визиты",
     "TotalSpent": "Сумма трат (₽)",
     "Revenue": "Выручка (₽)",
+    "TotalRevenue": "Выручка (₽)",
     "AvgCheck": "Средний чек (₽)",
     "UniqueClients": "Уникальные клиенты",
     "Visits": "Визиты",
@@ -136,6 +137,7 @@ _FIELD_LABELS: dict[str, str] = {
     "ExpectedNextVisit": "Ожидаемый визит",
     "ServicePeriodDays": "Период визитов (дни)",
     "Revenue": "Выручка (₽)",
+    "TotalRevenue": "Выручка (₽)",
     "AvgCheck": "Средний чек (₽)",
     "Visits": "Визиты",
     "UniqueClients": "Уникальные клиенты",
@@ -272,6 +274,16 @@ class AnalystAgent(Agent):
 
         if topic_desc:
             lines.append(f"*{topic_desc}*")
+
+        # Период из SQL-параметров
+        date_from = sql_insight.params.get("DateFrom") or sql_insight.params.get("date_from")
+        date_to = sql_insight.params.get("DateTo") or sql_insight.params.get("date_to")
+        if date_from and date_to:
+            df = date_from.isoformat() if isinstance(date_from, date) else str(date_from)[:10]
+            dt = date_to.isoformat() if isinstance(date_to, date) else str(date_to)[:10]
+            lines.append(f"Период: {df} — {dt}")
+
+        if lines:
             lines.append("")
 
         if sql_insight.rows:
@@ -290,7 +302,9 @@ class AnalystAgent(Agent):
                     if key in _HIDDEN_FIELDS or val is None:
                         continue
                     label = _FIELD_LABELS.get(key, key)
-                    if isinstance(val, str) and "T" in val and len(val) > 10:
+                    if isinstance(val, float):
+                        val = f"{val:,.2f}"
+                    elif isinstance(val, str) and "T" in val and len(val) > 10:
                         val = val[:10]  # ISO datetime → дата
                     preview.append(f"• {label}: {val}")
                     if len(preview) >= 5:
@@ -343,15 +357,19 @@ class AnalystAgent(Agent):
         if not rows:
             return "Данных не найдено."
         row = rows[0]
+        _MONEY_FIELDS = {"Revenue", "TotalRevenue", "AvgCheck", "RevenuePerHour"}
         parts = []
-        for key in ("Visits", "UniqueClients", "Revenue", "AvgCheck", "ActiveMasters"):
+        for key in ("Visits", "UniqueClients", "TotalRevenue", "Revenue", "AvgCheck", "ActiveMasters"):
             val = row.get(key)
-            if val is not None:
-                label = _METRIC_LABELS.get(key, key)
-                if isinstance(val, float) and val > 100:
-                    parts.append(f"{label}: {val:,.0f}")
-                else:
-                    parts.append(f"{label}: {val}")
+            if val is None:
+                continue
+            label = _METRIC_LABELS.get(key, key)
+            if key in _MONEY_FIELDS and isinstance(val, (int, float)):
+                parts.append(f"{label}: {val:,.2f}")
+            elif isinstance(val, float):
+                parts.append(f"{label}: {val:,.0f}")
+            else:
+                parts.append(f"{label}: {val}")
         return " | ".join(parts) if parts else f"Найдено записей: {len(rows)}"
 
     async def run_multi(

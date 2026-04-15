@@ -115,3 +115,65 @@ class TestFallbackSummaryTranslation:
         assert "Визиты" in text
         assert "Выручка" in text
         assert "Visits" not in text  # no raw field names
+
+
+# ── #9: Период, округление, TotalRevenue ──────────────────────
+
+
+class TestStatisticsPeriodAndRounding:
+    """#9: период в тексте, округление денежных полей, TotalRevenue переведён."""
+
+    def test_fallback_shows_period(self):
+        from datetime import date
+        from swarm_powerbi_bot.models import Plan, SQLInsight, ModelInsight, UserQuestion
+        analyst = _make_analyst()
+        rows = [{"Visits": 100, "UniqueClients": 50, "TotalRevenue": 300000.0, "AvgCheck": 1500.0}]
+        q = UserQuestion(user_id="1", text="прибыль за неделю")
+        plan = Plan(objective="прибыль", topic="statistics")
+        sql = SQLInsight(
+            rows=rows, summary="ok",
+            params={"DateFrom": date(2026, 4, 8), "DateTo": date(2026, 4, 15)},
+        )
+        model = ModelInsight(metrics={}, summary="")
+        text = analyst._fallback_summary(q, plan, sql, model, {})
+        assert "Период: 2026-04-08 — 2026-04-15" in text
+
+    def test_money_fields_rounded_to_2_decimals(self):
+        from swarm_powerbi_bot.models import Plan, SQLInsight, ModelInsight, UserQuestion
+        analyst = _make_analyst()
+        rows = [{"Visits": 220, "TotalRevenue": 425916.72294397687, "AvgCheck": 1935.985104290804}]
+        q = UserQuestion(user_id="1", text="статистика")
+        plan = Plan(objective="статистика", topic="statistics")
+        sql = SQLInsight(rows=rows, summary="ok")
+        model = ModelInsight(metrics={}, summary="")
+        text = analyst._fallback_summary(q, plan, sql, model, {})
+        assert "425,916.72" in text
+        assert "1,935.99" in text
+        # Не должно быть длинных дробей
+        assert "72294397687" not in text
+        assert "985104290804" not in text
+
+    def test_total_revenue_translated(self):
+        from swarm_powerbi_bot.models import Plan, SQLInsight, ModelInsight, UserQuestion
+        analyst = _make_analyst()
+        rows = [{"Visits": 100, "TotalRevenue": 300000.0, "AvgCheck": 1500.0}]
+        q = UserQuestion(user_id="1", text="статистика")
+        plan = Plan(objective="статистика", topic="statistics")
+        sql = SQLInsight(rows=rows, summary="ok")
+        model = ModelInsight(metrics={}, summary="")
+        text = analyst._fallback_summary(q, plan, sql, model, {})
+        assert "TotalRevenue" not in text
+        assert "Выручка" in text
+
+    def test_default_branch_float_formatted(self):
+        """Generic fallback (не statistics) тоже округляет float."""
+        from swarm_powerbi_bot.models import Plan, SQLInsight, ModelInsight, UserQuestion
+        analyst = _make_analyst()
+        rows = [{"SomeMetric": 12345.6789}]
+        q = UserQuestion(user_id="1", text="тест")
+        plan = Plan(objective="тест", topic="unknown_topic")
+        sql = SQLInsight(rows=rows, summary="ok")
+        model = ModelInsight(metrics={}, summary="")
+        text = analyst._fallback_summary(q, plan, sql, model, {})
+        assert "12,345.68" in text
+        assert "6789" not in text
