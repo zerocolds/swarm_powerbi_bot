@@ -38,6 +38,14 @@ CATALOG_YAML = textwrap.dedent("""\
         allowed_group_by:
           - list
           - master
+      - id: clients_outflow
+        name: Отток клиентов (v2)
+        description: Клиенты со статусом outflow
+        procedure: spKDO_ClientList
+        allowed_group_by:
+          - list
+          - status
+          - master
       - id: communications_all
         name: Коммуникации
         description: Все коммуникации по типу звонка
@@ -295,3 +303,91 @@ class TestCrossDomainMultipleAggregates:
         plan = asyncio.run(planner.run_multi(q))
         assert len(plan.queries) == 3
         assert plan.intent == "decomposition"
+
+
+# ── Issue #2: Follow-up comparison intent ────────────────────────────────────
+
+class TestFollowUpComparison:
+    """Fix #2: follow-up «сравни по месяцам» должен возвращать comparison."""
+
+    def test_followup_comparison_llm(self, registry):
+        """LLM получает last_topic и возвращает comparison plan."""
+        comparison_json = """{
+            "intent": "comparison",
+            "queries": [
+                {"aggregate_id": "clients_outflow", "params": {"date_from": "2026-03-01", "date_to": "2026-03-31", "group_by": "status"}, "label": "Март"},
+                {"aggregate_id": "clients_outflow", "params": {"date_from": "2026-02-01", "date_to": "2026-02-28", "group_by": "status"}, "label": "Февраль"}
+            ],
+            "topic": "clients_outflow",
+            "render_needed": true
+        }"""
+        planner = _make_planner(comparison_json, registry)
+        q = UserQuestion(
+            user_id="1",
+            text="сравни по месяцам за два месяца",
+            last_topic="clients_outflow",
+        )
+        import asyncio
+        plan = asyncio.run(planner.run_multi(q))
+
+        assert plan.intent == "comparison"
+        assert len(plan.queries) == 2
+        assert all(aq.aggregate_id == "clients_outflow" for aq in plan.queries)
+        # Проверяем что last_topic был передан в plan_aggregates
+        call_kwargs = planner.llm_client.plan_aggregates.call_args
+        assert call_kwargs is not None
+        assert call_kwargs.kwargs.get("last_topic") == "clients_outflow"
+
+    def test_followup_comparison_fallback(self, registry):
+        """Без LLM: «сравни» + last_topic → comparison с 2 запросами."""
+        planner = _make_planner(None, registry)  # LLM unavailable
+        q = UserQuestion(
+            user_id="1",
+            text="сравни по месяцам за два месяца",
+            last_topic="clients_outflow",
+            object_id=506770,
+        )
+        import asyncio
+        plan = asyncio.run(planner.run_multi(q))
+
+        assert plan.intent == "comparison"
+        assert len(plan.queries) == 2
+        assert all(aq.aggregate_id == "clients_outflow" for aq in plan.queries)
+        # Клиентский агрегат → group_by=status (не list)
+        for aq in plan.queries:
+            assert aq.params.get("group_by") == "status"
+            # H4: object_id должен быть в params
+            assert aq.params.get("object_id") == 506770
+        assert "comparison:fallback" in plan.notes
+
+    def test_followup_comparison_legacy_topic(self, registry):
+        """Legacy last_topic='outflow' (из TopicRegistry) → маппинг в clients_outflow."""
+        planner = _make_planner(None, registry)
+        q = UserQuestion(
+            user_id="1",
+            text="сравни по месяцам за два месяца",
+            last_topic="outflow",  # legacy topic, не catalog id
+            object_id=506770,
+        )
+        import asyncio
+        plan = asyncio.run(planner.run_multi(q))
+
+        assert plan.intent == "comparison"
+        assert len(plan.queries) == 2
+        # legacy "outflow" замапился в catalog "clients_outflow"
+        assert all(aq.aggregate_id == "clients_outflow" for aq in plan.queries)
+        for aq in plan.queries:
+            assert aq.params.get("group_by") == "status"
+            assert aq.params.get("object_id") == 506770
+        assert "comparison:fallback" in plan.notes
+
+    def test_followup_comparison_no_context(self, registry):
+        """«сравни» без last_topic → fallback single (нет контекста для comparison)."""
+        planner = _make_planner(None, registry)
+        q = UserQuestion(user_id="1", text="сравни что-то")
+        import asyncio
+        plan = asyncio.run(planner.run_multi(q))
+
+        assert isinstance(plan, MultiPlan)
+        # Без контекста topic_registry вернёт unknown → single
+        assert plan.intent == "single"

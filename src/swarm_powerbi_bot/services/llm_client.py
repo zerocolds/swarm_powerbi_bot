@@ -12,6 +12,16 @@ from ..config import Settings
 
 logger = logging.getLogger(__name__)
 
+_TOPIC_RE = __import__("re").compile(r"^[a-z][a-z0-9_]{0,63}$")
+
+
+def _sanitize_topic(topic: str) -> str:
+    """Валидирует last_topic: только a-z, 0-9, _ (до 64 символов)."""
+    if _TOPIC_RE.match(topic):
+        return topic
+    return ""
+
+
 # ── Промпт для LLM-планировщика запросов ──────────────────────
 
 _PLANNER_SYSTEM_PROMPT = """\
@@ -142,6 +152,7 @@ class LLMClient:
         question: str,
         catalog_prompt: str,
         semantic_prompt: str,
+        last_topic: str = "",
     ) -> dict | None:
         """T025: Одношаговое LLM-планирование с каталогом агрегатов.
 
@@ -184,6 +195,13 @@ class LLMClient:
             "  5. avg_check (один период достаточно)\n"
             "Максимум 5 запросов при decomposition. "
             "Ставь понятный label: «Выручка (апрель)», «Клиенты (март)» и т.д.\n\n"
+            "ПРАВИЛА FOLLOW-UP:\n"
+            "Если указан last_topic — пользователь продолжает предыдущий разговор. "
+            "Используй last_topic как основу для выбора агрегата.\n"
+            "Пример: last_topic=clients_outflow, вопрос=«сравни по месяцам» "
+            "→ intent=comparison, aggregate_id=clients_outflow для обоих периодов.\n"
+            "Для comparison клиентских агрегатов (clients_*) используй group_by=status "
+            "(агрегированные цифры), НЕ group_by=list (сырой список).\n\n"
             "ВАЖНО: используй только aggregate_id из каталога выше. "
             "Ответь ТОЛЬКО JSON, без пояснений."
         )
@@ -198,7 +216,10 @@ class LLMClient:
             "model": self.settings.ollama_model,
             "messages": [
                 {"role": "system", "content": system_prompt},
-                {"role": "user", "content": question},
+                {"role": "user", "content": (
+                    f"{question}\nКонтекст: last_topic={_sanitize_topic(last_topic)}"
+                    if last_topic else question
+                )},
             ],
             "stream": False,
             "options": {"temperature": 0.1},

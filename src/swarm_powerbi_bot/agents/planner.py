@@ -251,6 +251,7 @@ class PlannerAgent(Agent):
             question=question.text,
             catalog_prompt=catalog_prompt,
             semantic_prompt=semantic_prompt,
+            last_topic=question.last_topic,
         )
         if not raw_dict:
             return None
@@ -343,13 +344,94 @@ class PlannerAgent(Agent):
             notes=["planner_v2:llm"],
         )
 
+    _COMPARISON_KEYWORDS = {"сравни", "сравнен", "сравнить", "сравнение", "compare", "сопостав", "vs"}
+    _CLIENT_AGGREGATES = {
+        "clients_outflow", "clients_leaving", "clients_forecast",
+        "clients_noshow", "clients_quality", "clients_birthday", "clients_all",
+    }
+    # Маппинг legacy TopicRegistry topic_id → catalog aggregate_id
+    _LEGACY_TO_CATALOG: dict[str, str] = {
+        "outflow": "clients_outflow",
+        "leaving": "clients_leaving",
+        "forecast": "clients_forecast",
+        "noshow": "clients_noshow",
+        "quality": "clients_quality",
+        "birthday": "clients_birthday",
+        "all_clients": "clients_all",
+        "statistics": "revenue_total",
+        "services": "revenue_by_service",
+        "masters": "revenue_by_master",
+        "communications": "comm_all_by_reason",
+    }
+
     def _fallback_multi_plan(
         self, question: UserQuestion, render_needed: bool
     ) -> MultiPlan:
-        """Fallback: keyword-based TopicRegistry → один AggregateQuery."""
-        topic = detect_topic(question.text, last_topic=question.last_topic)
+        """Fallback: keyword-based TopicRegistry → AggregateQuery(s).
 
-        # Формируем AggregateQuery используя topic как aggregate_id
+        Определяет intent=comparison по ключевым словам и генерирует
+        2 запроса с разными периодами при наличии контекста (last_topic).
+        """
+        topic = detect_topic(question.text, last_topic=question.last_topic)
+        text_lower = question.text.lower()
+
+        is_comparison = any(kw in text_lower for kw in self._COMPARISON_KEYWORDS)
+
+        if is_comparison and question.last_topic:
+            # Проверяем что last_topic — валидный catalog aggregate_id
+            registry = self.aggregate_registry
+            agg_id = question.last_topic
+            if registry and not registry.get_aggregate(agg_id):
+                # Пробуем маппинг legacy topic → catalog aggregate_id
+                mapped = self._LEGACY_TO_CATALOG.get(agg_id, "")
+                agg_id = mapped if mapped and registry.get_aggregate(mapped) else ""
+            if not agg_id:
+                # Нет валидного aggregate_id для comparison → обычный single
+                pass
+            else:
+                # Для клиентских агрегатов — group_by=status (агрегированные цифры)
+                group_by = "status" if agg_id in self._CLIENT_AGGREGATES else ""
+                today = date.today()
+                first_of_current = today.replace(day=1)
+                last_of_prev = first_of_current - timedelta(days=1)
+                first_of_prev = last_of_prev.replace(day=1)
+
+                params_prev: dict = {
+                    "date_from": first_of_prev.isoformat(),
+                    "date_to": last_of_prev.isoformat(),
+                }
+                params_curr: dict = {
+                    "date_from": first_of_current.isoformat(),
+                    "date_to": today.isoformat(),
+                }
+                # H4: object_id обязателен для большинства агрегатов
+                if question.object_id is not None:
+                    params_prev["object_id"] = question.object_id
+                    params_curr["object_id"] = question.object_id
+                if group_by:
+                    params_prev["group_by"] = group_by
+                    params_curr["group_by"] = group_by
+
+                _RU_MONTHS = [
+                    "", "Январь", "Февраль", "Март", "Апрель", "Май", "Июнь",
+                    "Июль", "Август", "Сентябрь", "Октябрь", "Ноябрь", "Декабрь",
+                ]
+                prev_label = f"{_RU_MONTHS[first_of_prev.month]} {first_of_prev.year}"
+                curr_label = f"{_RU_MONTHS[first_of_current.month]} {first_of_current.year}"
+
+                queries = [
+                    AggregateQuery(aggregate_id=agg_id, params=AggregateParams(params_prev), label=prev_label),
+                    AggregateQuery(aggregate_id=agg_id, params=AggregateParams(params_curr), label=curr_label),
+                ]
+                return MultiPlan(
+                    objective=question.text,
+                    intent="comparison",
+                    queries=queries,
+                    topic=agg_id,
+                    render_needed=render_needed,
+                    notes=["planner_v2:keyword", "comparison:fallback"],
+                )
+
         agg_query = AggregateQuery(
             aggregate_id=topic,
             params={},

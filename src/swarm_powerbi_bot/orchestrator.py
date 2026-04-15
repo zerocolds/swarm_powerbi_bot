@@ -80,12 +80,15 @@ class SwarmOrchestrator:
         # T031: Если есть MultiPlan и aggregate_registry — выполняем все запросы через SQLAgent.run_multi()
         # Пропускаем run_multi() для keyword-fallback планов: их aggregate_id — topic-идентификаторы,
         # не валидные catalog aggregate_ids, и они провалят registry.validate().
+        # Исключение: comparison:fallback генерирует реальные catalog aggregate_ids.
         multi_results: list[AggregateResult] = []
+        _notes = multi_plan.notes or [] if multi_plan else []
+        _skip_keyword = "planner_v2:keyword" in _notes and "comparison:fallback" not in _notes
         if (
             multi_plan
             and multi_plan.queries
             and self.aggregate_registry is not None
-            and "planner_v2:keyword" not in (multi_plan.notes or [])
+            and not _skip_keyword
         ):
             diagnostics["multi_plan_intent"] = multi_plan.intent
             diagnostics["multi_plan_queries"] = str(len(multi_plan.queries))
