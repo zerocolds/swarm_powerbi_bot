@@ -1,0 +1,32 @@
+name: Validate Catalogs
+
+on:
+  push:
+    paths:
+      - "catalogs/*.yaml"
+      - "scripts/bootstrap/*.py"
+  pull_request:
+    paths:
+      - "catalogs/*.yaml"
+      - "scripts/bootstrap/*.py"
+
+jobs:
+  validate:
+    name: Validate YAML catalogs
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install pyyaml
+        run: pip install pyyaml
+
+      - name: Validate aggregate-catalog.yaml
+        run: python -c "import yaml; yaml.safe_load(open('catalogs/aggregate-catalog.yaml'))"
+
+      - name: Validate category-index.yaml
+        run: python -c "import yaml; yaml.safe_load(open('catalogs/category-index.yaml'))"
