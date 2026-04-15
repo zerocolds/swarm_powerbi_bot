@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import datetime
 import logging
 import re
 from pathlib import Path
@@ -21,12 +22,22 @@ _FILTER_VALUES = frozenset(
     {"all", "outflow", "leaving", "forecast", "noshow", "quality", "birthday"}
 )
 
+_REASON_VALUES = frozenset(
+    {"all", "outflow", "leaving", "forecast", "noshow", "quality", "birthday", "waitlist", "opz"}
+)
+
 
 # ── helpers ────────────────────────────────────────────────────────────────────
 
 
 def _is_date(value: object) -> bool:
-    return isinstance(value, str) and bool(_DATE_RE.match(value))
+    if not isinstance(value, str) or not _DATE_RE.match(value):
+        return False
+    try:
+        datetime.date.fromisoformat(value)
+        return True
+    except ValueError:
+        return False
 
 
 def _load_catalog(path: str) -> dict[str, dict]:
@@ -96,6 +107,12 @@ def _validate_entry_params(
             if value not in _FILTER_VALUES:
                 return False, (
                     f"filter {value!r} not in allowed set {sorted(_FILTER_VALUES)}"
+                )
+
+        elif key == "reason":
+            if value not in _REASON_VALUES:
+                return False, (
+                    f"reason {value!r} not in allowed set {sorted(_REASON_VALUES)}"
                 )
 
         elif key == "top_n":

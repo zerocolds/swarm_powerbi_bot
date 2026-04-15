@@ -78,8 +78,15 @@ class SwarmOrchestrator:
                 plan = self.planner.empty_plan(question.text)
 
         # T031: Если есть MultiPlan и aggregate_registry — выполняем все запросы через SQLAgent.run_multi()
+        # Пропускаем run_multi() для keyword-fallback планов: их aggregate_id — topic-идентификаторы,
+        # не валидные catalog aggregate_ids, и они провалят registry.validate().
         multi_results: list[AggregateResult] = []
-        if multi_plan and multi_plan.queries and self.aggregate_registry is not None:
+        if (
+            multi_plan
+            and multi_plan.queries
+            and self.aggregate_registry is not None
+            and "planner_v2:keyword" not in (multi_plan.notes or [])
+        ):
             diagnostics["multi_plan_intent"] = multi_plan.intent
             diagnostics["multi_plan_queries"] = str(len(multi_plan.queries))
             try:
