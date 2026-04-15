@@ -159,7 +159,7 @@ async def test_e2e_fallback_no_raw_fields(real_orchestrator: SwarmOrchestrator):
         _question("Какой отток за месяц?"),
     )
     assert resp.answer
-    raw_fields = {"DaysSinceLastVisit", "ServicePeriodDays", "DaysOverdue"}
+    raw_fields = {"DaysSinceLastVisit", "ServicePeriodDays", "DaysOverdue", "ClientName", "Phone"}
     for f in raw_fields:
         assert f not in resp.answer, f"Raw field {f} leaked into answer"
 

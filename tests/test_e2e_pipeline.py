@@ -232,6 +232,15 @@ class TestMultiPlanPipeline:
         assert result.answer
         assert len(result.answer) > 0
 
+    def test_decomposition_pipeline(self):
+        """MultiPlan decomposition → SwarmResponse с multi-result анализом."""
+        orch = build_mock_orchestrator_multi(intent="decomposition", topic="revenue_total")
+        result = asyncio.run(orch.handle_question(
+            UserQuestion(user_id="1", text="почему упала выручка?"),
+        ))
+        assert result.answer is not None
+        assert result.confidence in ("low", "medium", "high")
+
 
 # ── T005: 10 checklist questions ────────────────────────────────
 
@@ -314,11 +323,20 @@ class TestNegativeScenarios:
         assert result.answer
         assert result.topic  # непустой topic (fallback)
 
-    def test_negative_empty_period(self):
+    def test_negative_empty_text(self):
         """Пустой текст запроса → не падаем."""
         orch = _build_orchestrator()
         result = asyncio.run(orch.handle_question(
             UserQuestion(user_id="1", text=""),
+        ))
+        assert result.answer
+        assert result.topic
+
+    def test_negative_no_period(self):
+        """KPI-вопрос без указания периода → не падаем."""
+        orch = _build_orchestrator()
+        result = asyncio.run(orch.handle_question(
+            UserQuestion(user_id="1", text="покажи выручку"),
         ))
         assert result.answer
         assert result.topic

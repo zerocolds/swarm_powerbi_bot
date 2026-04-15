@@ -253,3 +253,5 @@ async def test_planner_10_questions(
     assert isinstance(plan, MultiPlan)
     assert plan.queries, f"No queries for: {question_text}"
     assert plan.topic, f"No topic for: {question_text}"
+    assert plan.intent in ("single", "comparison", "decomposition"), \
+        f"Invalid intent '{plan.intent}' for: {question_text}"
