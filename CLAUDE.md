@@ -3,6 +3,7 @@
 Auto-generated from all feature plans. Last updated: 2026-04-15
 
 ## Active Technologies
+- Microsoft SQL Server (pyodbc, ODBC Driver 17); materialized агрегаты (indexed views) с overhead ≤3x хранения (010-test-coverage)
 
 - Python 3.11+ + python-telegram-bot ≥21.0, httpx ≥0.27, pyodbc ≥5.1, matplotlib ≥3.8, selenium ≥4.22, python-dotenv ≥1.0.1 (001-semantic-aggregate-layer)
 
@@ -32,6 +33,7 @@ uv run pytest -q && uv run ruff check src/ tests/
 Python 3.11+: Follow standard conventions
 
 ## Recent Changes
+- 010-test-coverage: Added Python 3.11+ + python-telegram-bot ≥21.0, httpx ≥0.27, pyodbc ≥5.1, matplotlib ≥3.8, selenium ≥4.22, python-dotenv ≥1.0.1
 
 - 001-semantic-aggregate-layer (Phase 10 Polish):
   - Added services: `aggregate_registry`, `master_resolver`, `query_logger`

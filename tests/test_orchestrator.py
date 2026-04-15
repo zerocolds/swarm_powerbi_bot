@@ -1,39 +1,14 @@
 import asyncio
 
 from swarm_powerbi_bot.models import (
-    AggregateResult, AnalysisResult, ModelInsight, MultiPlan, Plan,
-    RenderedArtifact, SQLInsight, UserQuestion,
+    AggregateResult, MultiPlan, Plan, UserQuestion,
 )
 from swarm_powerbi_bot.orchestrator import SwarmOrchestrator
 
-
-class DummyPlanner:
-    aggregate_registry = None
-
-    async def run(self, question: UserQuestion) -> Plan:
-        return Plan(objective=question.text, topic="statistics", sql_needed=True, powerbi_needed=True, render_needed=True)
-
-
-class DummySQL:
-    async def run(self, question: UserQuestion, plan: Plan) -> SQLInsight:
-        return SQLInsight(rows=[{"kpi": "sales", "value": 100}], summary="sql ok")
-
-
-class DummyPBI:
-    async def run(self, question: UserQuestion, plan: Plan) -> ModelInsight:
-        return ModelInsight(metrics={"margin": 0.32}, summary="model ok")
-
-
-class DummyRender:
-    async def run(self, question: UserQuestion, plan: Plan) -> RenderedArtifact:
-        _ = question, plan
-        return RenderedArtifact(image_bytes=b"png-bytes", source_url="http://report")
-
-
-class DummyAnalyst:
-    async def run(self, question, plan, sql_insight, model_insight, diagnostics, *, has_chart=False):
-        _ = question, plan, sql_insight, model_insight, has_chart
-        return AnalysisResult(answer="analysis", confidence="high", diagnostics=diagnostics)
+from conftest import (
+    DummyAnalyst, DummyPBI, DummyPlanner, DummyRender, DummySQL,
+    MockAnalystMulti, MockRegistry,
+)
 
 
 def test_orchestrator_happy_path():
@@ -65,14 +40,13 @@ class DummySQLSpy(DummySQL):
         return await super().run(question, plan)
 
     async def run_multi(self, multi_plan, registry, *, logger_=None):
-        # All results failed
         return [
             AggregateResult(aggregate_id="clients_outflow", status="error", rows=[]),
             AggregateResult(aggregate_id="clients_outflow", status="error", rows=[]),
         ]
 
 
-class DummyPlannerWithRegistry(DummyPlanner):
+class DummyPlannerWithRegistryFail(DummyPlanner):
     def __init__(self, registry):
         self.aggregate_registry = registry
 
@@ -94,26 +68,16 @@ class DummyPlannerWithRegistry(DummyPlanner):
         )
 
 
-class DummyRegistry:
-    """Minimal registry stub."""
-    pass
-
-
-class DummyAnalystMulti(DummyAnalyst):
-    async def run_multi(self, question, results, plan):
-        return AnalysisResult(answer="multi analysis", confidence="medium", diagnostics={})
-
-
 def test_multi_all_failed_skips_legacy_sql():
     """#4: Если все multi_results failed, legacy SQL НЕ должен вызываться."""
-    registry = DummyRegistry()
+    registry = MockRegistry()
     sql_spy = DummySQLSpy()
     orchestrator = SwarmOrchestrator(
-        planner=DummyPlannerWithRegistry(registry),
+        planner=DummyPlannerWithRegistryFail(registry),
         sql_agent=sql_spy,
         powerbi_agent=DummyPBI(),
         render_agent=DummyRender(),
-        analyst_agent=DummyAnalystMulti(),
+        analyst_agent=MockAnalystMulti(),
         aggregate_registry=registry,
     )
 

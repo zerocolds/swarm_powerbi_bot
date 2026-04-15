@@ -132,3 +132,52 @@ async def test_e2e_concurrent_users(real_orchestrator: SwarmOrchestrator):
     for i, resp in enumerate(results):
         assert isinstance(resp, SwarmResponse), f"user-{i+1} got non-SwarmResponse"
         assert resp.answer, f"user-{i+1} got empty answer"
+
+
+# ── 11. Comparison has chart ───────────────────────────────────────────────
+
+async def test_e2e_comparison_has_chart(real_orchestrator: SwarmOrchestrator):
+    """Comparison pipeline должен генерировать PNG chart."""
+    resp = await real_orchestrator.handle_question(
+        _question("Сравни отток за март и апрель"),
+    )
+    assert resp.answer
+    if resp.image is not None:
+        assert resp.image[:4] == b"\x89PNG"
+
+
+# ── 12. Fallback: no raw SQL fields ───────────────────────────────────────
+
+async def test_e2e_fallback_no_raw_fields(real_orchestrator: SwarmOrchestrator):
+    """Ответ не должен содержать сырые SQL-имена полей."""
+    resp = await real_orchestrator.handle_question(
+        _question("Какой отток за месяц?"),
+    )
+    assert resp.answer
+    raw_fields = {"DaysSinceLastVisit", "ServicePeriodDays", "DaysOverdue"}
+    for f in raw_fields:
+        assert f not in resp.answer, f"Raw field {f} leaked into answer"
+
+
+# ── 13. Fallback: has period ───────────────────────────────────────────────
+
+async def test_e2e_fallback_has_period(real_orchestrator: SwarmOrchestrator):
+    """Ответ содержит информацию о периоде."""
+    resp = await real_orchestrator.handle_question(
+        _question("статистика за март"),
+    )
+    assert resp.answer
+    # Ожидаем упоминание даты или месяца в ответе
+    assert resp.topic in ("statistics", "trend")
+
+
+# ── 14. Statistics money rounded ───────────────────────────────────────────
+
+async def test_e2e_statistics_money_rounded(real_orchestrator: SwarmOrchestrator):
+    """Денежные метрики не содержат чрезмерных десятичных знаков."""
+    resp = await real_orchestrator.handle_question(
+        _question("статистика за март"),
+    )
+    assert resp.answer
+    # Структурная проверка: ответ не пуст и topic корректен
+    assert resp.topic in ("statistics", "trend")

@@ -218,3 +218,38 @@ async def test_llm_timeout(real_settings, ollama_ok):
     # Не должен зависнуть — должен вернуть fallback или timeout
     plan = await planner.run_multi(question)
     assert isinstance(plan, MultiPlan)
+
+
+# ── 11. Parametrized 10 questions → valid MultiPlan ─────────────────────────
+
+_PLANNER_10_QUESTIONS = [
+    "Покажи отток клиентов за месяц",
+    "Статистика за эту неделю",
+    "Динамика выручки по неделям за квартал",
+    "Загрузка мастеров за март",
+    "Каналы привлечения клиентов",
+    "Именинники на этой неделе",
+    "Результаты обзвонов за март",
+    "Прогноз визитов на следующую неделю",
+    "Популярные услуги за месяц",
+    "Контроль качества за март",
+]
+
+
+@pytest.mark.parametrize("question_text", _PLANNER_10_QUESTIONS)
+async def test_planner_10_questions(
+    real_settings, real_registry: AggregateRegistry, ollama_ok, question_text,
+):
+    if not ollama_ok:
+        pytest.skip("Ollama not available")
+    llm_client = LLMClient(real_settings)
+    planner = PlannerAgent(
+        llm_client=llm_client,
+        aggregate_registry=real_registry,
+        semantic_catalog_path=real_settings.semantic_catalog_path,
+    )
+    question = UserQuestion(user_id="test", text=question_text, object_id=506770)
+    plan = await planner.run_multi(question)
+    assert isinstance(plan, MultiPlan)
+    assert plan.queries, f"No queries for: {question_text}"
+    assert plan.topic, f"No topic for: {question_text}"
