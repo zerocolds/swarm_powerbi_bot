@@ -20,6 +20,8 @@ from swarm_powerbi_bot.services.chart_renderer import HAS_MPL
 
 from conftest import build_mock_orchestrator_multi
 
+pytestmark = pytest.mark.e2e
+
 
 # ── Mock агенты с реалистичными данными ──────────────────────
 
@@ -92,6 +94,11 @@ class MockRender:
 
 
 class MockAnalyst:
+    """Возвращает canned output для проверки маршрутизации pipeline.
+
+    Реальную фильтрацию полей и качество формулировок проверяют
+    интеграционные тесты в tests/integration/test_real_e2e.py.
+    """
     async def run(self, question, plan, sql_insight, model_insight, diagnostics, *, has_chart=False):
         return AnalysisResult(
             answer=f"Тема: {plan.topic}, строк: {len(sql_insight.rows)}",
@@ -328,10 +335,18 @@ class TestNegativeScenarios:
 
 
 # ── T008: Smoke / fallback quality ──────────────────────────────
+# NB: MockAnalyst возвращает canned output — эти тесты проверяют маршрутизацию
+# pipeline, а не качество формулировок аналитика. Реальное качество ответов
+# (отсутствие сырых SQL-полей, форматирование чисел) проверяют интеграционные
+# тесты в tests/integration/test_real_e2e.py.
 
 class TestFallbackQuality:
     def test_outflow_fallback_no_raw_fields(self):
-        """Fallback ответ по оттоку не содержит сырых SQL-имён полей."""
+        """Mock pipeline: ответ не содержит сырых SQL-имён.
+
+        NB: MockAnalyst возвращает canned output — реальную фильтрацию
+        полей проверяет integration/test_real_e2e::test_e2e_fallback_no_raw_fields.
+        """
         orch = _build_orchestrator()
         result = asyncio.run(orch.handle_question(
             UserQuestion(user_id="1", text="отток за месяц"),
@@ -341,7 +356,11 @@ class TestFallbackQuality:
             assert field not in result.answer, f"Сырое поле {field} в ответе"
 
     def test_statistics_pipeline_returns_correct_topic(self):
-        """Pipeline корректно маршрутизирует statistics и возвращает непустой ответ."""
+        """Mock pipeline: маршрутизация statistics возвращает непустой ответ.
+
+        NB: MockAnalyst возвращает canned output — качество текста проверяют
+        интеграционные тесты в tests/integration/test_real_e2e.py.
+        """
         orch = _build_orchestrator()
         result = asyncio.run(orch.handle_question(
             UserQuestion(user_id="1", text="покажи статистику за неделю"),
@@ -351,7 +370,11 @@ class TestFallbackQuality:
         assert result.confidence in ("low", "medium", "high")
 
     def test_statistics_pipeline_has_follow_ups(self):
-        """Pipeline statistics возвращает follow-up подсказки."""
+        """Mock pipeline: statistics возвращает follow-up подсказки.
+
+        NB: MockAnalyst возвращает canned output — содержание follow-ups
+        проверяют интеграционные тесты в tests/integration/test_real_e2e.py.
+        """
         orch = _build_orchestrator()
         result = asyncio.run(orch.handle_question(
             UserQuestion(user_id="1", text="покажи статистику за неделю"),

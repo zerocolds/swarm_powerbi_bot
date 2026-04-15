@@ -48,7 +48,7 @@ async def test_e2e_comparison(real_orchestrator: SwarmOrchestrator):
         _question("Сравни выручку марта и февраля"),
     )
     assert resp.answer
-    # comparison должен генерировать chart
+    # Comparison pipeline должен генерировать chart
     if resp.image is not None:
         assert resp.mime_type == "image/png"
 
@@ -146,8 +146,9 @@ async def test_e2e_comparison_has_chart(real_orchestrator: SwarmOrchestrator):
         _question("Сравни отток за март и апрель"),
     )
     assert resp.answer
-    if resp.image is not None:
-        assert resp.image[:4] == b"\x89PNG"
+    # comparison должен генерировать chart; None допустим только при отсутствии matplotlib
+    assert resp.image is not None, "Comparison should produce a chart"
+    assert resp.image[:4] == b"\x89PNG"
 
 
 # ── 12. Fallback: no raw SQL fields ───────────────────────────────────────
