@@ -118,6 +118,7 @@ class AggregateResult:
 
     aggregate_id: str = ""
     label: str = ""
+    group_by: str = ""
     rows: list[dict[str, Any]] = field(default_factory=list)
     row_count: int = 0
     duration_ms: int = 0

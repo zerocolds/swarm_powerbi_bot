@@ -100,12 +100,14 @@ class SQLAgent(Agent):
                         client.execute_aggregate(query.aggregate_id, query.params, registry),
                         timeout=query_timeout,
                     )
-                    # Подставляем label из запроса (приоритет над label из результата)
+                    # Подставляем label и group_by из запроса
                     effective_label = query.label or result.label
-                    if effective_label != result.label:
+                    effective_group_by = query.params.get("group_by", "")
+                    if effective_label != result.label or effective_group_by:
                         result = AggregateResult(
                             aggregate_id=result.aggregate_id,
                             label=effective_label,
+                            group_by=effective_group_by,
                             rows=result.rows,
                             row_count=result.row_count,
                             duration_ms=result.duration_ms,

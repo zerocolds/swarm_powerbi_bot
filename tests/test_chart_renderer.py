@@ -3,6 +3,7 @@ from swarm_powerbi_bot.services.chart_renderer import (
     HAS_MPL,
     choose_chart_type,
     render_chart,
+    render_comparison,
 )
 
 import pytest
@@ -105,3 +106,58 @@ def test_render_chart_with_period_label():
     result = render_chart("statistics", rows, params)
     assert result is not None
     assert isinstance(result, bytes)
+
+
+# ── render_comparison с group_by ──────────────────────────────
+
+
+@pytest.mark.skipif(not HAS_MPL, reason="matplotlib not installed")
+class TestRenderComparisonGroupBy:
+    """#6: render_comparison с group_by=status строит per-row grouped bars."""
+
+    def test_group_by_status_per_row(self):
+        """group_by=status → ось X = статусы, не суммированный ClientCount."""
+        rows_a = [
+            {"ClientStatus": "Отток", "ClientCount": 20},
+            {"ClientStatus": "Уходящие", "ClientCount": 15},
+            {"ClientStatus": "Прогноз", "ClientCount": 50},
+        ]
+        rows_b = [
+            {"ClientStatus": "Отток", "ClientCount": 18},
+            {"ClientStatus": "Уходящие", "ClientCount": 12},
+            {"ClientStatus": "Прогноз", "ClientCount": 55},
+        ]
+        result = render_comparison(
+            "clients_outflow", rows_a, rows_b,
+            "Март 2026", "Апрель 2026", group_by="status",
+        )
+        assert result is not None
+        assert result[:4] == b"\x89PNG"
+
+    def test_group_by_total_legacy(self):
+        """group_by=total → legacy агрегация (как раньше)."""
+        rows_a = [{"Visits": 100, "Revenue": 50000, "AvgCheck": 500}]
+        rows_b = [{"Visits": 90, "Revenue": 45000, "AvgCheck": 500}]
+        result = render_comparison(
+            "revenue_total", rows_a, rows_b,
+            "Март", "Апрель", group_by="total",
+        )
+        assert result is not None
+        assert result[:4] == b"\x89PNG"
+
+    def test_no_group_by_legacy(self):
+        """Без group_by → legacy агрегация."""
+        rows_a = [{"Visits": 50, "Revenue": 25000}]
+        rows_b = [{"Visits": 40, "Revenue": 20000}]
+        result = render_comparison(
+            "revenue_total", rows_a, rows_b, "A", "B",
+        )
+        assert result is not None
+
+    def test_empty_rows(self):
+        """Пустые данные → не крашится."""
+        result = render_comparison(
+            "test", [], [], "A", "B", group_by="status",
+        )
+        assert result is not None
+        assert result[:4] == b"\x89PNG"

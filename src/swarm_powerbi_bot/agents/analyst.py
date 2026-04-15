@@ -106,6 +106,55 @@ _DEFAULT_FOLLOW_UPS = [
     "Уточните разрез: салон, мастер, категория",
 ]
 
+# Русские названия метрик (колонки SQL → Telegram)
+_METRIC_LABELS: dict[str, str] = {
+    "ClientCount": "Клиенты",
+    "TotalVisits": "Визиты",
+    "TotalSpent": "Сумма трат (₽)",
+    "Revenue": "Выручка (₽)",
+    "AvgCheck": "Средний чек (₽)",
+    "UniqueClients": "Уникальные клиенты",
+    "Visits": "Визиты",
+    "ActiveMasters": "Активные мастера",
+    "TotalHours": "Часов работы",
+    "BookedCount": "Записались",
+    "RefusedCount": "Отказались",
+    "TotalCount": "Всего коммуникаций",
+    "ReturningClients": "Вернувшиеся клиенты",
+    "RevenuePerHour": "Выручка в час (₽)",
+    "ServiceCount": "Количество услуг",
+}
+
+# Русские названия полей для fallback_summary
+_FIELD_LABELS: dict[str, str] = {
+    "ClientName": "Клиент",
+    "DaysSinceLastVisit": "Дней с последнего визита",
+    "DaysOverdue": "Дней просрочки",
+    "TotalSpent": "Сумма трат (₽)",
+    "TotalVisits": "Визитов",
+    "LastVisit": "Последний визит",
+    "ExpectedNextVisit": "Ожидаемый визит",
+    "ServicePeriodDays": "Период визитов (дни)",
+    "Revenue": "Выручка (₽)",
+    "AvgCheck": "Средний чек (₽)",
+    "Visits": "Визиты",
+    "UniqueClients": "Уникальные клиенты",
+    "ActiveMasters": "Активные мастера",
+    "ClientStatus": "Статус",
+    "Category": "Категория",
+    "MasterName": "Мастер",
+    "ServiceName": "Услуга",
+    "Reason": "Причина",
+    "Result": "Результат",
+    "Manager": "Менеджер",
+}
+
+# Поля, которые не показываем в fallback (технические, приватные)
+_HIDDEN_FIELDS = {
+    "Phone", "CRMId", "ObjectId", "MasterId", "ClientId", "Id", "Top",
+    "SalonName", "FirstVisit", "LastCommResult", "ServicePeriodDays",
+}
+
 
 class AnalystAgent(Agent):
     name = "analyst"
@@ -226,20 +275,29 @@ class AnalystAgent(Agent):
             lines.append("")
 
         if sql_insight.rows:
-            lines.append(f"Найдено записей: {len(sql_insight.rows)}")
-            # Показываем ключевые поля первой строки человеко-читаемо
-            row = sql_insight.rows[0]
-            preview_fields = []
-            for key, val in row.items():
-                if key in ("SalonName",) or val is None:
-                    continue
-                preview_fields.append(f"• {key}: {val}")
-                if len(preview_fields) >= 5:
-                    break
-            if preview_fields:
-                lines.append("")
-                lines.append("*Пример:*")
-                lines.extend(preview_fields)
+            # Topic-specific форматтеры
+            topic = plan.topic
+            if topic in ("outflow", "leaving", "noshow"):
+                lines.append(self._format_client_list_summary(sql_insight.rows, topic))
+            elif topic in ("statistics",):
+                lines.append(self._format_statistics_summary(sql_insight.rows))
+            else:
+                lines.append(f"Найдено записей: {len(sql_insight.rows)}")
+                # Переведённые поля первой строки
+                row = sql_insight.rows[0]
+                preview = []
+                for key, val in row.items():
+                    if key in _HIDDEN_FIELDS or val is None:
+                        continue
+                    label = _FIELD_LABELS.get(key, key)
+                    if isinstance(val, str) and "T" in val and len(val) > 10:
+                        val = val[:10]  # ISO datetime → дата
+                    preview.append(f"• {label}: {val}")
+                    if len(preview) >= 5:
+                        break
+                if preview:
+                    lines.append("")
+                    lines.extend(preview)
         else:
             lines.append("Данных за указанный период не найдено.")
 
@@ -255,6 +313,46 @@ class AnalystAgent(Agent):
             lines.append("_Попробуйте уточнить период или фильтры._")
 
         return "\n".join(lines)
+
+    @staticmethod
+    def _format_client_list_summary(rows: list[dict], topic: str) -> str:
+        """Агрегированная статистика для outflow/leaving/noshow."""
+        count = len(rows)
+        overdue_key = "DaysOverdue" if "DaysOverdue" in (rows[0] if rows else {}) else "DaysSinceLastVisit"
+        overdue_vals = [abs(r.get(overdue_key, 0) or 0) for r in rows]
+        spent_vals = [r.get("TotalSpent", 0) or 0 for r in rows]
+
+        parts = [f"Найдено клиентов: {count}"]
+        if overdue_vals and any(overdue_vals):
+            parts.append(f"Просрочка — от {min(overdue_vals)} до {max(overdue_vals)} дней")
+
+        if spent_vals and any(spent_vals):
+            top = max(rows, key=lambda r: r.get("TotalSpent", 0) or 0)
+            top_name = top.get("ClientName", "?")
+            top_spent = top.get("TotalSpent", 0) or 0
+            top_visits = top.get("TotalVisits", 0) or 0
+            parts.append(
+                f"Наибольшая сумма трат у клиента {top_name} — "
+                f"{top_spent:,.0f} ₽ за {top_visits} визитов"
+            )
+        return ".\n".join(parts) + "."
+
+    @staticmethod
+    def _format_statistics_summary(rows: list[dict]) -> str:
+        """Форматирует statistics (одна строка с KPI)."""
+        if not rows:
+            return "Данных не найдено."
+        row = rows[0]
+        parts = []
+        for key in ("Visits", "UniqueClients", "Revenue", "AvgCheck", "ActiveMasters"):
+            val = row.get(key)
+            if val is not None:
+                label = _METRIC_LABELS.get(key, key)
+                if isinstance(val, float) and val > 100:
+                    parts.append(f"{label}: {val:,.0f}")
+                else:
+                    parts.append(f"{label}: {val}")
+        return " | ".join(parts) if parts else f"Найдено записей: {len(rows)}"
 
     async def run_multi(
         self,
@@ -478,12 +576,83 @@ class AnalystAgent(Agent):
                 lines.append(f"Пропущено запросов с ошибкой: {skipped}.")
             return "\n".join(lines)
 
-        for r in ok_results:
-            label = r.label or r.aggregate_id
-            lines.append(f"• {label}: {r.row_count} записей")
+        # Comparison: показываем ключевую метрику с дельтой
+        if plan.intent == "comparison" and len(ok_results) >= 2:
+            lines.append(self._format_comparison_text(ok_results))
+        else:
+            for r in ok_results:
+                label = r.label or r.aggregate_id
+                # Показываем ключевую метрику вместо "N записей"
+                metric_str = self._extract_key_metric(r)
+                lines.append(f"• {label}: {metric_str}")
 
         if skipped:
             lines.append(f"\n_Пропущено запросов с ошибкой: {skipped}._")
+
+        return "\n".join(lines)
+
+    @staticmethod
+    def _extract_key_metric(result: AggregateResult) -> str:
+        """Извлекает ключевую метрику из AggregateResult для отображения."""
+        if not result.rows:
+            return "нет данных"
+        # Для grouped данных (несколько строк) — показываем count
+        if len(result.rows) > 1:
+            return f"{result.row_count} записей"
+        # Для single-row — показываем ключевые метрики
+        row = result.rows[0]
+        parts = []
+        for key in ("Revenue", "Visits", "UniqueClients", "ClientCount", "TotalCount", "AvgCheck"):
+            val = row.get(key)
+            if val is not None and isinstance(val, (int, float)):
+                label = _METRIC_LABELS.get(key, key)
+                parts.append(f"{label}: {val:,.0f}" if val > 100 else f"{label}: {val}")
+                if len(parts) >= 3:
+                    break
+        return ", ".join(parts) if parts else f"{result.row_count} записей"
+
+    @staticmethod
+    def _format_comparison_text(ok_results: list[AggregateResult]) -> str:
+        """Форматирует текст сравнения двух периодов с дельтами."""
+        r_a, r_b = ok_results[0], ok_results[1]
+        label_a = r_a.label or "Период 1"
+        label_b = r_b.label or "Период 2"
+
+        lines = [f"Сравнение: {label_a} vs {label_b}"]
+
+        # Суммируем числовые метрики для каждого периода
+        skip = {"ObjectId", "MasterId", "ClientId", "Id", "CRMId", "Top"}
+
+        def _sum(rows: list[dict]) -> dict[str, float]:
+            totals: dict[str, float] = {}
+            for row in rows:
+                for k, v in row.items():
+                    if isinstance(v, (int, float)) and k not in skip:
+                        totals[k] = totals.get(k, 0.0) + float(v)
+            return totals
+
+        agg_a = _sum(r_a.rows) if r_a.rows else {}
+        agg_b = _sum(r_b.rows) if r_b.rows else {}
+
+        # Показываем до 4 ключевых метрик
+        shown = 0
+        for key in list(dict.fromkeys(list(agg_a.keys()) + list(agg_b.keys()))):
+            if shown >= 4:
+                break
+            va = agg_a.get(key, 0.0)
+            vb = agg_b.get(key, 0.0)
+            if va == 0 and vb == 0:
+                continue
+            label = _METRIC_LABELS.get(key, key)
+            delta_str = ""
+            if vb != 0:
+                delta = (va - vb) / abs(vb) * 100
+                sign = "+" if delta > 0 else ("\u2212" if delta < 0 else "")
+                delta_str = f" ({sign}{abs(delta):.0f}%)"
+            lines.append(
+                f"• {label}: {label_a} {va:,.0f}, {label_b} {vb:,.0f}{delta_str}"
+            )
+            shown += 1
 
         return "\n".join(lines)
 

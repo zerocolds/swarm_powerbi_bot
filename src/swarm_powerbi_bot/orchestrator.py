@@ -168,6 +168,7 @@ class SwarmOrchestrator:
                         ok_results[1].rows,
                         ok_results[0].label or ok_results[0].aggregate_id,
                         ok_results[1].label or ok_results[1].aggregate_id,
+                        group_by=ok_results[0].group_by,
                     )
                     if chart_bytes:
                         image = chart_bytes

@@ -404,32 +404,165 @@ def _fig_to_bytes(fig) -> bytes:
     return buf.read()
 
 
+# Маппинг group_by → колонка-метка в данных (ось X для per-row chart)
+_GROUP_BY_LABEL_COL: dict[str, str] = {
+    "status": "ClientStatus",
+    "master": "MasterName",
+    "reason": "Reason",
+    "result": "Result",
+    "manager": "Manager",
+    "service": "ServiceName",
+    "salon": "SalonName",
+    "channel": "Channel",
+}
+
+# Предпочтительная value-колонка для per-row comparison
+_GROUP_BY_VALUE_COL: dict[str, str] = {
+    "status": "ClientCount",
+    "master": "Revenue",
+    "reason": "TotalCount",
+    "result": "TotalCount",
+    "manager": "TotalCount",
+    "service": "Revenue",
+    "salon": "Revenue",
+    "channel": "ClientCount",
+}
+
+
 def render_comparison(
     topic: str,
     results_a: list[dict[str, Any]],
     results_b: list[dict[str, Any]],
     label_a: str,
     label_b: str,
+    *,
+    group_by: str = "",
 ) -> bytes:
     """Рендерит сгруппированный столбчатый график для сравнения двух периодов.
 
-    Args:
-        topic: тема данных (для заголовка)
-        results_a: строки первого набора данных
-        results_b: строки второго набора данных
-        label_a: подпись первого периода (например, "этот месяц")
-        label_b: подпись второго периода (например, "прошлый месяц")
-
-    Returns:
-        PNG bytes
+    Если group_by указан и label-колонка найдена в данных — per-row grouped bars
+    (ось X = значения label-колонки, напр. статусы клиентов).
+    Иначе — агрегация всех строк в одну сумму per metric (legacy поведение).
     """
     if not HAS_MPL:
         raise RuntimeError("matplotlib не установлен")
 
-    # Определяем числовые метрики для сравнения
+    # Пробуем per-row chart если group_by задан
+    label_col = _GROUP_BY_LABEL_COL.get(group_by, "")
+    if label_col and results_a and label_col in results_a[0]:
+        return _render_comparison_per_row(
+            results_a, results_b, label_a, label_b, label_col,
+            _GROUP_BY_VALUE_COL.get(group_by, ""),
+        )
+
+    # Legacy: агрегация всех строк в одну сумму per metric
+    return _render_comparison_aggregated(
+        topic, results_a, results_b, label_a, label_b,
+    )
+
+
+def _render_comparison_per_row(
+    results_a: list[dict[str, Any]],
+    results_b: list[dict[str, Any]],
+    label_a: str,
+    label_b: str,
+    label_col: str,
+    value_col: str,
+) -> bytes:
+    """Per-row grouped bars: каждая строка = одна группа на оси X."""
+    # Собираем данные: label → value для каждого набора
+    def _row_map(rows: list[dict[str, Any]]) -> dict[str, float]:
+        m: dict[str, float] = {}
+        for row in rows:
+            lbl = str(row.get(label_col, ""))[:25]
+            if not lbl:
+                continue
+            # Ищем value: предпочтительная колонка или первая числовая
+            val = row.get(value_col) if value_col else None
+            if not isinstance(val, (int, float)):
+                for v in row.values():
+                    if isinstance(v, (int, float)):
+                        val = v
+                        break
+            m[lbl] = float(val) if isinstance(val, (int, float)) else 0.0
+        return m
+
+    map_a = _row_map(results_a)
+    map_b = _row_map(results_b)
+
+    # Объединяем ключи (сохраняем порядок из A)
+    all_labels = list(dict.fromkeys(list(map_a.keys()) + list(map_b.keys())))[:12]
+    if not all_labels:
+        fig, ax = plt.subplots(figsize=(6, 3))
+        ax.text(0.5, 0.5, "Нет данных для сравнения",
+                ha="center", va="center", fontsize=12, color="gray")
+        ax.axis("off")
+        fig.tight_layout()
+        return _fig_to_bytes(fig)
+
+    values_a = [map_a.get(lbl, 0.0) for lbl in all_labels]
+    values_b = [map_b.get(lbl, 0.0) for lbl in all_labels]
+
+    x = list(range(len(all_labels)))
+    width = 0.35
+
+    fig, ax = plt.subplots(figsize=(max(8, len(all_labels) * 1.2), 6))
+
+    bars_a = ax.bar([xi - width / 2 for xi in x], values_a, width=width,
+                    label=label_a, color="#4472C4")
+    bars_b = ax.bar([xi + width / 2 for xi in x], values_b, width=width,
+                    label=label_b, color="#ED7D31")
+
+    # Аннотации
+    for bar, v in zip(bars_a, values_a):
+        if v:
+            ax.text(bar.get_x() + bar.get_width() / 2, bar.get_height(),
+                    _format_number(v), ha="center", va="bottom", fontsize=7, color="#4472C4")
+    for bar, v in zip(bars_b, values_b):
+        if v:
+            ax.text(bar.get_x() + bar.get_width() / 2, bar.get_height(),
+                    _format_number(v), ha="center", va="bottom", fontsize=7, color="#ED7D31")
+
+    # Дельты
+    for i, (va, vb) in enumerate(zip(values_a, values_b)):
+        if vb != 0:
+            delta = (va - vb) / abs(vb) * 100
+        elif va != 0:
+            continue
+        else:
+            delta = 0.0
+        top_val = max(va, vb)
+        y_pos = top_val * 1.03 if top_val > 0 else 0.03
+        if delta > 0:
+            txt, clr = f"+{delta:.0f}%", "green"
+        elif delta < 0:
+            txt, clr = f"\u2212{abs(delta):.0f}%", "red"
+        else:
+            txt, clr = "0%", "gray"
+        ax.text(i, y_pos, txt, ha="center", va="bottom", fontsize=8,
+                color=clr, fontweight="bold")
+
+    ax.set_xticks(x)
+    ax.set_xticklabels(all_labels, rotation=30, ha="right", fontsize=9)
+    ax.legend(fontsize=9)
+    ax.set_title(f"Сравнение: {label_a} vs {label_b}", fontsize=11)
+    ax.yaxis.set_major_formatter(ticker.FuncFormatter(lambda val, _: _format_number(val)))
+    ax.set_ylabel(value_col or "Значение")
+
+    fig.tight_layout()
+    return _fig_to_bytes(fig)
+
+
+def _render_comparison_aggregated(
+    topic: str,
+    results_a: list[dict[str, Any]],
+    results_b: list[dict[str, Any]],
+    label_a: str,
+    label_b: str,
+) -> bytes:
+    """Legacy: агрегация всех строк → одна сумма per metric → grouped bars по метрикам."""
     skip = {"ObjectId", "MasterId", "ClientId", "Id", "CRMId", "Top"}
 
-    # Аггрегируем значения по метрикам (суммируем если несколько строк)
     def _aggregate_rows(rows: list[dict[str, Any]]) -> dict[str, float]:
         totals: dict[str, float] = {}
         for row in rows:
@@ -441,10 +574,8 @@ def render_comparison(
     agg_a = _aggregate_rows(results_a) if results_a else {}
     agg_b = _aggregate_rows(results_b) if results_b else {}
 
-    # Объединяем ключи из обоих наборов данных
     all_keys = list(dict.fromkeys(list(agg_a.keys()) + list(agg_b.keys())))
     if not all_keys:
-        # Нет числовых данных — возвращаем пустой график
         fig, ax = plt.subplots(figsize=(6, 3))
         ax.text(0.5, 0.5, "Нет числовых данных для сравнения",
                 ha="center", va="center", fontsize=12, color="gray")
@@ -453,19 +584,16 @@ def render_comparison(
         fig.tight_layout()
         return _fig_to_bytes(fig)
 
-    # Ограничиваем количество метрик для читаемости
     all_keys = all_keys[:8]
-
     values_a = [agg_a.get(k, 0.0) for k in all_keys]
     values_b = [agg_b.get(k, 0.0) for k in all_keys]
 
-    # Вычисляем дельты
     deltas: list[float | None] = []
     for va, vb in zip(values_a, values_b):
         if vb != 0:
             deltas.append((va - vb) / abs(vb) * 100)
         elif va != 0:
-            deltas.append(None)  # нельзя делить на 0
+            deltas.append(None)
         else:
             deltas.append(0.0)
 
@@ -474,60 +602,33 @@ def render_comparison(
 
     fig, ax = plt.subplots(figsize=(max(8, len(all_keys) * 1.5), 6))
 
-    bars_a = ax.bar(
-        [xi - width / 2 for xi in x],
-        values_a,
-        width=width,
-        label=label_a,
-        color="#4472C4",
-    )
-    bars_b = ax.bar(
-        [xi + width / 2 for xi in x],
-        values_b,
-        width=width,
-        label=label_b,
-        color="#ED7D31",
-    )
+    bars_a = ax.bar([xi - width / 2 for xi in x], values_a, width=width,
+                    label=label_a, color="#4472C4")
+    bars_b = ax.bar([xi + width / 2 for xi in x], values_b, width=width,
+                    label=label_b, color="#ED7D31")
 
-    # Аннотации значений на столбцах
     for bar, v in zip(bars_a, values_a):
         if v:
-            ax.text(
-                bar.get_x() + bar.get_width() / 2,
-                bar.get_height(),
-                _format_number(v),
-                ha="center", va="bottom", fontsize=7, color="#4472C4",
-            )
+            ax.text(bar.get_x() + bar.get_width() / 2, bar.get_height(),
+                    _format_number(v), ha="center", va="bottom", fontsize=7, color="#4472C4")
     for bar, v in zip(bars_b, values_b):
         if v:
-            ax.text(
-                bar.get_x() + bar.get_width() / 2,
-                bar.get_height(),
-                _format_number(v),
-                ha="center", va="bottom", fontsize=7, color="#ED7D31",
-            )
+            ax.text(bar.get_x() + bar.get_width() / 2, bar.get_height(),
+                    _format_number(v), ha="center", va="bottom", fontsize=7, color="#ED7D31")
 
-    # Дельта-аннотации над парой столбцов
     for i, (va, vb, delta) in enumerate(zip(values_a, values_b, deltas)):
         if delta is None:
             continue
         top_val = max(va, vb)
-        # Позиционируем чуть выше самого высокого столбца пары
         y_pos = top_val * 1.03 if top_val > 0 else 0.03
         if delta > 0:
-            delta_text = f"+{delta:.1f}%"
-            color = "green"
+            txt, clr = f"+{delta:.1f}%", "green"
         elif delta < 0:
-            delta_text = f"\u2212{abs(delta):.1f}%"
-            color = "red"
+            txt, clr = f"\u2212{abs(delta):.1f}%", "red"
         else:
-            delta_text = "0%"
-            color = "gray"
-        ax.text(
-            i, y_pos, delta_text,
-            ha="center", va="bottom", fontsize=8,
-            color=color, fontweight="bold",
-        )
+            txt, clr = "0%", "gray"
+        ax.text(i, y_pos, txt, ha="center", va="bottom", fontsize=8,
+                color=clr, fontweight="bold")
 
     ax.set_xticks(x)
     ax.set_xticklabels([k[:20] for k in all_keys], rotation=30, ha="right", fontsize=9)
