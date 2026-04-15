@@ -544,7 +544,7 @@ class SQLClient:
             return [], topic_id, date_params
 
         # Извлекаем ObjectId и MasterId из вопроса (или используем переданный/дефолтный)
-        obj_id = object_id or _extract_object_id(question)
+        obj_id = object_id if object_id is not None else _extract_object_id(question)
         if obj_id is None and self.settings.default_object_id:
             obj_id = self.settings.default_object_id
 

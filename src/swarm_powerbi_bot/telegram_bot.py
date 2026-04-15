@@ -212,7 +212,7 @@ class TelegramSwarmBot:
                 except Exception:
                     pass
         # Fallback на default_object_id из конфига
-        if not object_id and self.settings.default_object_id:
+        if object_id is None and self.settings.default_object_id:
             object_id = self.settings.default_object_id
 
         # last_topic для контекста разговора (follow-up вопросы)

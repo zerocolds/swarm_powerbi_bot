@@ -3,7 +3,6 @@ from __future__ import annotations
 import asyncio
 import json
 import logging
-import re
 import time
 from typing import Any
 
@@ -83,9 +82,6 @@ _PLANNER_SYSTEM_PROMPT = """\
 Ответь ТОЛЬКО JSON:
 {{"procedure": "spKDO_Aggregate", "group_by": "total", "filter": "", "reason": "", "date_from": "YYYY-MM-DD", "date_to": "YYYY-MM-DD", "top": 20, "master_name": ""}}
 """
-
-_JSON_RE = re.compile(r"\{[^{}]*\}", re.DOTALL)
-
 
 def _extract_json(raw: str) -> str | None:
     """Извлекает внешний JSON-объект из ответа LLM (поддерживает вложенные {})."""
