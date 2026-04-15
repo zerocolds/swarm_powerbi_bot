@@ -186,11 +186,11 @@ class SQLClient:
             conn = pyodbc.connect(conn_str, timeout=10)
             try:
                 cursor = conn.cursor()
-                sql_args = list((params or {}).values())
-                # Заменяем @Name на ? для pyodbc
-                import re as _re
-
-                query = _re.sub(r"@\w+", "?", sql)
+                # Извлекаем имена параметров из SQL в порядке появления
+                param_names = re.findall(r"@(\w+)", sql)
+                p = params or {}
+                sql_args = [p[name] for name in param_names if name in p]
+                query = re.sub(r"@\w+", "?", sql)
                 cursor.execute(query, sql_args)
                 columns = (
                     [col[0] for col in cursor.description] if cursor.description else []
@@ -351,7 +351,7 @@ class SQLClient:
         rows: list[dict[str, Any]] = []
         with pyodbc.connect(conn_str, timeout=10) as conn:
             cur = conn.cursor()
-            cur.execute(sql, *sql_args)
+            cur.execute(sql, sql_args)
             cols = [desc[0] for desc in (cur.description or [])]
             for idx, row in enumerate(cur.fetchall()):
                 if idx >= max_rows:
@@ -384,6 +384,10 @@ class SQLClient:
     ) -> tuple[list[dict[str, Any]], str, dict[str, Any]]:
         """Вызывает процедуру с параметрами из QueryParams."""
         procedure = qp.procedure or "spKDO_Aggregate"
+        # Защита от SQL injection: только alphanumeric + underscore + точка
+        if not re.fullmatch(r"[a-zA-Z0-9_.]+", procedure):
+            logger.error("Invalid procedure name rejected: %r", procedure)
+            return [], "", {}
         # Добавляем dbo. если не указано
         if not procedure.startswith("dbo."):
             procedure = f"dbo.{procedure}"
@@ -462,7 +466,7 @@ class SQLClient:
         rows: list[dict[str, Any]] = []
         with pyodbc.connect(conn_str, timeout=10) as conn:
             cur = conn.cursor()
-            cur.execute(sql, *sql_args)
+            cur.execute(sql, sql_args)
             cols = [desc[0] for desc in (cur.description or [])]
             for idx, row in enumerate(cur.fetchall()):
                 if idx >= max_rows:
@@ -551,7 +555,7 @@ class SQLClient:
         rows: list[dict[str, Any]] = []
         with pyodbc.connect(conn_str, timeout=10) as conn:
             cur = conn.cursor()
-            cur.execute(sql, *sql_args)
+            cur.execute(sql, sql_args)
             cols = [desc[0] for desc in (cur.description or [])]
             for idx, row in enumerate(cur.fetchall()):
                 if idx >= max_rows:

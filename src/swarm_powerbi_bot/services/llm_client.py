@@ -86,6 +86,22 @@ _PLANNER_SYSTEM_PROMPT = """\
 _JSON_RE = re.compile(r"\{[^{}]*\}", re.DOTALL)
 
 
+def _extract_json(raw: str) -> str | None:
+    """Извлекает внешний JSON-объект из ответа LLM (поддерживает вложенные {})."""
+    start = raw.find("{")
+    if start == -1:
+        return None
+    depth = 0
+    for i, ch in enumerate(raw[start:], start):
+        if ch == "{":
+            depth += 1
+        elif ch == "}":
+            depth -= 1
+            if depth == 0:
+                return raw[start : i + 1]
+    return None
+
+
 class LLMClient:
     """Клиент для Ollama-совместимого LLM API (модель задаётся в settings.ollama_model)."""
 
@@ -219,13 +235,13 @@ class LLMClient:
         return result
 
     def _parse_multiplan_json(self, raw: str) -> dict[str, Any] | None:
-        """Извлекает JSON MultiPlan из ответа LLM."""
-        m = _JSON_RE.search(raw)
-        if not m:
+        """Извлекает JSON MultiPlan из ответа LLM (поддерживает вложенные объекты)."""
+        json_str = _extract_json(raw)
+        if not json_str:
             logger.warning("plan_aggregates returned no JSON: %s", raw[:200])
             return None
         try:
-            data = json.loads(m.group(0))
+            data = json.loads(json_str)
         except json.JSONDecodeError:
             logger.warning("plan_aggregates returned invalid JSON: %s", raw[:200])
             return None
