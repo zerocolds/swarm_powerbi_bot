@@ -1,0 +1,14 @@
+{
+  "features": {
+    "001-semantic-aggregate-layer": {
+      "status": "in_progress",
+      "spec": "specs/001-semantic-aggregate-layer/spec.md",
+      "tasks": "specs/001-semantic-aggregate-layer/tasks.md",
+      "plan": "specs/001-semantic-aggregate-layer/plan.md",
+      "branch": "feature/001-semantic-aggregate-layer",
+      "created": "2026-04-15",
+      "started": "2026-04-15",
+      "agents": ["feature-001-setup", "feature-001-bootstrap", "feature-001-runtime"]
+    }
+  }
+}

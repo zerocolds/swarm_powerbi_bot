@@ -1,0 +1,43 @@
+aggregates: []
+# Populated during Phase 5 (SQL Layer) after gap analysis
+# Format per aggregate: id, name, category, description, allowed_group_by, parameters, returns, related_dax, examples
+#
+# Example entry:
+#
+# - id: client_outflow
+#   name: "Отток клиентов"
+#   category: clients
+#   description: >
+#     Клиенты без визита > ServicePeriod + 31..240 дней.
+#     Показывает: имя, телефон, дней без визита, сумму визитов.
+#   parameters:
+#     - name: date_from
+#       type: date
+#       required: true
+#     - name: date_to
+#       type: date
+#       required: true
+#     - name: object_id
+#       type: int
+#       required: true
+#       description: "ID салона"
+#     - name: top_n
+#       type: int
+#       required: false
+#       default: 20
+#       min: 1
+#       max: 50
+#   returns:
+#     - ClientName: str
+#     - Phone: str
+#     - LastVisit: date
+#     - DaysSinceLastVisit: int
+#     - TotalVisits: int
+#     - TotalSpent: float
+#   allowed_group_by: [master, service, salon]
+#   related_dax: "Статус клиента для обработки (Отток)"
+#   examples:
+#     - question: "покажи отток за месяц"
+#       params: {date_from: "2026-03-01", date_to: "2026-03-31", object_id: 506770}
+#     - question: "сколько клиентов ушло"
+#       params: {date_from: "2026-03-16", date_to: "2026-04-15", object_id: 506770}
