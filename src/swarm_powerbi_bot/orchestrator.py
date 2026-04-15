@@ -138,9 +138,16 @@ class SwarmOrchestrator:
 
         # Пропускаем legacy SQL если run_multi() уже получил данные — иначе дублируем запрос
         has_multi_ok = any(r.status == "ok" for r in multi_results) if multi_results else False
+        multi_all_failed = bool(multi_results) and not has_multi_ok
         if has_multi_ok:
             sql_insight = SQLInsight(rows=[], summary="skipped: multi_results available")
             pbi_insight = await self._run_pbi(question, plan, diagnostics)
+        elif multi_all_failed:
+            # #4: Все multi_results failed — НЕ запускаем legacy SQL с catalog topic_id,
+            # иначе legacy не знает catalog id и дефолтит на statistics (неверные данные).
+            sql_insight = SQLInsight(rows=[], summary="multi_results all failed")
+            pbi_insight = await self._run_pbi(question, plan, diagnostics)
+            diagnostics["multi_all_failed"] = "true"
         else:
             sql_task = asyncio.create_task(self._run_sql(question, plan, diagnostics))
             pbi_task = asyncio.create_task(self._run_pbi(question, plan, diagnostics))
