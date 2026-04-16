@@ -154,7 +154,8 @@ _CONTEXT_RULES: list[tuple[Callable[[str], bool], str, int]] = [
         lambda t: any(p in t for p in ("за недел", "за месяц", "за квартал", "за год",
                                         "за прошл", "за последн", "за текущ"))
         and "выручк" in t
-        and not any(p in t for p in ("по неделям", "по месяцам", "помесячно", "понедельно")),
+        and not any(p in t for p in ("по неделям", "по месяцам", "помесячно", "понедельно",
+                                      "по услугам", "по мастерам")),
         "statistics",
         3,
     ),

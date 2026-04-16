@@ -29,6 +29,11 @@ def test_T021_no_period_hint():
     assert has_period_hint("как дела") is False
 
 
+def test_no_false_positive_on_name_marta():
+    """«мастер Марта» — имя, не месяц."""
+    assert has_period_hint("мастер Марта") is False
+
+
 def test_bare_month_with_year():
     """«выручка за май 2025» → True (месяц + год)."""
     assert has_period_hint("выручка за май 2025") is True
