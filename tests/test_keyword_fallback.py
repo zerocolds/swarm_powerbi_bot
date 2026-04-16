@@ -19,6 +19,14 @@ class TestContextRulesPeriodRevenue:
         """«выручка за месяц» — период «за месяц» → statistics."""
         assert detect_topic("выручка за месяц") == "statistics"
 
+    def test_revenue_for_march_routes_to_statistics(self):
+        """«выручка за март» — конкретный месяц + выручк → statistics."""
+        assert detect_topic("выручка за март") == "statistics"
+
+    def test_revenue_for_january_routes_to_statistics(self):
+        """«выручка за январь» — конкретный месяц + выручк → statistics."""
+        assert detect_topic("выручка за январь") == "statistics"
+
     def test_revenue_quarter_routes_to_statistics(self):
         """«выручка за квартал» → statistics."""
         assert detect_topic("выручка за квартал") == "statistics"
@@ -60,6 +68,14 @@ class TestContextRulesMastersRanking:
     def test_best_by_income(self):
         """«лучший по доходу» — лучш + доход → masters."""
         assert detect_topic("кто лучший по доходу") == "masters"
+
+    def test_top_services_by_revenue_routes_to_services(self):
+        """«топ услуг по выручке» — «услуг» явно → services, не masters."""
+        assert detect_topic("топ услуг по выручке") == "services"
+
+    def test_rating_services_by_income_routes_to_services(self):
+        """«рейтинг услуг по доходу» — «услуг» явно → services."""
+        assert detect_topic("рейтинг услуг по доходу") == "services"
 
 
 class TestDirectMappingsPreserved:
