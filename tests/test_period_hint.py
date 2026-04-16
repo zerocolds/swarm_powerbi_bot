@@ -52,3 +52,18 @@ def test_no_false_positive_on_similar_word():
 def test_no_false_positive_on_masters():
     """«выручка мастеров» без периода → False."""
     assert has_period_hint("выручка мастеров") is False
+
+
+def test_bare_month_with_soft_sign_april():
+    """«выручка апрель» — мягкий знак не должен ломать распознавание."""
+    assert has_period_hint("выручка апрель") is True
+
+
+def test_bare_month_with_soft_sign_january():
+    """«выручка январь» — мягкий знак."""
+    assert has_period_hint("выручка январь") is True
+
+
+def test_bare_month_with_soft_sign_september():
+    """«сентябрь 2026» — мягкий знак + год."""
+    assert has_period_hint("сентябрь 2026") is True
