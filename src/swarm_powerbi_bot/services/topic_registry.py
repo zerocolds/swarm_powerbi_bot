@@ -1,6 +1,8 @@
 """Реестр аналитических тем КДО — маппинг вопросов на хранимые процедуры."""
 from __future__ import annotations
 
+import logging
+from collections.abc import Callable
 from dataclasses import dataclass, field
 
 
@@ -142,12 +144,15 @@ _MODIFIER_KEYWORDS = {
 # Правило 1: период + «выручк» → статистика сводных KPI, а не тема услуг
 # Правило 2: ранжирование + деньги → мастера (кто лучший по доходу)
 # Правило 3: аналитический вопрос «почему упало/снизилось» + финансы → статистика
-_CONTEXT_RULES: list[tuple] = [
+_logger = logging.getLogger(__name__)
+
+_CONTEXT_RULES: list[tuple[Callable[[str], bool], str, int]] = [
     (
         # Период задан через «за» (за неделю, за месяц, за квартал, за год) + «выручк»
         # → сводная статистика KPI, а не тема услуг.
         # Исключаем «по неделям»/«по месяцам» — там routing на trend, не statistics.
-        lambda t: any(p in t for p in ("за недел", "за месяц", "за квартал", "за год", "за "))
+        lambda t: any(p in t for p in ("за недел", "за месяц", "за квартал", "за год",
+                                        "за прошл", "за последн", "за текущ"))
         and "выручк" in t
         and not any(p in t for p in ("по неделям", "по месяцам", "помесячно", "понедельно")),
         "statistics",
@@ -188,8 +193,11 @@ def detect_topic(question: str, last_topic: str = "") -> str:
 
     # Применяем контекстные правила — буст для конкретной темы
     for predicate, topic_id, bonus in _CONTEXT_RULES:
-        if predicate(text):
-            scores[topic_id] = scores.get(topic_id, 0) + bonus
+        try:
+            if predicate(text):
+                scores[topic_id] = scores.get(topic_id, 0) + bonus
+        except Exception:
+            _logger.warning("context rule error for topic=%s", topic_id, exc_info=True)
 
     best_id = max(scores, key=lambda tid: scores[tid])
     best_score = scores[best_id]

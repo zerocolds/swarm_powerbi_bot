@@ -114,7 +114,7 @@ class LLMClient:
 
     def __init__(self, settings: Settings):
         self.settings = settings
-        # Circuit breaker state для plan_aggregates
+        # Circuit breaker state — общий для plan_query() и plan_aggregates()
         self._cb_failures: int = 0
         self._cb_open_until: float = 0.0
         self._cb_lock: asyncio.Lock = asyncio.Lock()
@@ -176,7 +176,7 @@ class LLMClient:
         catalog_prompt: str,
         semantic_prompt: str,
         last_topic: str = "",
-    ) -> dict | None:
+    ) -> dict[str, Any] | None:
         """T025: Одношаговое LLM-планирование с каталогом агрегатов.
 
         Возвращает распарсенный JSON-dict или None при ошибке/circuit breaker.

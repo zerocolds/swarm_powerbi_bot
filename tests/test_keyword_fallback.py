@@ -82,7 +82,7 @@ class TestDirectMappingsPreserved:
         assert detect_topic("загрузка мастеров на неделю") == "masters"
 
     def test_trend_dynamic(self):
-        """«динамика выручки по неделям» → trend (тренд + изменен)."""
+        """«динамика выручки по неделям» → trend (динамик + по неделям)."""
         assert detect_topic("динамика выручки по неделям") == "trend"
 
     def test_unknown_topic_no_context(self):
@@ -92,3 +92,23 @@ class TestDirectMappingsPreserved:
     def test_default_with_context(self):
         """Вопрос без ключевых слов + есть last_topic → берём last_topic."""
         assert detect_topic("как дела", last_topic="services") == "services"
+
+
+class TestContextRulesAnalyticalQuestions:
+    """Контекстное правило 3: аналитический вопрос + финансы → statistics."""
+
+    def test_why_revenue_dropped(self):
+        """«почему упала выручка» → statistics."""
+        assert detect_topic("почему упала выручка") == "statistics"
+
+    def test_reason_revenue_decreased(self):
+        """«причина снижения выручки» → statistics."""
+        assert detect_topic("причина снижения выручки") == "statistics"
+
+    def test_why_income_dropped(self):
+        """«почему снизился доход» → statistics."""
+        assert detect_topic("почему снизился доход") == "statistics"
+
+    def test_why_less_money(self):
+        """«почему стало меньше денег» → statistics."""
+        assert detect_topic("почему стало меньше денег") == "statistics"

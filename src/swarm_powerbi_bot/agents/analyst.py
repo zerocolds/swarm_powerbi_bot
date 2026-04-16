@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import logging
 from datetime import date
 from typing import Literal
 
@@ -8,6 +9,8 @@ from .base import Agent
 from ..models import AggregateResult, AnalysisResult, ComparisonResult, ModelInsight, MultiPlan, Plan, SQLInsight, UserQuestion
 from ..services.llm_client import LLMClient
 from ..services.topic_registry import get_description
+
+logger = logging.getLogger(__name__)
 
 # ── Подсказки для описания графиков ──────────────────────────
 
@@ -135,7 +138,7 @@ _FIELD_LABELS: dict[str, str] = {
     "TotalVisits": "Визитов",
     "LastVisit": "Последний визит",
     "ExpectedNextVisit": "Ожидаемый визит",
-    "ServicePeriodDays": "Период визитов (дни)",
+    # ServicePeriodDays скрыт через _HIDDEN_FIELDS — label не нужен
     "Revenue": "Выручка (₽)",
     "TotalRevenue": "Выручка (₽)",
     "AvgCheck": "Средний чек (₽)",
@@ -149,11 +152,9 @@ _FIELD_LABELS: dict[str, str] = {
     "Reason": "Причина",
     "Result": "Результат",
     "Manager": "Менеджер",
-    # Поля услуг (services)
-    "ServiceCategory": "Категория услуг",
+    # Поля услуг (services) — ServiceCategory скрыто через _HIDDEN_FIELDS
     "ServiceCount": "Кол-во услуг",
-    # Поля мастеров (masters)
-    "MasterCategory": "Специализация",
+    # Поля мастеров (masters) — MasterCategory скрыто через _HIDDEN_FIELDS
     "Rating": "Рейтинг",
     "ReturningClients": "Вернувшиеся клиенты",
     "TotalHours": "Часы работы",
@@ -326,6 +327,8 @@ class AnalystAgent(Agent):
                 if preview:
                     lines.append("")
                     lines.extend(preview)
+                elif sql_insight.rows:
+                    logger.debug("fallback: все поля скрыты/без маппинга, topic=%s", topic)
         else:
             lines.append("Данных за указанный период не найдено.")
 

@@ -1,4 +1,9 @@
-"""Тесты: маппинг полей и поведение _fallback_summary для услуг и мастеров (US2)."""
+"""Тесты: маппинг полей и поведение _fallback_summary для услуг и мастеров (US2).
+
+T007: services-поля переведены или скрыты
+T008: masters-поля переведены или скрыты
+T009: неизвестное поле пропускается в fallback summary
+"""
 
 import pytest
 
@@ -43,6 +48,16 @@ def test_masters_fields_translated_or_hidden(field: str) -> None:
     assert field in _FIELD_LABELS or field in _HIDDEN_FIELDS, (
         f"Поле '{field}' не переведено и не скрыто — добавьте в _FIELD_LABELS или _HIDDEN_FIELDS"
     )
+
+
+# ---------------------------------------------------------------------------
+# Взаимоисключающие _FIELD_LABELS и _HIDDEN_FIELDS — поле не должно быть в обоих
+# ---------------------------------------------------------------------------
+
+def test_no_field_in_both_labels_and_hidden() -> None:
+    """Поле не может одновременно быть в _FIELD_LABELS и _HIDDEN_FIELDS — мёртвый код."""
+    overlap = set(_FIELD_LABELS.keys()) & _HIDDEN_FIELDS
+    assert not overlap, f"Поля в обоих словарях (мёртвый label): {overlap}"
 
 
 # ---------------------------------------------------------------------------
