@@ -109,8 +109,8 @@ _PREFERRED_VALUE: dict[str, str] = {
     "leaving": "TotalSpent",
     "forecast": "TotalSpent",
     "noshow": "TotalVisits",
-    "masters": "Revenue",
-    "services": "Revenue",
+    "masters": "TotalRevenue",
+    "services": "ServiceCount",
     "all_clients": "TotalVisits",
     "quality": "TotalVisits",
 }
@@ -141,11 +141,13 @@ def _pick_label_value(
             value_col = preferred
 
     if not value_col:
+        # IsPrimary — булево поле, не подходит для value axis
         skip = {"ObjectId", "MasterId", "ClientId", "Id", "CRMId", "Top",
-                "DaysSinceLastVisit", "DaysOverdue", "ServicePeriodDays"}
+                "DaysSinceLastVisit", "DaysOverdue", "ServicePeriodDays", "IsPrimary"}
         for k in keys:
             val = rows[0].get(k)
-            if isinstance(val, (int, float)) and k not in skip:
+            # bool является подклассом int в Python, явно исключаем
+            if isinstance(val, (int, float)) and not isinstance(val, bool) and k not in skip:
                 value_col = k
                 break
 
@@ -153,13 +155,15 @@ def _pick_label_value(
 
 
 def _pick_multi_values(rows: list[dict[str, Any]]) -> list[str]:
-    """Для bar-графиков со статистикой: все числовые колонки."""
+    """Для bar-графиков со статистикой: все числовые колонки (без bool)."""
     if not rows:
         return []
     skip = {"ObjectId", "MasterId", "ClientId", "Id", "CRMId", "Top"}
     return [
         k for k in rows[0].keys()
-        if isinstance(rows[0].get(k), (int, float)) and k not in skip
+        if isinstance(rows[0].get(k), (int, float))
+        and not isinstance(rows[0].get(k), bool)
+        and k not in skip
     ]
 
 
@@ -210,7 +214,8 @@ def _render_single_row_bar(row: dict[str, Any], params: dict[str, Any], title: s
     """Одна строка с несколькими метриками → группа столбцов."""
     skip = {"SalonName", "ObjectId", "MasterId", "ClientId", "Top"}
     metrics = {k: float(v) for k, v in row.items()
-               if isinstance(v, (int, float)) and k not in skip and v}
+               if isinstance(v, (int, float)) and not isinstance(v, bool)
+               and k not in skip and v}
     if not metrics:
         metrics = {"Нет данных": 0}
 

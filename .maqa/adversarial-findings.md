@@ -1,12 +1,22 @@
 # Adversarial Review — FAIL
 
-**Раунд**: 1 / 3
-**Дата**: 2026-04-15T16:01:38Z
-**Ветка**: feature/002-fix-comparison-followup
+**Раунд**: 3 / 3
+**Дата**: 2026-04-15T20:15:23Z
+**Ветка**: feature/010-test-coverage
 
-## DeepSeek V3.2 — ERROR
+## DeepSeek V3.2 — FAIL
 
 ```
+FAIL
+[HIGH] tests/test_e2e_pipeline.py:21 — MockSQL.MOCK_DATA не покрывает все 10 тем из тест-чеклиста. Недостающие темы: referrals, birthday, communications, forecast, services, quality, leaving. Это приведёт к пустым результатам в тестах для этих тем.
+[HIGH] tests/test_e2e_pipeline.py:251 — Параметризованный тест test_10_checklist_questions ожидает конкретные expected_topic из тест-чеклиста, но MockSQL не возвращает данные для всех этих тем, что приведёт к падению тестов или проверке пустых ответов.
+[MEDIUM] tests/conftest.py:109 — MockSQLMulti возвращает фиксированный список AggregateResult для clients_outflow, но не покрывает другие агрегаты для тестов сравнения и декомпозиции, что ограничивает покрытие тестов.
+[MEDIUM] swarm_powerbi_bot/specs/010-test-coverage/plan.md:76 — В plan указано создание conftest.py с новыми фикстурами, но при этом уже есть дублирование моков в test_orchestrator.py. Это создаёт избыточность и потенциальную несогласованность.
+[CRITICAL] swarm_powerbi_bot/specs/001-semantic-aggregate-layer/spec.md:58 — В спецификации Phase 0 (P1 — US-001) указано, что семантическая модель извлекается из PBIX-файла, но в diff нет реализации этого функционала. Это базовая зависимость для всех последующих фаз.
+[CRITICAL] swarm_powerbi_bot/specs/001-semantic-aggregate-layer/spec.md:124 — В Phase 0 (P1 — US-006) указана необходимость aggregate-catalog.yaml, но в diff нет ни создания этого файла, ни интеграции с PlannerAgent.
+[HIGH] swarm_powerbi_bot/specs/001-semantic-aggregate-layer/spec.md:198 — Multi-query SQLAgent (US-009) должен выполнять до 10 агрегатных запросов параллельно, но в diff нет реализации run_multi() в SQLAgent и интеграции с PlannerAgent.
+[MEDIUM] swarm_powerbi_bot/specs/001-semantic-aggregate-layer/spec.md:235 — Защита от произвольного SQL (US-012) требует валидации aggregate_id по whitelist из каталога, но каталог не реализован, и нет кода валидации в SQLAgent.
+[MEDIUM] swarm_powerbi_bot/specs/010-test-coverage/spec.md:74 — Требование FR-009: MockSQL.MOCK_DATA MUST покрывать все 10 тем из test-checklist.md не выполнено в реализации.
 ```
 
 ## Codex — FAIL
@@ -22,7 +32,7 @@ approval: never
 sandbox: read-only
 reasoning effort: xhigh
 reasoning summaries: none
-session id: 019d91da-e883-70c0-839f-7c37c3cadb5b
+session id: 019d92c4-7062-7042-9770-2ccbf5cd8374
 --------
 user
 Review this code for logic errors, security issues, edge cases, and spec violations. Be adversarial — assume bugs exist.
@@ -36,7 +46,7 @@ Response format:
 Spec: see .specify/specs/*/spec.md
 Changes: git diff main...HEAD
 codex
-Reviewing `git diff main...HEAD` against the spec in `.specify/specs/*/spec.md` first, then I’ll inspect the changed code paths for logic, security, and edge-case failures.
+Reviewing `git diff main...HEAD` against the spec in `.specify/specs/*/spec.md`. I’m starting by loading the changed files and the relevant spec text, then I’ll trace the new logic for regressions, edge cases, and violations.
 exec
 /bin/zsh -lc 'rg --files .specify/specs' in /Users/zerocold/Downloads/git/kpi/tg_bot/swarm_powerbi_bot
  succeeded in 0ms:
@@ -51,31 +61,37 @@ exec
 .specify/specs/001-semantic-aggregate-layer/checklists/requirements.md
 
 exec
-/bin/zsh -lc 'git status --short' in /Users/zerocold/Downloads/git/kpi/tg_bot/swarm_powerbi_bot
+/bin/zsh -lc 'git diff --name-only main...HEAD' in /Users/zerocold/Downloads/git/kpi/tg_bot/swarm_powerbi_bot
 exec
-/bin/zsh -lc 'git diff --stat main...HEAD' in /Users/zerocold/Downloads/git/kpi/tg_bot/swarm_powerbi_bot
- succeeded in 1719ms:
-2026-04-15 18:55:46.403 xcodebuild[89730:107958376]  DVTFilePathFSEvents: Failed to start fs event stream.
-2026-04-15 18:55:46.627 xcodebuild[89730:107958373] [MT] DVTDeveloperPaths: Failed to get length of DARWIN_USER_CACHE_DIR from confstr(3), error = Error Domain=NSPOSIXErrorDomain Code=5 "Input/output error". Using NSCachesDirectory instead.
+/bin/zsh -lc 'git status --short' in /Users/zerocold/Downloads/git/kpi/tg_bot/swarm_powerbi_bot
+ succeeded in 1470ms:
+2026-04-15 23:10:50.192 xcodebuild[31846:108881480]  DVTFilePathFSEvents: Failed to start fs event stream.
+2026-04-15 23:10:50.372 xcodebuild[31846:108881478] [MT] DVTDeveloperPaths: Failed to get length of DARWIN_USER_CACHE_DIR from confstr(3), error = Error Domain=NSPOSIXErrorDomain Code=5 "Input/output error". Using NSCachesDirectory instead.
 git: warning: confstr() failed with code 5: couldn't get path of DARWIN_USER_TEMP_DIR; using /tmp instead
-git: error: couldn't create cache file '/tmp/xcrun_db-0BC6DIfG' (errno=Operation not permitted)
-2026-04-15 18:55:47.045 xcodebuild[89768:107958504]  DVTFilePathFSEvents: Failed to start fs event stream.
-2026-04-15 18:55:47.165 xcodebuild[89768:107958502] [MT] DVTDeveloperPaths: Failed to get length of DARWIN_USER_CACHE_DIR from confstr(3), error = Error Domain=NSPOSIXErrorDomain Code=5 "Input/output error". Using NSCachesDirectory instead.
- .../specs/002-fix-comparison-followup/plan.md      |  47 +++++++++
- .../specs/002-fix-comparison-followup/spec.md      | 107 +++++++++++++++++++++
- .../specs/002-fix-comparison-followup/tasks.md     |  14 +++
- .../src/swarm_powerbi_bot/agents/planner.py        |  58 ++++++++++-
- .../src/swarm_powerbi_bot/services/llm_client.py   |  23 ++++-
- swarm_powerbi_bot/tests/test_planner_v2.py         |  72 ++++++++++++++
- 6 files changed, 318 insertions(+), 3 deletions(-)
+git: error: couldn't create cache file '/tmp/xcrun_db-DwNEk79i' (errno=Operation not permitted)
+2026-04-15 23:10:50.741 xcodebuild[31850:108881531]  DVTFilePathFSEvents: Failed to start fs event stream.
+2026-04-15 23:10:50.858 xcodebuild[31850:108881528] [MT] DVTDeveloperPaths: Failed to get length of DARWIN_USER_CACHE_DIR from confstr(3), error = Error Domain=NSPOSIXErrorDomain Code=5 "Input/output error". Using NSCachesDirectory instead.
+swarm_powerbi_bot/CLAUDE.md
+swarm_powerbi_bot/pyproject.toml
+swarm_powerbi_bot/specs/010-test-coverage/critiques/critique-2026-04-15.md
+swarm_powerbi_bot/specs/010-test-coverage/plan.md
+swarm_powerbi_bot/specs/010-test-coverage/spec.md
+swarm_powerbi_bot/specs/010-test-coverage/tasks.md
+swarm_powerbi_bot/tests/conftest.py
+swarm_powerbi_bot/tests/integration/test_real_e2e.py
+swarm_powerbi_bot/tests/integration/test_real_llm.py
+swarm_powerbi_bot/tests/test_e2e_pipeline.py
+swarm_powerbi_bot/tests/test_orchestrator.py
 
- succeeded in 1722ms:
-2026-04-15 18:55:46.403 xcodebuild[89729:107958375]  DVTFilePathFSEvents: Failed to start fs event stream.
-2026-04-15 18:55:46.627 xcodebuild[89729:107958374] [MT] DVTDeveloperPaths: Failed to get length of DARWIN_USER_CACHE_DIR from confstr(3), error = Error Domain=NSPOSIXErrorDomain Code=5 "Input/output error". Using NSCachesDirectory instead.
+ succeeded in 1474ms:
+2026-04-15 23:10:50.191 xcodebuild[31845:108881481]  DVTFilePathFSEvents: Failed to start fs event stream.
+2026-04-15 23:10:50.372 xcodebuild[31845:108881479] [MT] DVTDeveloperPaths: Failed to get length of DARWIN_USER_CACHE_DIR from confstr(3), error = Error Domain=NSPOSIXErrorDomain Code=5 "Input/output error". Using NSCachesDirectory instead.
 git: warning: confstr() failed with code 5: couldn't get path of DARWIN_USER_TEMP_DIR; using /tmp instead
-git: error: couldn't create cache file '/tmp/xcrun_db-VRPAbGBd' (errno=Operation not permitted)
-2026-04-15 18:55:47.045 xcodebuild[89769:107958503]  DVTFilePathFSEvents: Failed to start fs event stream.
-2026-04-15 18:55:47.165 xcodebuild[89769:107958501] [MT] DVTDeveloperPaths: Failed to get length of DARWIN_USER_CACHE_DIR from confstr(3), error = Error Domain=NSPOSIXErrorDomain Code=5 "Input/output error". Using NSCachesDirectory instead.
+git: error: couldn't create cache file '/tmp/xcrun_db-rdEFsBSJ' (errno=Operation not permitted)
+2026-04-15 23:10:50.741 xcodebuild[31849:108881530]  DVTFilePathFSEvents: Failed to start fs event stream.
+2026-04-15 23:10:50.858 xcodebuild[31849:108881529] [MT] DVTDeveloperPaths: Failed to get length of DARWIN_USER_CACHE_DIR from confstr(3), error = Error Domain=NSPOSIXErrorDomain Code=5 "Input/output error". Using NSCachesDirectory instead.
+ M .maqa/adversarial-findings.md
+ M specs/010-test-coverage/tasks.md
 ?? ../.claude/
 ?? ../.coverage-thresholds.json
 ?? ../.metaswarm/
@@ -88,12 +104,14 @@ git: error: couldn't create cache file '/tmp/xcrun_db-VRPAbGBd' (errno=Operation
 ?? requirements.txt
 ?? specs/001-semantic-aggregate-layer/reviews/
 ?? specs/002-002-fix-comparison-followup/
+?? specs/010-test-coverage/reviews/
+?? specs/010-test-coverage/verify-tasks-report.md
 ?? sql/create_kdo_procedures.sql
 ?? whisper/
 ?? ../uv.lock
 
 codex
-I have the spec location. The next step is extracting the exact diff and reading the relevant spec sections so I can map behavior changes to explicit requirements.
+I have the spec directory. The next step is resolving the actual diff and reading the changed code paths so I can check the implementation against the new aggregate-layer requirements rather than reviewing blindly.
 exec
 /bin/zsh -lc "sed -n '1,260p' .specify/specs/001-semantic-aggregate-layer/spec.md" in /Users/zerocold/Downloads/git/kpi/tg_bot/swarm_powerbi_bot
  succeeded in 0ms:
@@ -359,686 +377,25 @@ Scenario: Человек утверждает SQL
 **я хочу** видеть каталог доступных агрегатов с описаниями и параметрами,
 
 codex
-The branch includes a new spec under `.specify/specs/002-fix-comparison-followup/`, so I’m checking that alongside the planner and LLM client diffs. I need the exact contract around comparison follow-ups before judging the implementation.
-exec
-/bin/zsh -lc "sed -n '1,240p' .specify/specs/002-fix-comparison-followup/spec.md" in /Users/zerocold/Downloads/git/kpi/tg_bot/swarm_powerbi_bot
- exited 1 in 0ms:
-sed: .specify/specs/002-fix-comparison-followup/spec.md: No such file or directory
-
-exec
-/bin/zsh -lc 'git diff --unified=80 main...HEAD -- src/swarm_powerbi_bot/agents/planner.py src/swarm_powerbi_bot/services/llm_client.py swarm_powerbi_bot/tests/test_planner_v2.py' in /Users/zerocold/Downloads/git/kpi/tg_bot/swarm_powerbi_bot
-exec
-/bin/zsh -lc 'git diff --name-only main...HEAD' in /Users/zerocold/Downloads/git/kpi/tg_bot/swarm_powerbi_bot
- succeeded in 1362ms:
-2026-04-15 18:56:03.987 xcodebuild[90115:107959675] [MT] DVTDeveloperPaths: Failed to get length of DARWIN_USER_CACHE_DIR from confstr(3), error = Error Domain=NSPOSIXErrorDomain Code=5 "Input/output error". Using NSCachesDirectory instead.
-git: warning: confstr() failed with code 5: couldn't get path of DARWIN_USER_TEMP_DIR; using /tmp instead
-git: error: couldn't create cache file '/tmp/xcrun_db-VrUyspR2' (errno=Operation not permitted)
-2026-04-15 18:56:04.335 xcodebuild[90118:107959716]  DVTFilePathFSEvents: Failed to start fs event stream.
-2026-04-15 18:56:04.453 xcodebuild[90118:107959715] [MT] DVTDeveloperPaths: Failed to get length of DARWIN_USER_CACHE_DIR from confstr(3), error = Error Domain=NSPOSIXErrorDomain Code=5 "Input/output error". Using NSCachesDirectory instead.
-swarm_powerbi_bot/specs/002-fix-comparison-followup/plan.md
-swarm_powerbi_bot/specs/002-fix-comparison-followup/spec.md
-swarm_powerbi_bot/specs/002-fix-comparison-followup/tasks.md
-swarm_powerbi_bot/src/swarm_powerbi_bot/agents/planner.py
-swarm_powerbi_bot/src/swarm_powerbi_bot/services/llm_client.py
-swarm_powerbi_bot/tests/test_planner_v2.py
-
- succeeded in 1370ms:
-2026-04-15 18:56:03.866 xcodebuild[90114:107959676]  DVTFilePathFSEvents: Failed to start fs event stream.
-2026-04-15 18:56:03.987 xcodebuild[90114:107959672] [MT] DVTDeveloperPaths: Failed to get length of DARWIN_USER_CACHE_DIR from confstr(3), error = Error Domain=NSPOSIXErrorDomain Code=5 "Input/output error". Using NSCachesDirectory instead.
-git: warning: confstr() failed with code 5: couldn't get path of DARWIN_USER_TEMP_DIR; using /tmp instead
-git: error: couldn't create cache file '/tmp/xcrun_db-h10axNfx' (errno=Operation not permitted)
-2026-04-15 18:56:04.335 xcodebuild[90119:107959717]  DVTFilePathFSEvents: Failed to start fs event stream.
-2026-04-15 18:56:04.453 xcodebuild[90119:107959714] [MT] DVTDeveloperPaths: Failed to get length of DARWIN_USER_CACHE_DIR from confstr(3), error = Error Domain=NSPOSIXErrorDomain Code=5 "Input/output error". Using NSCachesDirectory instead.
-diff --git a/swarm_powerbi_bot/src/swarm_powerbi_bot/agents/planner.py b/swarm_powerbi_bot/src/swarm_powerbi_bot/agents/planner.py
-index 232b7a6..5a90c04 100644
---- a/swarm_powerbi_bot/src/swarm_powerbi_bot/agents/planner.py
-+++ b/swarm_powerbi_bot/src/swarm_powerbi_bot/agents/planner.py
-@@ -174,259 +174,313 @@ class PlannerAgent(Agent):
-             with open(path, encoding="utf-8") as f:
-                 content = f.read().strip()
-             if content:
-                 return content
-         except FileNotFoundError:
-             logger.info("Semantic catalog not found at %s — using placeholder", path)
-         except Exception as exc:
-             logger.warning("Failed to load semantic catalog from %s: %s", path, exc)
-         return "(нет семантического каталога)"
- 
-     def multi_plan_to_plan(self, multi_plan: MultiPlan, question: UserQuestion) -> Plan:
-         """Конвертирует MultiPlan в legacy Plan для обратной совместимости."""
-         return Plan(
-             objective=multi_plan.objective,
-             topic=multi_plan.topic,
-             sql_needed=bool(multi_plan.queries),
-             powerbi_needed=False,
-             render_needed=multi_plan.render_needed,
-             notes=list(multi_plan.notes),
-         )
- 
-     @staticmethod
-     def empty_plan(text: str) -> Plan:
-         """Минимальный Plan при сбое планировщика."""
-         return Plan(
-             objective=text,
-             topic="statistics",
-             sql_needed=False,
-             powerbi_needed=False,
-             render_needed=False,
-             notes=["planner:error"],
-         )
- 
-     async def run_multi(self, question: UserQuestion) -> MultiPlan:
-         """T024: Одношаговое LLM-планирование с каталогом агрегатов → MultiPlan.
- 
-         Алгоритм:
-         1. Если есть LLM + aggregate_registry — строим catalog/semantic промпт
-            и вызываем LLMClient.plan_aggregates()
-         2. Парсим JSON → проверяем каждый aggregate_id против whitelist
-         3. Если ANY aggregate_id невалиден → fallback на TopicRegistry
-         4. Fallback: TopicRegistry detect_topic → один AggregateQuery
-         """
-         text = question.text.lower()
-         render_needed = "без картинки" not in text and "text only" not in text
- 
-         # Пробуем LLM-планирование с каталогом агрегатов
-         if self.llm_client and self.aggregate_registry:
-             multi_plan = await self._llm_plan_multi(question, render_needed)
-             if multi_plan is not None:
-                 return multi_plan
- 
-         # Fallback: keyword-matching → один AggregateQuery
-         return self._fallback_multi_plan(question, render_needed)
- 
-     async def _llm_plan_multi(
-         self, question: UserQuestion, render_needed: bool
-     ) -> MultiPlan | None:
-         """Вызывает LLM для получения MultiPlan с каталогом агрегатов."""
-         registry = self.aggregate_registry
-         if registry is None:
-             return None
- 
-         # Формируем промпт из каталога агрегатов
-         catalog_lines: list[str] = []
-         for agg in registry.list_aggregates():
-             agg_id = agg.get("id", "")
-             name = agg.get("name", "")
-             desc = agg.get("description", "")
-             allowed = ", ".join(agg.get("allowed_group_by", []))
-             catalog_lines.append(
-                 f"- {agg_id}: {name}. {desc} (allowed_group_by: {allowed})"
-             )
-         catalog_prompt = "\n".join(catalog_lines) if catalog_lines else "(пусто)"
-         semantic_prompt = self._semantic_prompt
- 
-         raw_dict = await self.llm_client.plan_aggregates(  # type: ignore[union-attr]
-             question=question.text,
-             catalog_prompt=catalog_prompt,
-             semantic_prompt=semantic_prompt,
-+            last_topic=question.last_topic,
-         )
-         if not raw_dict:
-             return None
- 
-         queries_raw = raw_dict.get("queries")
-         if not queries_raw or not isinstance(queries_raw, list):
-             logger.warning("plan_aggregates: 'queries' is missing or empty")
-             return None
- 
-         _ALLOWED_INTENTS = {"single", "comparison", "decomposition", "trend", "ranking"}
-         raw_intent = raw_dict.get("intent", "single")
-         intent = raw_intent if raw_intent in _ALLOWED_INTENTS else "single"
-         if raw_intent != intent:
-             logger.warning(
-                 "plan_aggregates: unknown intent %r from LLM, falling back to 'single'",
-                 raw_intent,
-             )
- 
-         # T037/T038: для декомпозиции допускаем до 5 запросов; глобальный max — 10
-         _MAX_QUERIES_DECOMPOSITION = 5
-         _MAX_QUERIES_DEFAULT = 10
-         max_queries = (
-             _MAX_QUERIES_DECOMPOSITION
-             if intent == "decomposition"
-             else _MAX_QUERIES_DEFAULT
-         )
-         queries_raw = queries_raw[:max_queries]
- 
-         # Валидируем каждый aggregate_id против whitelist
-         queries: list[AggregateQuery] = []
-         for q in queries_raw:
-             agg_id = q.get("aggregate_id", "")
-             if not registry.get_aggregate(agg_id):
-                 logger.warning(
-                     "plan_aggregates: aggregate_id %r not in catalog — falling back",
-                     agg_id,
-                 )
-                 return None  # ANY invalid → полный fallback
-             raw_params = dict(q.get("params", {}))
-             # Инжектим object_id из подписки пользователя, только если каталог
-             # требует его (required: true). Для salon-wide агрегатов (required: false)
-             # object_id намеренно не подставляем.
-             if "object_id" not in raw_params and question.object_id is not None:
-                 entry = registry.get_aggregate(agg_id)
-                 if entry:
-                     params_meta = entry.get("parameters", [])
-                     obj_required = any(
-                         p.get("name") == "object_id" and p.get("required", False)
-                         for p in params_meta
-                     )
-                     if obj_required:
-                         raw_params["object_id"] = question.object_id
-             queries.append(
-                 AggregateQuery(
-                     aggregate_id=agg_id,
-                     params=AggregateParams(raw_params),
-                     label=q.get("label", ""),
-                 )
-             )
- 
-         if not queries:
-             return None
- 
-         topic = raw_dict.get("topic", "statistics")
-         # intent was already extracted above for query limit calculation
- 
-         # Разрешаем period_hint → конкретные даты для ВСЕХ интентов
-         for q_obj in queries:
-             period_hint = q_obj.params.get("period_hint", "")
-             if period_hint and "date_from" not in q_obj.params:
-                 resolved_from, resolved_to = _resolve_period(period_hint)
-                 q_obj.params["date_from"] = resolved_from
-                 q_obj.params["date_to"] = resolved_to
- 
-         # T034: для intent="comparison" убеждаемся что есть ровно 2 запроса
-         if intent == "comparison":
-             if len(queries) < 2:
-                 logger.warning(
-                     "plan_aggregates: comparison intent but only %d queries — falling back",
-                     len(queries),
-                 )
-                 return None
- 
-         return MultiPlan(
-             objective=question.text,
-             intent=intent,
-             queries=queries,
-             topic=topic,
-             render_needed=render_needed,
-             notes=["planner_v2:llm"],
-         )
- 
-+    _COMPARISON_KEYWORDS = {"сравни", "сравнен", "сравнить", "сравнение", "compare", "сопостав", "vs"}
-+    _CLIENT_AGGREGATES = {
-+        "clients_outflow", "clients_leaving", "clients_forecast",
-+        "clients_noshow", "clients_quality", "clients_birthday", "clients_all",
-+    }
-+
-     def _fallback_multi_plan(
-         self, question: UserQuestion, render_needed: bool
-     ) -> MultiPlan:
--        """Fallback: keyword-based TopicRegistry → один AggregateQuery."""
-+        """Fallback: keyword-based TopicRegistry → AggregateQuery(s).
-+
-+        Определяет intent=comparison по ключевым словам и генерирует
-+        2 запроса с разными периодами при наличии контекста (last_topic).
-+        """
-         topic = detect_topic(question.text, last_topic=question.last_topic)
-+        text_lower = question.text.lower()
-+
-+        is_comparison = any(kw in text_lower for kw in self._COMPARISON_KEYWORDS)
-+
-+        if is_comparison and question.last_topic:
-+            agg_id = question.last_topic
-+            # Для клиентских агрегатов — group_by=status (агрегированные цифры)
-+            group_by = "status" if agg_id in self._CLIENT_AGGREGATES else ""
-+            today = date.today()
-+            first_of_current = today.replace(day=1)
-+            last_of_prev = first_of_current - timedelta(days=1)
-+            first_of_prev = last_of_prev.replace(day=1)
-+
-+            params_prev: dict = {
-+                "date_from": first_of_prev.isoformat(),
-+                "date_to": last_of_prev.isoformat(),
-+            }
-+            params_curr: dict = {
-+                "date_from": first_of_current.isoformat(),
-+                "date_to": today.isoformat(),
-+            }
-+            if group_by:
-+                params_prev["group_by"] = group_by
-+                params_curr["group_by"] = group_by
-+
-+            _RU_MONTHS = [
-+                "", "Январь", "Февраль", "Март", "Апрель", "Май", "Июнь",
-+                "Июль", "Август", "Сентябрь", "Октябрь", "Ноябрь", "Декабрь",
-+            ]
-+            prev_label = f"{_RU_MONTHS[first_of_prev.month]} {first_of_prev.year}"
-+            curr_label = f"{_RU_MONTHS[first_of_current.month]} {first_of_current.year}"
-+
-+            queries = [
-+                AggregateQuery(aggregate_id=agg_id, params=AggregateParams(params_prev), label=prev_label),
-+                AggregateQuery(aggregate_id=agg_id, params=AggregateParams(params_curr), label=curr_label),
-+            ]
-+            return MultiPlan(
-+                objective=question.text,
-+                intent="comparison",
-+                queries=queries,
-+                topic=agg_id,
-+                render_needed=render_needed,
-+                notes=["planner_v2:keyword", "comparison:fallback"],
-+            )
- 
--        # Формируем AggregateQuery используя topic как aggregate_id
-         agg_query = AggregateQuery(
-             aggregate_id=topic,
-             params={},
-             label=topic,
-         )
- 
-         return MultiPlan(
-             objective=question.text,
-             intent="single",
-             queries=[agg_query],
-             topic=topic,
-             render_needed=render_needed,
-             notes=["planner_v2:keyword"],
-         )
- 
-     async def run(self, question: UserQuestion) -> Plan:
-         text = question.text.lower()
- 
-         sql_needed = "только powerbi" not in text and "only powerbi" not in text
-         powerbi_needed = "только sql" not in text and "only sql" not in text
-         render_needed = "без картинки" not in text and "text only" not in text
- 
-         # Пробуем LLM-планирование
-         llm_result = await self._llm_plan(question)
-         used_llm = llm_result is not None
- 
-         if used_llm:
-             query_params = llm_result
-             topic = self._derive_topic(query_params, question)
-         else:
-             # Fallback: keyword-matching → старые процедуры
-             topic = detect_topic(question.text, last_topic=question.last_topic)
-             query_params = self._fallback_params(question, topic)
- 
-         notes: list[str] = [f"topic:{topic}"]
-         notes.append("planner:llm" if used_llm else "planner:keyword")
- 
-         # Флаги анализа
-         if any(kw in text for kw in ("сравни", "compare", "сравнен")):
-             notes.append("comparison_requested")
-         if any(kw in text for kw in ("тренд", "trend", "динамик", "изменен")):
-             notes.append("trend_requested")
-         if any(kw in text for kw in ("прогноз", "forecast", "предсказ")):
-             notes.append("forecast_requested")
-         if any(kw in text for kw in ("топ", "лучш", "худш", "рейтинг", "ranking")):
-             notes.append("ranking_requested")
- 
-         # Детекция группировки
-         if any(kw in text for kw in ("по салон", "по объект", "по филиал")):
-             notes.append("breakdown_by_object")
-         if "по мастер" in text:
-             notes.append("breakdown_by_master")
- 
-         # Детекция периода
-         if "недел" in text:
-             notes.append("period:week")
-         elif "месяц" in text:
-             notes.append("period:month")
-         elif "квартал" in text:
-             notes.append("period:quarter")
-         elif "год" in text and "новый год" not in text:
-             notes.append("period:year")
- 
-         # Если LLM не доступен: клиентские темы + сравнение → trend (fallback logic)
-         if not used_llm:
-             _CLIENT_TOPICS = {"outflow", "leaving", "all_clients", "noshow", "forecast"}
-             if topic in _CLIENT_TOPICS and (
-                 "comparison_requested" in notes or "trend_requested" in notes
-             ):
-                 notes.append(f"original_topic:{topic}")
-                 topic = "trend"
-                 query_params.procedure = get_procedure("trend")
- 
-         # Если v2 процедуры не задеплоены — маппим обратно на старые
-         if (
-             not _USE_V2
-             and query_params
-             and query_params.procedure
-             in (
-                 "spKDO_Aggregate",
-diff --git a/swarm_powerbi_bot/src/swarm_powerbi_bot/services/llm_client.py b/swarm_powerbi_bot/src/swarm_powerbi_bot/services/llm_client.py
-index 0a38c37..479b903 100644
---- a/swarm_powerbi_bot/src/swarm_powerbi_bot/services/llm_client.py
-+++ b/swarm_powerbi_bot/src/swarm_powerbi_bot/services/llm_client.py
-@@ -1,281 +1,302 @@
- from __future__ import annotations
- 
- import asyncio
- import json
- import logging
- import time
- from typing import Any
- 
- import httpx
- 
- from ..config import Settings
- 
- logger = logging.getLogger(__name__)
- 
-+_TOPIC_RE = __import__("re").compile(r"^[a-z][a-z0-9_]{0,63}$")
-+
-+
-+def _sanitize_topic(topic: str) -> str:
-+    """Валидирует last_topic: только a-z, 0-9, _ (до 64 символов)."""
-+    if _TOPIC_RE.match(topic):
-+        return topic
-+    return ""
-+
-+
- # ── Промпт для LLM-планировщика запросов ──────────────────────
- 
- _PLANNER_SYSTEM_PROMPT = """\
- Ты — планировщик SQL-запросов для дашборда салона красоты (КДО).
- Пользователь задаёт вопрос на русском. Ты собираешь запрос из компонентов.
- 
- 3 ПРОЦЕДУРЫ (выбери одну):
- 
- 1. spKDO_Aggregate — агрегация визитов/выручки из tbRecords
-    group_by: total | week | month | master | service | salon | channel
-    Примеры:
-    - «статистика за неделю» → group_by=total
-    - «тренд по неделям» → group_by=week
-    - «выручка по месяцам» → group_by=month
-    - «мастера за месяц» → group_by=master
-    - «топ услуг» → group_by=service
-    - «сравни салоны» → group_by=salon
-    - «каналы привлечения» → group_by=channel
- 
- 2. spKDO_ClientList — список/агрегация клиентов по статусу из fnKDO_ClientStatus
-    filter: all | outflow | leaving | forecast | noshow | quality | birthday
-    group_by: list | status | master
-    Примеры:
-    - «отток за месяц» → filter=outflow, group_by=list
-    - «уходящие клиенты» → filter=leaving, group_by=list
-    - «прогноз визитов» → filter=forecast, group_by=list
-    - «недошедшие» → filter=noshow, group_by=list
-    - «контроль качества» → filter=quality, group_by=list
-    - «все клиенты» → filter=all, group_by=list
-    - «именинники» → filter=birthday, group_by=list
-    - «отток по мастерам» → filter=outflow, group_by=master
-    - «сколько в каждом статусе» → filter=all, group_by=status
-    - «сравни отток по неделям» → НЕТ, используй spKDO_Aggregate group_by=week
- 
- 3. spKDO_CommAgg — коммуникации (звонки, обзвоны)
-    reason: all | outflow | leaving | forecast | noshow | quality | birthday | waitlist | opz
-    group_by: reason | result | manager | list
-    Примеры:
-    - «коммуникации за неделю» → reason=all, group_by=reason
-    - «результаты обзвона оттока» → reason=outflow, group_by=result
-    - «менеджеры по звонкам» → reason=all, group_by=manager
-    - «лист ожидания» → reason=waitlist, group_by=list
-    - «ОПЗ» → reason=opz, group_by=list
- 
- ПАРАМЕТРЫ:
- - date_from, date_to — ISO YYYY-MM-DD
- - top — лимит строк (20)
- - master_name — имя мастера если упомянуто
- 
- ПЕРИОДЫ:
- - «за неделю» → 7 дней, «за месяц» → 30 дней, «за квартал» → 90 дней
- - «за январь 2026» → 2026-01-01..2026-01-31
- - Без периода → 30 дней. Сегодня: {today}
- 
- ВАЖНО:
- - «отток по мастерам» = ClientList filter=outflow group_by=master
- - «выручка по мастерам» = Aggregate group_by=master
- - «тренд/динамика выручки по неделям» = Aggregate group_by=week
- - «по неделям» → group_by=week, «по месяцам» → group_by=month (НЕ путай!)
- - Абонементы/обучение — используй старые: dbo.spKDO_Attachments, dbo.spKDO_Training
- 
- КОНТЕКСТ ДИАЛОГА:
- {context}
- Если пользователь просит «сравни/покажи динамику» без уточнения темы — используй
- предыдущую тему как ориентир. Например: предыдущая тема outflow + «сравни по месяцам»
- → spKDO_Aggregate group_by=month (сравнение KPI за период, привязанное к оттоку).
- 
- Ответь ТОЛЬКО JSON:
- {{"procedure": "spKDO_Aggregate", "group_by": "total", "filter": "", "reason": "", "date_from": "YYYY-MM-DD", "date_to": "YYYY-MM-DD", "top": 20, "master_name": ""}}
- """
- 
- def _extract_json(raw: str) -> str | None:
-     """Извлекает внешний JSON-объект из ответа LLM (поддерживает вложенные {})."""
-     start = raw.find("{")
-     if start == -1:
-         return None
-     depth = 0
-     for i, ch in enumerate(raw[start:], start):
-         if ch == "{":
-             depth += 1
-         elif ch == "}":
-             depth -= 1
-             if depth == 0:
-                 return raw[start : i + 1]
-     return None
- 
- 
- class LLMClient:
-     """Клиент для Ollama-совместимого LLM API (модель задаётся в settings.ollama_model)."""
- 
-     def __init__(self, settings: Settings):
-         self.settings = settings
-         # Circuit breaker state для plan_aggregates
-         self._cb_failures: int = 0
-         self._cb_open_until: float = 0.0
-         self._cb_lock: asyncio.Lock = asyncio.Lock()
- 
-     async def plan_query(
-         self, question: str, today: str, last_topic: str = ""
-     ) -> dict[str, Any] | None:
-         """LLM-планировщик: определяет процедуру, group_by, filter из вопроса.
- 
-         Возвращает dict с ключами: procedure, group_by, filter, reason,
-         date_from, date_to, top, master_name.
-         Или None если LLM недоступен.
-         """
-         if not self.settings.ollama_api_key:
-             return None
- 
-         if last_topic:
-             context = (
-                 f"Предыдущая тема диалога: {last_topic}. "
-                 f"Пользователь может ссылаться на неё (сравни, покажи динамику, подробнее)."
-             )
-         else:
-             context = "Нет предыдущего контекста — первый вопрос в диалоге."
-         system = _PLANNER_SYSTEM_PROMPT.format(today=today, context=context)
- 
-         raw = await self._raw_chat(system, question)
-         if not raw:
-             logger.warning("plan_query: LLM returned empty response")
-             return None
- 
-         return self._parse_plan_json(raw)
- 
-     async def plan_aggregates(
-         self,
-         question: str,
-         catalog_prompt: str,
-         semantic_prompt: str,
-+        last_topic: str = "",
-     ) -> dict | None:
-         """T025: Одношаговое LLM-планирование с каталогом агрегатов.
- 
-         Возвращает распарсенный JSON-dict или None при ошибке/circuit breaker.
-         Timeout: settings.llm_plan_timeout (5s).
-         Circuit breaker: после threshold подряд неудач → None на cooldown секунд.
-         """
-         if not self.settings.ollama_api_key:
-             return None
- 
-         # Проверяем circuit breaker (под локом — потокобезопасно)
-         async with self._cb_lock:
-             now = time.monotonic()
-             if self._cb_open_until > now:
-                 logger.warning(
-                     "LLM circuit breaker open: %.0fs remaining",
-                     self._cb_open_until - now,
-                 )
-                 return None
- 
-         system_prompt = (
-             "Ты — планировщик аналитических запросов. "
-             "Ниже — каталог доступных агрегатов и семантический каталог.\n\n"
-             f"КАТАЛОГ АГРЕГАТОВ:\n{catalog_prompt}\n\n"
-             f"СЕМАНТИЧЕСКИЙ КАТАЛОГ:\n{semantic_prompt}\n\n"
-             "Пользователь задаёт вопрос на русском. "
-             "Выбери подходящие агрегаты из каталога и верни JSON:\n"
-             '{"intent": "single|comparison|decomposition|trend|ranking", '
-             '"queries": [{"aggregate_id": "...", "params": {...}, "label": "..."}], '
-             '"topic": "statistics", "render_needed": true}\n\n'
-             "ПРАВИЛА DECOMPOSITION:\n"
-             "Если вопрос содержит «почему», «из-за чего», «что повлияло», «причина» "
-             "или аналогичные запросы на факторный анализ — используй intent=decomposition.\n"
-             "При decomposition запроси ВСЕ связанные метрики за ДВА периода:\n"
-             "Пример: «почему упала выручка?» → 5 запросов:\n"
-             "  1. revenue_summary за текущий период\n"
-             "  2. revenue_summary за предыдущий период\n"
-             "  3. client_count за текущий период\n"
-             "  4. client_count за предыдущий период\n"
-             "  5. avg_check (один период достаточно)\n"
-             "Максимум 5 запросов при decomposition. "
-             "Ставь понятный label: «Выручка (апрель)», «Клиенты (март)» и т.д.\n\n"
-+            "ПРАВИЛА FOLLOW-UP:\n"
-+            "Если указан last_topic — пользователь продолжает предыдущий разговор. "
-+            "Используй last_topic как основу для выбора агрегата.\n"
-+            "Пример: last_topic=clients_outflow, вопрос=«сравни по месяцам» "
-+            "→ intent=comparison, aggregate_id=clients_outflow для обоих периодов.\n"
-+            "Для comparison клиентских агрегатов (clients_*) используй group_by=status "
-+            "(агрегированные цифры), НЕ group_by=list (сырой список).\n\n"
-             "ВАЖНО: используй только aggregate_id из каталога выше. "
-             "Ответь ТОЛЬКО JSON, без пояснений."
-         )
- 
-         base = self.settings.ollama_base_url.rstrip("/")
-         url = f"{base}/chat"
-         headers = {
-             "Authorization": f"Bearer {self.settings.ollama_api_key}",
-             "Content-Type": "application/json",
-         }
-         payload: dict[str, Any] = {
-             "model": self.settings.ollama_model,
-             "messages": [
-                 {"role": "system", "content": system_prompt},
--                {"role": "user", "content": question},
-+                {"role": "user", "content": (
-+                    f"{question}\nКонтекст: last_topic={_sanitize_topic(last_topic)}"
-+                    if last_topic else question
-+                )},
-             ],
-             "stream": False,
-             "options": {"temperature": 0.1},
-         }
- 
-         try:
-             timeout = float(self.settings.llm_plan_timeout)
-             async with httpx.AsyncClient(timeout=timeout) as client:
-                 resp = await client.post(url, headers=headers, json=payload)
-                 resp.raise_for_status()
-                 data = resp.json()
-         except Exception as exc:
-             logger.error("plan_aggregates request failed: %s", exc)
-             await self._record_cb_failure("request error")
-             return None
- 
-         raw = self._extract_content(data)
-         if not raw:
-             logger.warning("plan_aggregates: LLM returned empty content")
-             await self._record_cb_failure("empty content")
-             return None
- 
-         result = self._parse_multiplan_json(raw)
-         if result is None:
-             await self._record_cb_failure("parse error")
-             return None
- 
-         # Успех — сбрасываем счётчик ошибок (под локом)
-         async with self._cb_lock:
-             self._cb_failures = 0
-         return result
- 
-     async def _record_cb_failure(self, reason: str) -> None:
-         """Инкрементирует счётчик ошибок CB под локом, открывает CB при превышении порога."""
-         async with self._cb_lock:
-             self._cb_failures += 1
-             if self._cb_failures >= self.settings.llm_circuit_breaker_threshold:
-                 cooldown = self.settings.llm_circuit_breaker_cooldown
-                 self._cb_open_until = time.monotonic() + cooldown
-                 logger.warning(
-                     "LLM circuit breaker opened for %ds after %d consecutive failures (%s)",
-                     cooldown,
-                     self._cb_failures,
-                     reason,
-                 )
- 
-     def _parse_multiplan_json(self, raw: str) -> dict[str, Any] | None:
-         """Извлекает JSON MultiPlan из ответа LLM (поддерживает вложенные объекты)."""
-         json_str = _extract_json(raw)
-         if not json_str:
-             logger.warning("plan_aggregates returned no JSON: %s", raw[:200])
-             return None
-         try:
-             data = json.loads(json_str)
-         except json.JSONDecodeError:
-             logger.warning("plan_aggregates returned invalid JSON: %s", raw[:200])
-             return None
- 
-         if "queries" not in data:
-             logger.warning("plan_aggregates JSON missing 'queries': %s", data)
-             return None
- 
-         return data
- 
-     def _parse_plan_json(self, raw: str) -> dict[str, Any] | None:
-         """Извлекает JSON из ответа LLM (может быть обёрнут в markdown)."""
-         json_str = _extract_json(raw)
-         if not json_str:
-             logger.warning("LLM planner returned no JSON: %s", raw[:200])
-             return None
-         try:
-             data = json.loads(json_str)
-         except json.JSONDecodeError:
-             logger.warning("LLM planner returned invalid JSON: %s", raw[:200])
-             return None
- 
-         if "procedure" not in data:
-             logger.warning("LLM planner JSON missing 'procedure': %s", data)
-             return None
- 
-
-codex
-The new spec path from the diff doesn’t exist under `.specify/`, which is already a potential contract problem. I’m verifying whether the implementation is tied to an untracked/misplaced spec or whether the branch just added new behavior without updating the required spec tree.
-exec
-/bin/zsh -lc "rg --files | rg 'fix-comparison-followup/.*/spec\\.md|fix-comparison-followup/spec\\.md|spec\\.md"'$'"'" in /Users/zerocold/Downloads/git/kpi/tg_bot/swarm_powerbi_bot
- succeeded in 0ms:
-specs/002-002-fix-comparison-followup/spec.md
-specs/002-fix-comparison-followup/spec.md
-specs/001-semantic-aggregate-layer/spec.md
-
-codex
-The diff is against files under the nested `swarm_powerbi_bot/` project, not the repo root, and the branch’s new spec lives there too. I’m reading that spec next and then tracing the changed planner fallback logic against the actual model types and tests.
+The branch diff is concentrated under `swarm_powerbi_bot/tests/*` plus a test-coverage spec. I’m checking both spec trees now because there’s a top-level `.specify` spec and a repo-local `specs/010-test-coverage/spec.md`, and the implementation may be expected to satisfy both.
 exec
 /bin/zsh -lc pwd in /Users/zerocold/Downloads/git/kpi/tg_bot/swarm_powerbi_bot
  succeeded in 0ms:
 /Users/zerocold/Downloads/git/kpi/tg_bot/swarm_powerbi_bot
 
 exec
+/bin/zsh -lc "sed -n '1,240p' swarm_powerbi_bot/specs/010-test-coverage/spec.md" in /Users/zerocold/Downloads/git/kpi/tg_bot/swarm_powerbi_bot
+ exited 1 in 0ms:
+sed: swarm_powerbi_bot/specs/010-test-coverage/spec.md: No such file or directory
+
+exec
+/bin/zsh -lc "find . -maxdepth 2 -type f \\( -path './specs/*/spec.md' -o -path './.specify/specs/*/spec.md' \\) | sort" in /Users/zerocold/Downloads/git/kpi/tg_bot/swarm_powerbi_bot
+ succeeded in 0ms:
+exec
 /bin/zsh -lc 'ls -la' in /Users/zerocold/Downloads/git/kpi/tg_bot/swarm_powerbi_bot
  succeeded in 0ms:
 total 496
-drwxr-xr-x@ 32 zerocold  staff    1024 Apr 15 18:48 .
+drwxr-xr-x@ 32 zerocold  staff    1024 Apr 15 22:21 .
 drwxr-xr-x  31 zerocold  staff     992 Apr 15 18:47 ..
 -rw-r--r--@  1 zerocold  staff    6148 Apr 14 17:13 .DS_Store
 drwxr-xr-x@  6 zerocold  staff     192 Apr 15 18:48 .claude
@@ -1046,12 +403,12 @@ drwxr-xr-x@  6 zerocold  staff     192 Apr 15 18:48 .claude
 -rw-r--r--@  1 zerocold  staff    1174 Apr 15 18:48 .env.example
 drwxr-xr-x@  3 zerocold  staff      96 Apr 15 18:48 .github
 -rw-r--r--@  1 zerocold  staff      46 Apr 15 18:48 .gitignore
-drwxr-xr-x@  6 zerocold  staff     192 Apr 15 18:55 .maqa
+drwxr-xr-x@  6 zerocold  staff     192 Apr 15 23:10 .maqa
 drwxr-xr-x@  6 zerocold  staff     192 Apr 13 22:31 .pytest_cache
 drwxr-xr-x@  5 zerocold  staff     160 Apr 15 09:09 .ruff_cache
 drwxr-xr-x@ 14 zerocold  staff     448 Apr 15 18:48 .specify
 drwxr-xr-x@  9 zerocold  staff     288 Apr 14 15:02 .venv
--rw-r--r--@  1 zerocold  staff    1984 Apr 15 18:48 CLAUDE.md
+-rw-------@  1 zerocold  staff    2295 Apr 15 22:07 CLAUDE.md
 -rw-r--r--@  1 zerocold  staff     533 Apr 15 18:48 Dockerfile
 -rw-r--r--@  1 zerocold  staff    3831 Mar 23 10:22 README.md
 drwxr-xr-x@  6 zerocold  staff     192 Apr 15 18:48 catalogs
@@ -1061,395 +418,2842 @@ drwxr-xr-x@  4 zerocold  staff     128 Apr 15 18:48 docs
 drwxr-xr-x@  3 zerocold  staff      96 Apr 15 17:34 logs
 -rw-r--r--@  1 zerocold  staff    1706 Apr 15 18:48 maqa-config.yml
 drwxr-xr-x@  3 zerocold  staff      96 Apr 13 21:24 powebi
--rw-r--r--@  1 zerocold  staff     758 Apr 15 18:48 pyproject.toml
+-rw-r--r--@  1 zerocold  staff     845 Apr 15 22:21 pyproject.toml
 -rw-r--r--@  1 zerocold  staff     106 Mar 23 10:22 requirements.txt
 drwxr-xr-x@  5 zerocold  staff     160 Apr 15 18:48 scripts
-drwxr-xr-x@  5 zerocold  staff     160 Apr 15 18:48 specs
+drwxr-xr-x@  9 zerocold  staff     288 Apr 15 21:36 specs
 drwxr-xr-x@  5 zerocold  staff     160 Apr 15 18:48 sql
 drwxr-xr-x@  4 zerocold  staff     128 Apr 13 22:31 src
-drwxr-xr-x@ 27 zerocold  staff     864 Apr 15 18:53 tests
+drwxr-xr-x@ 29 zerocold  staff     928 Apr 15 23:10 tests
 -rw-r--r--@  1 zerocold  staff  199054 Apr 15 18:48 uv.lock
 drwxr-xr-x@  6 zerocold  staff     192 Apr 13 22:47 whisper
 
 exec
-/bin/zsh -lc "sed -n '1,260p' specs/002-fix-comparison-followup/spec.md" in /Users/zerocold/Downloads/git/kpi/tg_bot/swarm_powerbi_bot
+/bin/zsh -lc "rg --files | rg 'spec\\.md"'$|test_.*'"\\.py"'$|conftest'"\\.py"'$|pyproject'"\\.toml"'$|CLAUDE'"\\.md"'$'"'" in /Users/zerocold/Downloads/git/kpi/tg_bot/swarm_powerbi_bot
+ succeeded in 0ms:
+CLAUDE.md
+tests/test_stt_client.py
+tests/test_master_resolver.py
+tests/test_analyst_fallback.py
+tests/test_registration.py
+tests/test_chart_renderer.py
+tests/test_llm_planner.py
+tests/test_context_switching.py
+tests/test_config.py
+tests/test_e2e_pipeline.py
+tests/test_multi_query.py
+tests/test_chart_adequacy.py
+tests/test_planner_v2.py
+tests/test_composition.py
+tests/test_orchestrator.py
+tests/test_aggregate_registry.py
+tests/test_topic_registry.py
+tests/test_data_accuracy.py
+tests/test_comparison.py
+tests/integration/test_real_llm.py
+tests/integration/test_real_sql.py
+tests/integration/test_real_e2e.py
+tests/integration/conftest.py
+tests/test_period_detection.py
+tests/test_circuit_breaker.py
+tests/test_planner.py
+tests/test_query_logger.py
+tests/conftest.py
+tests/test_security.py
+tests/test_llm_client_ollama.py
+pyproject.toml
+specs/010-test-coverage/spec.md
+specs/009-statistics-fallback-improvements/spec.md
+specs/003-006-fix-comparison-chart/spec.md
+specs/004-orchestrator-fallback-fix/spec.md
+specs/002-002-fix-comparison-followup/spec.md
+specs/002-fix-comparison-followup/spec.md
+specs/001-semantic-aggregate-layer/spec.md
+
 exec
-/bin/zsh -lc "sed -n '1,260p' tests/test_planner_v2.py" in /Users/zerocold/Downloads/git/kpi/tg_bot/swarm_powerbi_bot
+/bin/zsh -lc 'git rev-parse --show-toplevel' in /Users/zerocold/Downloads/git/kpi/tg_bot/swarm_powerbi_bot
+ succeeded in 1248ms:
+2026-04-15 23:11:16.982 xcodebuild[32225:108883043]  DVTFilePathFSEvents: Failed to start fs event stream.
+2026-04-15 23:11:17.105 xcodebuild[32225:108883042] [MT] DVTDeveloperPaths: Failed to get length of DARWIN_USER_CACHE_DIR from confstr(3), error = Error Domain=NSPOSIXErrorDomain Code=5 "Input/output error". Using NSCachesDirectory instead.
+git: warning: confstr() failed with code 5: couldn't get path of DARWIN_USER_TEMP_DIR; using /tmp instead
+git: error: couldn't create cache file '/tmp/xcrun_db-jVNY4TRA' (errno=Operation not permitted)
+2026-04-15 23:11:17.427 xcodebuild[32227:108883081]  DVTFilePathFSEvents: Failed to start fs event stream.
+2026-04-15 23:11:17.541 xcodebuild[32227:108883080] [MT] DVTDeveloperPaths: Failed to get length of DARWIN_USER_CACHE_DIR from confstr(3), error = Error Domain=NSPOSIXErrorDomain Code=5 "Input/output error". Using NSCachesDirectory instead.
+/Users/zerocold/Downloads/git/kpi/tg_bot
+
+codex
+The repo root is correct; the diff paths from `git diff` were prefixed because Git’s top-level is one directory higher. I’m focusing on `specs/010-test-coverage/spec.md` now, since the changed files are test-only and that spec likely defines the intended behavior.
+exec
+/bin/zsh -lc "sed -n '1,260p' specs/010-test-coverage/spec.md" in /Users/zerocold/Downloads/git/kpi/tg_bot/swarm_powerbi_bot
  succeeded in 0ms:
-"""T022: Тесты PlannerAgent v2 — одношаговое LLM-планирование с каталогом агрегатов.
+# Спецификация: Расширение тестового покрытия (#10)
 
-Покрывает:
-- Mock LLM returns valid JSON → parses into MultiPlan correctly
-- Mock LLM returns invalid JSON → graceful fallback (no crash)
-- aggregate_id not in catalog whitelist → falls back to TopicRegistry
-- Cross-domain query → multiple aggregates in plan
-"""
-from __future__ import annotations
+**Ветка**: `feature/010-test-coverage`
+**Дата**: 2026-04-15
+**Статус**: Draft
 
-import textwrap
-from unittest.mock import AsyncMock
+## Текущее состояние
 
-import pytest
+Существующие тесты (368 passed, 30 deselected integration):
 
-from swarm_powerbi_bot.agents.planner import PlannerAgent
-from swarm_powerbi_bot.models import MultiPlan, UserQuestion
-from swarm_powerbi_bot.services.aggregate_registry import AggregateRegistry
-from swarm_powerbi_bot.services.llm_client import LLMClient
+| Категория | Файл(ы) | Кол-во | Что покрывает |
+|-----------|---------|--------|---------------|
+| Unit | test_planner.py, test_planner_v2.py, test_aggregate_registry.py, etc. | ~300 | Keyword detection, config, registry, period parsing |
+| Chart | test_chart_renderer.py | ~15 | render_chart, render_comparison with group_by |
+| Analyst fallback | test_analyst_fallback.py | 8 | Comparison deltas, field translation, statistics formatting |
+| E2E (mock) | test_e2e_pipeline.py | 8 | Full pipeline with mock SQL/PBI/Analyst |
+| Orchestrator | test_orchestrator.py | 2 | Happy path, multi_all_failed |
+| Integration (real) | integration/test_real_sql.py | 10 | MSSQL: 26 aggregates, injection, concurrent |
+| Integration (real) | integration/test_real_llm.py | 10 | Ollama: planner modes, comparison, decomposition |
+| Integration (real) | integration/test_real_e2e.py | 10 | Full pipeline real MSSQL+Ollama |
 
+### Гэпы
 
-# ── Fixtures ──────────────────────────────────────────────────────────────────
+1. **Integration**: нет тестов на новые фичи — comparison chart output, fallback text quality, period display
+2. **E2E (mock)**: нет comparison/composition pipeline, нет negative scenarios, нет follow-up chains
+3. **Smoke**: нет автоматического smoke test — только ручной `docs/test-checklist.md`
+4. **Marker `e2e`**: не зарегистрирован — только `integration`
 
-CATALOG_YAML = textwrap.dedent("""\
-    aggregates:
-      - id: revenue_total
-        name: Общая выручка
-        description: Суммарная выручка за период
-        procedure: spKDO_Aggregate
-        allowed_group_by:
-          - total
-          - week
-          - month
-      - id: outflow_clients
-        name: Отток клиентов
-        description: Клиенты со статусом outflow
-        procedure: spKDO_ClientList
-        allowed_group_by:
-          - list
-          - master
-      - id: clients_outflow
-        name: Отток клиентов (v2)
-        description: Клиенты со статусом outflow
-        procedure: spKDO_ClientList
-        allowed_group_by:
-          - list
-          - status
-          - master
-      - id: communications_all
-        name: Коммуникации
-        description: Все коммуникации по типу звонка
-        procedure: spKDO_CommAgg
-        allowed_group_by:
-          - reason
-          - result
-          - manager
-""")
+## User Stories
 
+### US-1: Integration тесты новых фич (P1)
 
-@pytest.fixture()
-def catalog_path(tmp_path):
-    p = tmp_path / "aggregate-catalog.yaml"
-    p.write_text(CATALOG_YAML, encoding="utf-8")
-    return str(p)
-
-
-@pytest.fixture()
-def registry(catalog_path):
-    return AggregateRegistry(catalog_path)
-
-
-def _parsed_or_none(json_text: str | None) -> dict | None:
-    """Парсит JSON-строку или возвращает None (имитирует plan_aggregates)."""
-    import json
-    import re
-    if not json_text:
-        return None
-    m = re.search(r"\{.*\}", json_text, re.DOTALL)
-    if not m:
-        return None
-    try:
-        data = json.loads(m.group(0))
-    except json.JSONDecodeError:
-        return None
-    if "queries" not in data:
-        return None
-    return data
-
-
-def _make_planner(llm_json: str | None, registry: AggregateRegistry) -> PlannerAgent:
-    from swarm_powerbi_bot.config import Settings
-    llm = LLMClient(Settings())
-    # Mock plan_aggregates directly — bypasses ollama_api_key check
-    llm.plan_aggregates = AsyncMock(return_value=_parsed_or_none(llm_json))
-    return PlannerAgent(llm_client=llm, aggregate_registry=registry)
-
-
-# ── T022-1: Valid JSON → MultiPlan ───────────────────────────────────────────
-
-class TestValidJsonToMultiPlan:
-    """Mock LLM returns valid JSON → parses into MultiPlan correctly."""
-
-    def test_single_aggregate_returns_multiplan(self, registry):
-        valid_json = """{
-            "intent": "single",
-            "queries": [
-                {"aggregate_id": "revenue_total", "params": {"date_from": "2026-04-01", "date_to": "2026-04-15", "group_by": "total"}, "label": "Выручка за период"}
-            ],
-            "topic": "statistics",
-            "render_needed": true
-        }"""
-        planner = _make_planner(valid_json, registry)
-        q = UserQuestion(user_id="1", text="Покажи выручку за апрель")
-        import asyncio
-        plan = asyncio.run(planner.run_multi(q))
-
-        assert isinstance(plan, MultiPlan)
-        assert plan.intent == "single"
-        assert len(plan.queries) == 1
-        assert plan.queries[0].aggregate_id == "revenue_total"
-        assert plan.queries[0].label == "Выручка за период"
-
-    def test_multiplan_objective_set_from_question(self, registry):
-        valid_json = """{
-            "intent": "single",
-            "queries": [{"aggregate_id": "revenue_total", "params": {}, "label": "Revenue"}],
-            "topic": "statistics",
-            "render_needed": false
-        }"""
-        planner = _make_planner(valid_json, registry)
-        q = UserQuestion(user_id="1", text="общая выручка")
-        import asyncio
-        plan = asyncio.run(planner.run_multi(q))
-        assert plan.objective == "общая выручка"
-
-    def test_multiplan_render_needed_false(self, registry):
-        valid_json = """{
-            "intent": "single",
-            "queries": [{"aggregate_id": "outflow_clients", "params": {}, "label": "Outflow"}],
-            "topic": "outflow",
-            "render_needed": false
-        }"""
-        planner = _make_planner(valid_json, registry)
-        q = UserQuestion(user_id="1", text="отток без картинки")
-        import asyncio
-        plan = asyncio.run(planner.run_multi(q))
-        assert plan.render_needed is False
-
-    def test_multiplan_topic_preserved(self, registry):
-        valid_json = """{
-            "intent": "single",
-            "queries": [{"aggregate_id": "outflow_clients", "params": {}, "label": "Отток"}],
-            "topic": "outflow",
-            "render_needed": true
-        }"""
-        planner = _make_planner(valid_json, registry)
-        q = UserQuestion(user_id="1", text="отток")
-        import asyncio
-        plan = asyncio.run(planner.run_multi(q))
-        assert plan.topic == "outflow"
-
-    def test_llm_note_added_on_success(self, registry):
-        valid_json = """{
-            "intent": "single",
-            "queries": [{"aggregate_id": "revenue_total", "params": {}, "label": "X"}],
-            "topic": "statistics",
-            "render_needed": true
-        }"""
-        planner = _make_planner(valid_json, registry)
-        q = UserQuestion(user_id="1", text="статистика")
-        import asyncio
-        plan = asyncio.run(planner.run_multi(q))
-        assert "planner_v2:llm" in plan.notes
-
-
-# ── T022-2: Invalid JSON → graceful fallback ──────────────────────────────────
-
-class TestInvalidJsonFallback:
-    """Mock LLM returns invalid JSON → graceful fallback (no crash)."""
-
-    def test_invalid_json_returns_fallback_multiplan(self, registry):
-        planner = _make_planner("это не JSON, а просто текст", registry)
-        q = UserQuestion(user_id="1", text="отток за месяц")
-        import asyncio
-        plan = asyncio.run(planner.run_multi(q))
-        assert isinstance(plan, MultiPlan)
-        assert "planner_v2:keyword" in plan.notes
-
-    def test_empty_llm_response_falls_back(self, registry):
-        planner = _make_planner(None, registry)
-        q = UserQuestion(user_id="1", text="покажи статистику")
-        import asyncio
-        plan = asyncio.run(planner.run_multi(q))
-        assert isinstance(plan, MultiPlan)
-        assert "planner_v2:keyword" in plan.notes
-
-    def test_json_with_no_queries_array_falls_back(self, registry):
-        planner = _make_planner('{"intent": "single", "topic": "statistics"}', registry)
-        q = UserQuestion(user_id="1", text="что-то")
-        import asyncio
-        plan = asyncio.run(planner.run_multi(q))
-        assert isinstance(plan, MultiPlan)
-
-    def test_broken_json_no_exception(self, registry):
-        planner = _make_planner("{broken json[[[", registry)
-        q = UserQuestion(user_id="1", text="выручка")
-        import asyncio
-        # Must not raise
-        plan = asyncio.run(planner.run_multi(q))
-        assert isinstance(plan, MultiPlan)
-
-    def test_null_llm_response_no_exception(self, registry):
-        planner = _make_planner("", registry)
-        q = UserQuestion(user_id="1", text="мастера")
-        import asyncio
-        plan = asyncio.run(planner.run_multi(q))
-        assert isinstance(plan, MultiPlan)
-
-
-# ── T022-3: aggregate_id not in whitelist → TopicRegistry fallback ────────────
-
-class TestAggregateIdNotInWhitelist:
-    """Если LLM вернул aggregate_id не из каталога → fallback на TopicRegistry."""
-
-    def test_unknown_aggregate_id_triggers_fallback(self, registry):
-        bad_json = """{
-            "intent": "single",
-            "queries": [{"aggregate_id": "not_in_catalog", "params": {}, "label": "X"}],
-            "topic": "statistics",
-            "render_needed": true
-        }"""
-        planner = _make_planner(bad_json, registry)
-        q = UserQuestion(user_id="1", text="отток")
-        import asyncio
-        plan = asyncio.run(planner.run_multi(q))
-        assert "planner_v2:keyword" in plan.notes
-
-    def test_any_invalid_aggregate_id_triggers_fallback(self, registry):
-        """Если ЛЮБОЙ aggregate_id неверный — весь план → fallback."""
-        mixed_json = """{
-            "intent": "comparison",
-            "queries": [
-                {"aggregate_id": "revenue_total", "params": {}, "label": "OK"},
-                {"aggregate_id": "sql_injection_here", "params": {}, "label": "Bad"}
-            ],
-            "topic": "statistics",
-            "render_needed": true
-        }"""
-        planner = _make_planner(mixed_json, registry)
-        q = UserQuestion(user_id="1", text="сравни выручку")
-        import asyncio
-        plan = asyncio.run(planner.run_multi(q))
-        assert "planner_v2:keyword" in plan.notes
-
-    def test_empty_queries_array_fallback(self, registry):
-        planner = _make_planner('{"intent": "single", "queries": [], "topic": "statistics", "render_needed": true}', registry)
-        q = UserQuestion(user_id="1", text="что-то")
-        import asyncio
-        plan = asyncio.run(planner.run_multi(q))
-        assert "planner_v2:keyword" in plan.notes
-
- succeeded in 0ms:
-# Feature Specification: Fix comparison follow-up intent
-
-**Feature Branch**: `feature/002-fix-comparison-followup`
-**Created**: 2026-04-15
-**Status**: Draft
-**Input**: Bugfix для GitHub issue #2
-**Links**: https://github.com/k-p-i-bi/tg_bot/issues/2
-
-## Описание проблемы
-
-При follow-up вопросе «сравни по месяцам за два месяца» после вопроса об оттоке клиентов бот возвращает **сырой список клиентов** (ClientName, Phone, DaysSinceLastVisit) вместо **помесячного сравнения** агрегированных цифр оттока.
-
-### Root cause анализ
-
-Три точки отказа:
-
-1. **`LLMClient.plan_aggregates()`** (`llm_client.py:140`) получает только `question.text` ("сравни по месяцам за два месяца") без `last_topic`. LLM не знает что предыдущий вопрос был об оттоке и не может выбрать правильный агрегат.
-
-2. **`PlannerAgent._llm_plan_multi()`** (`planner.py:229`) вызывает `plan_aggregates(question=question.text, ...)` — передаёт только текст, игнорирует `question.last_topic`.
-
-3. **`PlannerAgent._fallback_multi_plan()`** (`planner.py:346`) хардкодит `intent="single"` — даже keyword fallback не может вернуть comparison, даже если текст содержит «сравни».
-
-## User Scenarios & Testing
-
-### User Story 1 — Follow-up comparison по клиентским агрегатам (Priority: P1)
-
-Пользователь спрашивает про отток, получает ответ, затем просит сравнить по месяцам. Бот должен понять контекст и вернуть помесячное сравнение оттока.
-
-**Why this priority**: Это основной баг из issue #2 — comparison follow-up полностью сломан для клиентских тем.
-
-**Independent Test**: Отправить два вопроса: "покажи отток" → "сравни по месяцам за два месяца". Второй ответ должен содержать агрегированные цифры за два периода.
+Разработчик запускает `pytest tests/integration/ -m integration` и видит что comparison chart, fallback text, period отображаются корректно на реальных данных.
 
 **Acceptance Scenarios**:
 
-1. **Given** пользователь спросил "покажи отток" и получил ответ с `topic=clients_outflow`, **When** отправляет follow-up "сравни по месяцам за два месяца" с `last_topic=clients_outflow`, **Then** бот возвращает `intent=comparison`, 2 запроса к `clients_outflow` с разными периодами (месяц 1 и месяц 2), агрегированный текст с процентом изменения.
+1. **Given** MSSQL + Ollama доступны, **When** запрос "сравни выручку марта и февраля", **Then** response содержит image (PNG) и текст с дельтой %
+2. **Given** MSSQL доступен, **When** запрос "отток за месяц", **Then** fallback текст содержит "Найдено клиентов:", "Просрочка", без raw field names (ClientName, Phone)
+3. **Given** MSSQL доступен, **When** запрос "статистика за неделю", **Then** текст содержит "Период:", денежные поля округлены до 2 знаков
 
-2. **Given** пользователь спросил "покажи отток", **When** отправляет "сравни по месяцам", **Then** ответ НЕ содержит сырых данных клиентов (имена, телефоны), а содержит агрегированные числа (количество клиентов в оттоке за период A vs период B).
+### US-2: E2E тесты с mock Telegram (P1)
 
----
-
-### User Story 2 — Follow-up comparison по выручке (Priority: P1)
-
-Пользователь спрашивает про выручку, затем просит сравнить. Должен работать так же.
-
-**Why this priority**: Выручка — самый частый запрос, comparison для неё уже частично работает, но передача last_topic улучшит точность.
-
-**Independent Test**: "покажи выручку за март" → "а за февраль? сравни". Второй ответ — comparison chart.
+Разработчик запускает `pytest -m e2e` с mock SQL (без MSSQL/Ollama) и видит что 10 типовых вопросов из checklist проходят pipeline, включая comparison, composition, follow-up chains, negative scenarios.
 
 **Acceptance Scenarios**:
 
-1. **Given** `last_topic=revenue_total`, **When** "сравни с прошлым месяцем", **Then** `intent=comparison`, 2 запроса к `revenue_total`, comparison chart (image != None).
+1. **Given** mock SQL с реалистичными данными, **When** 10 вопросов из test-checklist.md, **Then** каждый возвращает непустой SwarmResponse
+2. **Given** mock SQL, **When** "сравни выручку марта и февраля" через orchestrator, **Then** response.image != None, response.answer содержит "%" (delta)
+3. **Given** mock SQL, **When** цепочка follow-up (вопрос → "а за февраль?" → "сравни"), **Then** topic сохраняется, ответы непустые
+4. **Given** mock SQL, **When** SQL injection "'; DROP TABLE --", **Then** нет ошибки, ответ graceful
+5. **Given** mock SQL, **When** вопрос не по теме "рецепт борща", **Then** ответ есть, не crash
 
----
+### US-3: Smoke тест — быстрая проверка новых фич (P2)
 
-### User Story 3 — Keyword fallback с comparison intent (Priority: P2)
-
-Если LLM недоступен (circuit breaker, timeout), keyword fallback должен распознавать intent=comparison по ключевым словам «сравни», «сравнение», «compare».
-
-**Why this priority**: Без этого при LLM-отказе comparison полностью теряется.
-
-**Independent Test**: Выключить Ollama, отправить "сравни выручку за март и февраль". Fallback должен вернуть intent=comparison.
+Обновить существующий `test_e2e_pipeline.py` — добавить проверку comparison, composition, fallback text quality.
 
 **Acceptance Scenarios**:
 
-1. **Given** LLM недоступен, **When** вопрос содержит "сравни" + last_topic, **Then** `_fallback_multi_plan` возвращает `intent=comparison`, 2 AggregateQuery с разными периодами.
+1. **Given** mock orchestrator, **When** comparison question, **Then** chart + text с дельтами
+2. **Given** mock orchestrator, **When** statistics question, **Then** текст содержит "Период:" и округлённые числа
+3. **Given** mock orchestrator, **When** decomposition question, **Then** analyst получает multi_results
 
-2. **Given** LLM недоступен, **When** вопрос "сравни" без last_topic и без конкретной темы, **Then** fallback возвращает `intent=single` с `revenue_total` (безопасный default).
+## Clarifications
 
----
+### Session 2026-04-15
 
-### Edge Cases
-
-- Follow-up "сравни" без предыдущего контекста (last_topic пустой) → LLM должен попытаться определить тему из текста, fallback → revenue_total
-- "Сравни по салонам" (не по времени, а по объектам) → intent=comparison с group_by=salon, НЕ два периода
-- "Сравни за три месяца" → допустимо вернуть trend (intent=trend) вместо comparison
-- Клиентские агрегаты с group_by=list vs group_by=status: comparison должен использовать group_by=status для агрегированных цифр, не list
+- Q: E2E mock тесты: нужно ли покрывать MultiPlan flow или только legacy? → A: Оба пути — legacy + MultiPlan с mock registry
+- Q: Какой timeout для integration тестов (MSSQL + облачный Ollama)? → A: 50 секунд
+- Q: E2E mock тесты в default pytest run или отдельный marker? → A: Default run (всегда в CI без явного -m e2e)
 
 ## Requirements
 
 ### Functional Requirements
 
-- **FR-001**: `LLMClient.plan_aggregates()` MUST принимать и передавать `last_topic` в LLM prompt, чтобы LLM знал контекст предыдущего вопроса
-- **FR-002**: `PlannerAgent._llm_plan_multi()` MUST передавать `question.last_topic` в вызов `plan_aggregates()`
-- **FR-003**: `PlannerAgent._fallback_multi_plan()` MUST определять `intent=comparison` по ключевым словам (сравни, сравнение, compare) и генерировать 2 AggregateQuery с разными периодами
-- **FR-004**: При comparison для клиентских агрегатов (clients_outflow, clients_leaving и т.д.) system MUST использовать `group_by=status` (агрегированные цифры), а не `group_by=list` (сырой список)
-- **FR-005**: LLM system prompt MUST содержать инструкцию: "Если last_topic указан, используй его как контекст для follow-up вопроса"
+- **FR-001**: Pytest marker `e2e` MUST быть зарегистрирован в `pyproject.toml`
+- **FR-002**: Integration тесты MUST использовать marker `@pytest.mark.integration` и skip без среды
+- **FR-003**: E2E тесты MUST работать без MSSQL/Ollama (mock). Marker `e2e` зарегистрирован но НЕ исключён из default run — запускаются всегда вместе с unit
+- **FR-004**: Все новые тесты MUST проходить в CI (e2e + unit — всегда, integration — только со средой)
+- **FR-005**: Comparison integration тест MUST проверять наличие PNG image и текста с дельтой
+- **FR-006**: Fallback text тесты MUST проверять отсутствие raw SQL field names
+- **FR-007**: E2E negative тесты MUST покрывать: SQL injection, вопрос не по теме, пустой период
+- **FR-008**: E2E mock тесты MUST покрывать оба пути: legacy pipeline + MultiPlan с mock aggregate_registry
+- **FR-009**: MockSQL.MOCK_DATA MUST покрывать все 10 тем из test-checklist.md (outflow, statistics, trend, masters, referrals, birthday, communications, forecast, services, quality)
 
-### Key Entities
+### Файлы
 
-- **UserQuestion**: уже содержит `last_topic: str` — используется в `_fallback_multi_plan`, но НЕ передаётся в LLM prompt
-- **MultiPlan**: intent field уже поддерживает "comparison" — нет изменений в модели
+- `tests/integration/test_real_e2e.py` — дополнить comparison/composition/fallback проверками
+- `tests/test_e2e_pipeline.py` — дополнить comparison, composition, negative, follow-up chains
+- `pyproject.toml` — зарегистрировать marker `e2e`
 
 ## Success Criteria
 
-### Measurable Outcomes
-
-- **SC-001**: Follow-up "сравни по месяцам" после вопроса об оттоке возвращает intent=comparison и 2 запроса с разными периодами (тест-кейс из issue #2)
-- **SC-002**: Ответ на comparison follow-up НЕ содержит сырых данных клиентов (телефонов, имён) — только агрегированные цифры
-- **SC-003**: Все существующие 351 тестов проходят без регрессий
-- **SC-004**: Keyword fallback при "сравни" + last_topic возвращает intent=comparison
+- **SC-001**: `pytest -m "not integration"` проходит с ≥385 тестов (сейчас 368)
+- **SC-002**: `pytest tests/integration/ -m integration` — добавлено ≥5 новых тестов на comparison/fallback/period
+- **SC-003**: E2E mock тесты покрывают 10 вопросов из test-checklist.md + 4 negative scenario
+- **SC-004**: Нет raw field names в fallback текстах ни в одном тестовом сценарии
+- **SC-005**: Integration тесты укладываются в timeout 50 секунд на запрос (облачный Ollama)
 
 ## Assumptions
 
-- Модель данных (UserQuestion, MultiPlan, AggregateQuery) не меняется
-- LLM prompt расширяется одной строкой с last_topic — нет риска превышения контекста
-- `group_by=status` поддерживается для всех `clients_*` агрегатов (проверено в каталоге: `allowed_group_by: [list, status, master]`)
-- Comparison chart (matplotlib) уже поддерживает 2 набора данных — изменения только в planning слое
+- Integration тесты пропускаются без MSSQL/Ollama (существующий механизм conftest.py)
+- E2E тесты работают полностью на моках — запускаются в любом CI
+- Существующие тесты не модифицируются, только дополняются
+- `docs/test-checklist.md` — справочный документ, автотесты дублируют его программно
 
 exec
-/bin/zsh -lc "sed -n '1,420p' src/swarm_powerbi_bot/models.py" in /Users/zerocold/Downloads/git/kpi/tg_bot/swarm_powerbi_bot
+/bin/zsh -lc 'git diff --stat main...HEAD -- tests/conftest.py tests/test_e2e_pipeline.py tests/test_orchestrator.py tests/integration/test_real_e2e.py tests/integration/test_real_llm.py pyproject.toml CLAUDE.md specs/010-test-coverage/spec.md specs/010-test-coverage/plan.md specs/010-test-coverage/tasks.md' in /Users/zerocold/Downloads/git/kpi/tg_bot/swarm_powerbi_bot
+ succeeded in 1190ms:
+2026-04-15 23:11:25.376 xcodebuild[32352:108883517]  DVTFilePathFSEvents: Failed to start fs event stream.
+2026-04-15 23:11:25.477 xcodebuild[32352:108883516] [MT] DVTDeveloperPaths: Failed to get length of DARWIN_USER_CACHE_DIR from confstr(3), error = Error Domain=NSPOSIXErrorDomain Code=5 "Input/output error". Using NSCachesDirectory instead.
+git: warning: confstr() failed with code 5: couldn't get path of DARWIN_USER_TEMP_DIR; using /tmp instead
+git: error: couldn't create cache file '/tmp/xcrun_db-xAoNFJLh' (errno=Operation not permitted)
+2026-04-15 23:11:25.778 xcodebuild[32354:108883570]  DVTFilePathFSEvents: Failed to start fs event stream.
+2026-04-15 23:11:25.878 xcodebuild[32354:108883569] [MT] DVTDeveloperPaths: Failed to get length of DARWIN_USER_CACHE_DIR from confstr(3), error = Error Domain=NSPOSIXErrorDomain Code=5 "Input/output error". Using NSCachesDirectory instead.
+ swarm_powerbi_bot/CLAUDE.md                        |   2 +
+ swarm_powerbi_bot/pyproject.toml                   |   1 +
+ swarm_powerbi_bot/specs/010-test-coverage/plan.md  | 131 +++++++++++
+ swarm_powerbi_bot/specs/010-test-coverage/spec.md  | 104 +++++++++
+ swarm_powerbi_bot/specs/010-test-coverage/tasks.md |  41 ++++
+ swarm_powerbi_bot/tests/conftest.py                | 143 ++++++++++++
+ .../tests/integration/test_real_e2e.py             |  58 ++++-
+ .../tests/integration/test_real_llm.py             |  39 +++-
+ swarm_powerbi_bot/tests/test_e2e_pipeline.py       | 243 ++++++++++++++++++++-
+ swarm_powerbi_bot/tests/test_orchestrator.py       |  86 ++++----
+ 10 files changed, 791 insertions(+), 57 deletions(-)
+
+codex
+I have the coverage spec. Now I’m reading the exact patch and the touched tests to see whether the new assertions actually enforce the stated requirements or leave gaps that would let regressions ship undetected.
 exec
-/bin/zsh -lc "sed -n '1,420p' src/swarm_powerbi_bot/agents/planner.py" in /Users/zerocold/Downloads/git/kpi/tg_bot/swarm_powerbi_bot
+/bin/zsh -lc "sed -n '1,260p' tests/test_e2e_pipeline.py" in /Users/zerocold/Downloads/git/kpi/tg_bot/swarm_powerbi_bot
+ succeeded in 0ms:
+"""End-to-end тесты pipeline: вопрос → topic → SQL params → chart → ответ.
+
+Проверяет полную цепочку без обращения к MSSQL/LLM (моки).
+"""
+import asyncio
+from datetime import date
+
+import pytest
+
+from swarm_powerbi_bot.agents.planner import PlannerAgent
+from swarm_powerbi_bot.models import (
+    AnalysisResult,
+    ModelInsight,
+    Plan,
+    SQLInsight,
+    UserQuestion,
+)
+from swarm_powerbi_bot.orchestrator import SwarmOrchestrator
+from swarm_powerbi_bot.services.chart_renderer import HAS_MPL
+
+from conftest import build_mock_orchestrator_multi
+
+pytestmark = pytest.mark.e2e
+
+
+# ── Mock агенты с реалистичными данными ──────────────────────
+
+class MockSQL:
+    """Возвращает данные как настоящие хранимки — 11 тем (10 из checklist + leaving)."""
+    MOCK_DATA = {
+        "outflow": [
+            {"ClientName": "Козлова Р.", "Phone": "79001111111", "TotalSpent": 8112.6,
+             "DaysSinceLastVisit": 275, "DaysOverdue": 240, "TotalVisits": 11,
+             "ServicePeriodDays": 35, "SalonName": "Dream"},
+            {"ClientName": "Белова Т.", "Phone": "79002222222", "TotalSpent": 57054.0,
+             "DaysSinceLastVisit": 283, "DaysOverdue": 238, "TotalVisits": 59,
+             "ServicePeriodDays": 45, "SalonName": "Dream"},
+        ],
+        "statistics": [
+            {"TotalVisits": 219, "UniqueClients": 137, "TotalRevenue": 422028.50,
+             "AvgCheck": 1954.33, "ActiveMasters": 14, "SalonName": "Dream"},
+        ],
+        "trend": [
+            {"WeekEnd": "2026-03-02", "Visits": 45, "Revenue": 77424, "UniqueClients": 30, "AvgCheck": 1720, "ActiveMasters": 7},
+            {"WeekEnd": "2026-03-09", "Visits": 50, "Revenue": 85000, "UniqueClients": 35, "AvgCheck": 1700, "ActiveMasters": 8},
+        ],
+        "masters": [
+            {"MasterName": "Мастер А", "TotalRevenue": 120000, "TotalVisits": 50, "AvgCheck": 2400, "SalonName": "Dream"},
+        ],
+        "referrals": [
+            {"AcquisitionChannel": "Instagram", "ClientCount": 50},
+            {"AcquisitionChannel": "Рекомендация", "ClientCount": 30},
+        ],
+        "birthday": [
+            {"ClientName": "Иванова А.", "Phone": "79003333333", "BirthDate": "2000-04-16"},
+        ],
+        "communications": [
+            {"Reason": "outflow", "Result": "Вернулся", "TotalCount": 15},
+            {"Reason": "leaving", "Result": "Нет ответа", "TotalCount": 8},
+        ],
+        "forecast": [
+            {"ClientName": "Петрова М.", "ExpectedNextVisit": "2026-04-17", "ServicePeriodDays": 28},
+        ],
+        "services": [
+            {"ServiceName": "Стрижка", "Revenue": 85000, "ServiceCount": 120},
+            {"ServiceName": "Окрашивание", "Revenue": 65000, "ServiceCount": 40},
+        ],
+        "quality": [
+            {"ClientName": "Сидоров К.", "DaysOverdue": 5, "TotalVisits": 3, "SalonName": "Dream"},
+        ],
+        "leaving": [
+            {"ClientName": "Нова Е.", "DaysOverdue": 15, "TotalSpent": 12000, "TotalVisits": 7, "SalonName": "Dream"},
+        ],
+    }
+
+    async def run(self, question: UserQuestion, plan: Plan) -> SQLInsight:
+        rows = self.MOCK_DATA.get(plan.topic, [])
+        return SQLInsight(
+            rows=rows,
+            summary=f"SQL вернул {len(rows)} строк по теме «{plan.topic}»",
+            topic=plan.topic,
+            params={"DateFrom": date(2026, 3, 15), "DateTo": date(2026, 4, 14)},
+        )
+
+
+class MockPBI:
+    async def run(self, question, plan):
+        return ModelInsight(metrics={}, summary="model skipped")
+
+
+class MockRender:
+    async def run(self, question, plan):
+        return None
+
+
+class MockAnalyst:
+    """Возвращает canned output для проверки маршрутизации pipeline.
+
+    Реальную фильтрацию полей и качество формулировок проверяют
+    интеграционные тесты в tests/integration/test_real_e2e.py.
+    """
+    async def run(self, question, plan, sql_insight, model_insight, diagnostics, *, has_chart=False):
+        return AnalysisResult(
+            answer=f"Тема: {plan.topic}, строк: {len(sql_insight.rows)}",
+            confidence="medium",
+            follow_ups=["follow1"],
+        )
+
+
+def _build_orchestrator():
+    return SwarmOrchestrator(
+        planner=PlannerAgent(),
+        sql_agent=MockSQL(),
+        powerbi_agent=MockPBI(),
+        render_agent=MockRender(),
+        analyst_agent=MockAnalyst(),
+    )
+
+
+# ── E2E тесты ────────────────────────────────────────────────
+
+class TestE2EPipeline:
+    def test_outflow_question(self):
+        orch = _build_orchestrator()
+        result = asyncio.run(orch.handle_question(
+            UserQuestion(user_id="1", text="отток за месяц"),
+        ))
+        assert "outflow" in result.answer
+        assert result.topic == "outflow"
+
+    def test_statistics_question(self):
+        orch = _build_orchestrator()
+        result = asyncio.run(orch.handle_question(
+            UserQuestion(user_id="1", text="покажи статистику за неделю"),
+        ))
+        assert "statistics" in result.answer
+        assert result.topic == "statistics"
+
+    def test_masters_question(self):
+        orch = _build_orchestrator()
+        result = asyncio.run(orch.handle_question(
+            UserQuestion(user_id="1", text="загрузка мастеров"),
+        ))
+        assert "masters" in result.answer
+
+    def test_followup_keeps_topic(self):
+        """Follow-up вопрос сохраняет тему."""
+        orch = _build_orchestrator()
+        result = asyncio.run(orch.handle_question(
+            UserQuestion(user_id="1", text="подробнее по неделям", last_topic="outflow"),
+        ))
+        assert result.topic == "outflow"
+
+    def test_response_has_follow_ups(self):
+        orch = _build_orchestrator()
+        result = asyncio.run(orch.handle_question(
+            UserQuestion(user_id="1", text="отток за месяц"),
+        ))
+        assert len(result.follow_ups) > 0
+
+    @pytest.mark.skipif(not HAS_MPL, reason="matplotlib not installed")
+    def test_outflow_generates_chart(self):
+        """Отток с данными → matplotlib-график."""
+        orch = _build_orchestrator()
+        result = asyncio.run(orch.handle_question(
+            UserQuestion(user_id="1", text="отток за месяц"),
+        ))
+        assert result.image is not None
+        assert result.image[:4] == b"\x89PNG"
+
+    @pytest.mark.skipif(not HAS_MPL, reason="matplotlib not installed")
+    def test_trend_generates_line_chart(self):
+        orch = _build_orchestrator()
+        result = asyncio.run(orch.handle_question(
+            UserQuestion(user_id="1", text="покажи тренд за квартал"),
+        ))
+        assert result.image is not None
+
+    def test_empty_data_no_crash(self):
+        """Если SQL вернул 0 строк — не падаем."""
+        orch = _build_orchestrator()
+        result = asyncio.run(orch.handle_question(
+            UserQuestion(user_id="1", text="покажи именинников"),
+        ))
+        assert result.answer is not None
+
+
+# ── Planner тесты ────────────────────────────────────────────
+
+class TestPlannerNotes:
+    def test_comparison_note(self):
+        planner = PlannerAgent()
+        plan = asyncio.run(planner.run(
+            UserQuestion(user_id="1", text="сравни отток по неделям"),
+        ))
+        assert "comparison_requested" in plan.notes
+
+    def test_period_note_week(self):
+        planner = PlannerAgent()
+        plan = asyncio.run(planner.run(
+            UserQuestion(user_id="1", text="статистика за неделю"),
+        ))
+        assert "period:week" in plan.notes
+
+    def test_breakdown_by_master(self):
+        planner = PlannerAgent()
+        plan = asyncio.run(planner.run(
+            UserQuestion(user_id="1", text="выручка по мастерам"),
+        ))
+        assert "breakdown_by_master" in plan.notes
+
+
+# ── T004: Comparison / Composition pipeline ─────────────────────
+
+class TestMultiPlanPipeline:
+    def test_comparison_pipeline(self):
+        """MultiPlan comparison → SwarmResponse с ответом и chart."""
+        orch = build_mock_orchestrator_multi(intent="comparison", topic="clients_outflow")
+        result = asyncio.run(orch.handle_question(
+            UserQuestion(user_id="1", text="сравни отток за два месяца"),
+        ))
+        assert result.answer is not None
+        assert "Сравнение" in result.answer
+        assert result.confidence in ("low", "medium", "high")
+
+    def test_comparison_pipeline_second_question(self):
+        """Второй comparison-вопрос через MultiPlan → корректный ответ."""
+        orch = build_mock_orchestrator_multi(intent="comparison", topic="clients_outflow")
+        result = asyncio.run(orch.handle_question(
+            UserQuestion(user_id="1", text="сравни отток по салонам"),
+        ))
+        assert result.answer
+        assert len(result.answer) > 0
+
+    def test_decomposition_pipeline(self):
+        """MultiPlan decomposition → SwarmResponse с multi-result анализом."""
+        orch = build_mock_orchestrator_multi(intent="decomposition", topic="revenue_total")
+        result = asyncio.run(orch.handle_question(
+            UserQuestion(user_id="1", text="почему упала выручка?"),
+        ))
+        assert result.answer is not None
+        assert result.confidence in ("low", "medium", "high")
+
+
+# ── T005: 10 checklist questions ────────────────────────────────
+
+_CHECKLIST_QUESTIONS = [
+    ("отток за месяц", "outflow"),
+    ("покажи статистику за неделю", "statistics"),
+    ("динамика по неделям", "trend"),
+    ("загрузка мастеров", "masters"),
+    ("реферальная программа", "referrals"),
+    ("именинники на этой неделе", "birthday"),
+    ("результаты обзвонов", "communications"),
+    ("прогноз визитов", "forecast"),
+    ("популярные услуги", "services"),
+    ("контроль качества", "quality"),
+]
+
+
+
+exec
+/bin/zsh -lc 'git diff --unified=80 main...HEAD -- tests/conftest.py tests/test_e2e_pipeline.py tests/test_orchestrator.py tests/integration/test_real_e2e.py tests/integration/test_real_llm.py pyproject.toml CLAUDE.md' in /Users/zerocold/Downloads/git/kpi/tg_bot/swarm_powerbi_bot
+ succeeded in 1191ms:
+2026-04-15 23:11:39.553 xcodebuild[32578:108884378]  DVTFilePathFSEvents: Failed to start fs event stream.
+2026-04-15 23:11:39.656 xcodebuild[32578:108884377] [MT] DVTDeveloperPaths: Failed to get length of DARWIN_USER_CACHE_DIR from confstr(3), error = Error Domain=NSPOSIXErrorDomain Code=5 "Input/output error". Using NSCachesDirectory instead.
+git: warning: confstr() failed with code 5: couldn't get path of DARWIN_USER_TEMP_DIR; using /tmp instead
+git: error: couldn't create cache file '/tmp/xcrun_db-IbwUpLlv' (errno=Operation not permitted)
+2026-04-15 23:11:39.962 xcodebuild[32580:108884418]  DVTFilePathFSEvents: Failed to start fs event stream.
+2026-04-15 23:11:40.064 xcodebuild[32580:108884417] [MT] DVTDeveloperPaths: Failed to get length of DARWIN_USER_CACHE_DIR from confstr(3), error = Error Domain=NSPOSIXErrorDomain Code=5 "Input/output error". Using NSCachesDirectory instead.
+diff --git a/swarm_powerbi_bot/CLAUDE.md b/swarm_powerbi_bot/CLAUDE.md
+index 5c33b53..a108856 100644
+--- a/swarm_powerbi_bot/CLAUDE.md
++++ b/swarm_powerbi_bot/CLAUDE.md
+@@ -1,45 +1,47 @@
+ # swarm_powerbi_bot Development Guidelines
+ 
+ Auto-generated from all feature plans. Last updated: 2026-04-15
+ 
+ ## Active Technologies
++- Microsoft SQL Server (pyodbc, ODBC Driver 17); materialized агрегаты (indexed views) с overhead ≤3x хранения (010-test-coverage)
+ 
+ - Python 3.11+ + python-telegram-bot ≥21.0, httpx ≥0.27, pyodbc ≥5.1, matplotlib ≥3.8, selenium ≥4.22, python-dotenv ≥1.0.1 (001-semantic-aggregate-layer)
+ 
+ ## Project Structure
+ 
+ ```text
+ src/
+   swarm_powerbi_bot/
+     services/         # бизнес-логика: aggregate_registry, master_resolver, query_logger, ...
+     agents/           # агенты: planner, sql, analyst (поддержка run_multi)
+ tests/
+ catalogs/
+   aggregate-catalog.yaml   # каталог семантических агрегатов
+   category-index.yaml      # индекс категорий для маршрутизации
+   bootstrap/               # dev-only bootstrap данные (не копируются в образ)
+ scripts/
+   bootstrap/               # dev-time утилиты (не копируются в образ)
+ sql/                       # SQL-скрипты (не копируются в образ)
+ ```
+ 
+ ## Commands
+ 
+ uv run pytest -q && uv run ruff check src/ tests/
+ 
+ ## Code Style
+ 
+ Python 3.11+: Follow standard conventions
+ 
+ ## Recent Changes
++- 010-test-coverage: Added Python 3.11+ + python-telegram-bot ≥21.0, httpx ≥0.27, pyodbc ≥5.1, matplotlib ≥3.8, selenium ≥4.22, python-dotenv ≥1.0.1
+ 
+ - 001-semantic-aggregate-layer (Phase 10 Polish):
+   - Added services: `aggregate_registry`, `master_resolver`, `query_logger`
+   - Agent capabilities: `planner.run_multi`, `sql.run_multi`, `analyst.run_multi` (multi-query и comparison chart)
+   - Каталоги `catalogs/aggregate-catalog.yaml` и `catalogs/category-index.yaml`
+   - CI workflow `.github/workflows/validate-catalogs.yml` валидирует каталоги на push/PR
+   - Dockerfile копирует `catalogs/*.yaml`; bootstrap/scripts/sql исключены из образа
+ - 001-semantic-aggregate-layer: Added Python 3.11+ + python-telegram-bot ≥21.0, httpx ≥0.27, pyodbc ≥5.1, matplotlib ≥3.8, selenium ≥4.22, python-dotenv ≥1.0.1
+ 
+ <!-- MANUAL ADDITIONS START -->
+ <!-- MANUAL ADDITIONS END -->
+diff --git a/swarm_powerbi_bot/pyproject.toml b/swarm_powerbi_bot/pyproject.toml
+index 261edb9..98cfc01 100644
+--- a/swarm_powerbi_bot/pyproject.toml
++++ b/swarm_powerbi_bot/pyproject.toml
+@@ -1,38 +1,39 @@
+ [build-system]
+ requires = ["setuptools>=65", "wheel"]
+ build-backend = "setuptools.build_meta"
+ 
+ [project]
+ name = "swarm-powerbi-bot"
+ version = "0.1.0"
+ requires-python = ">=3.11"
+ dependencies = [
+     "python-telegram-bot>=21.0",
+     "httpx>=0.27.0",
+     "pyodbc>=5.1.0",
+     "selenium>=4.22.0",
+     "python-dotenv>=1.0.1",
+     "matplotlib>=3.8.0",
+     "pyyaml>=6.0.3",
+ ]
+ 
+ [project.optional-dependencies]
+ dev = [
+     "pytest>=8.0.0",
+     "pytest-asyncio>=0.23",
+ ]
+ 
+ [tool.setuptools.packages.find]
+ where = ["src"]
+ 
+ [tool.pytest.ini_options]
+ asyncio_mode = "auto"
+ addopts = "-m 'not integration'"
+ markers = [
+     "integration: тесты с реальным MSSQL/Ollama (требуют окружение)",
++    "e2e: E2E тесты с моками (запускаются всегда в CI)",
+ ]
+ 
+ [dependency-groups]
+ dev = [
+     "ruff>=0.15.10",
+ ]
+diff --git a/swarm_powerbi_bot/tests/conftest.py b/swarm_powerbi_bot/tests/conftest.py
+new file mode 100644
+index 0000000..42011ba
+--- /dev/null
++++ b/swarm_powerbi_bot/tests/conftest.py
+@@ -0,0 +1,143 @@
++"""Shared mock classes and fixtures for E2E and orchestrator tests."""
++from __future__ import annotations
++
++from swarm_powerbi_bot.models import (
++    AggregateResult,
++    AnalysisResult,
++    ModelInsight,
++    MultiPlan,
++    Plan,
++    RenderedArtifact,
++    SQLInsight,
++    UserQuestion,
++)
++from swarm_powerbi_bot.orchestrator import SwarmOrchestrator
++
++
++# ── Base Dummy classes ──────────────────────────────────────────
++
++
++class DummyPlanner:
++    aggregate_registry = None
++
++    async def run(self, question: UserQuestion) -> Plan:
++        return Plan(
++            objective=question.text, topic="statistics",
++            sql_needed=True, powerbi_needed=True, render_needed=True,
++        )
++
++
++class DummySQL:
++    async def run(self, question: UserQuestion, plan: Plan) -> SQLInsight:
++        return SQLInsight(rows=[{"kpi": "sales", "value": 100}], summary="sql ok")
++
++
++class DummyPBI:
++    async def run(self, question: UserQuestion, plan: Plan) -> ModelInsight:
++        return ModelInsight(metrics={"margin": 0.32}, summary="model ok")
++
++
++class DummyRender:
++    async def run(self, question: UserQuestion, plan: Plan) -> RenderedArtifact:
++        _ = question, plan
++        return RenderedArtifact(image_bytes=b"png-bytes", source_url="http://report")
++
++
++class DummyAnalyst:
++    async def run(self, question, plan, sql_insight, model_insight, diagnostics, *, has_chart=False):
++        _ = question, plan, sql_insight, model_insight, has_chart
++        return AnalysisResult(answer="analysis", confidence="high", diagnostics=diagnostics)
++
++
++# ── MultiPlan-aware mocks ──────────────────────────────────────
++
++
++class MockRegistry:
++    """Minimal AggregateRegistry stub."""
++
++    def get_aggregate(self, agg_id: str):
++        return {"id": agg_id, "procedure": "spKDO_Aggregate", "parameters": []}
++
++    def list_aggregates(self):
++        return [{"id": "revenue_total"}, {"id": "clients_outflow"}]
++
++
++class MockPlannerWithRegistry(DummyPlanner):
++    def __init__(self, registry=None, *, intent="comparison", topic="clients_outflow", n_queries=2):
++        self.aggregate_registry = registry or MockRegistry()
++        self._intent = intent
++        self._topic = topic
++        self._n_queries = n_queries
++
++    async def run_multi(self, question):
++        return MultiPlan(
++            objective=question.text,
++            intent=self._intent,
++            queries=[{"aggregate_id": self._topic} for _ in range(self._n_queries)],
++            topic=self._topic,
++            render_needed=True,
++            notes=["planner_v2:llm"],
++        )
++
++    def multi_plan_to_plan(self, multi_plan, question):
++        return Plan(
++            objective=multi_plan.objective,
++            topic=multi_plan.topic,
++            notes=list(multi_plan.notes),
++        )
++
++
++class MockSQLMulti(DummySQL):
++    """SQL agent that supports run_multi() with configurable results."""
++
++    def __init__(self, results: list[AggregateResult] | None = None):
++        self._results = results or [
++            AggregateResult(
++                aggregate_id="clients_outflow", label="Март 2026",
++                group_by="status", status="ok",
++                rows=[
++                    {"ClientStatus": "Отток", "ClientCount": 20},
++                    {"ClientStatus": "Уходящие", "ClientCount": 15},
++                ],
++            ),
++            AggregateResult(
++                aggregate_id="clients_outflow", label="Апрель 2026",
++                group_by="status", status="ok",
++                rows=[
++                    {"ClientStatus": "Отток", "ClientCount": 18},
++                    {"ClientStatus": "Уходящие", "ClientCount": 12},
++                ],
++            ),
++        ]
++
++    async def run_multi(self, multi_plan, registry, *, logger_=None):
++        return self._results
++
++
++class MockAnalystMulti(DummyAnalyst):
++    async def run_multi(self, question, results, plan):
++        ok = [r for r in results if r.status == "ok"]
++        if len(ok) >= 2:
++            answer = f"Сравнение: {ok[0].label} vs {ok[1].label}\n• Клиенты: +17%"
++        elif ok:
++            answer = f"Анализ: {ok[0].label}, {ok[0].row_count} строк"
++        else:
++            answer = "Нет данных для анализа"
++        return AnalysisResult(
++            answer=answer,
++            confidence="medium",
++            diagnostics={},
++        )
++
++
++def build_mock_orchestrator_multi(*, intent="comparison", topic="clients_outflow"):
++    """Build orchestrator wired for MultiPlan flow."""
++    registry = MockRegistry()
++    return SwarmOrchestrator(
++        planner=MockPlannerWithRegistry(registry, intent=intent, topic=topic),
++        sql_agent=MockSQLMulti(),
++        powerbi_agent=DummyPBI(),
++        render_agent=DummyRender(),
++        analyst_agent=MockAnalystMulti(),
++        aggregate_registry=registry,
++    )
+diff --git a/swarm_powerbi_bot/tests/integration/test_real_e2e.py b/swarm_powerbi_bot/tests/integration/test_real_e2e.py
+index 2e5e0ff..e200d54 100644
+--- a/swarm_powerbi_bot/tests/integration/test_real_e2e.py
++++ b/swarm_powerbi_bot/tests/integration/test_real_e2e.py
+@@ -1,134 +1,188 @@
+ """Интеграционные E2E тесты через реальный MSSQL + Ollama.
+ 
+ Запуск: uv run pytest tests/integration/test_real_e2e.py -m integration -v
+ """
+ from __future__ import annotations
+ 
+ import asyncio
+ 
+ import pytest
+ 
+ from swarm_powerbi_bot.models import SwarmResponse, UserQuestion
+ from swarm_powerbi_bot.orchestrator import SwarmOrchestrator
+ 
+ pytestmark = pytest.mark.integration
+ 
++# Совпадает с TEST_OBJECT_ID в tests/integration/conftest.py.
++# Прямой import невозможен — pytest резолвит `from conftest` на tests/conftest.py.
++_TEST_OBJECT_ID = 506770
++
+ 
+ def _question(text: str, **kwargs) -> UserQuestion:
+-    defaults = {"user_id": "e2e-test", "object_id": 506770}
++    defaults = {"user_id": "e2e-test", "object_id": _TEST_OBJECT_ID}
+     defaults.update(kwargs)
+     return UserQuestion(text=text, **defaults)
+ 
+ 
+ # ── 1. Revenue question ─────────────────────────────────────────────────────
+ 
+ async def test_e2e_revenue_question(real_orchestrator: SwarmOrchestrator):
+     resp = await real_orchestrator.handle_question(_question("Покажи выручку за март"))
+     assert resp.answer, "empty answer"
+     assert resp.topic != "unknown", f"topic should not be unknown, got {resp.topic}"
+ 
+ 
+ # ── 2. Outflow question ─────────────────────────────────────────────────────
+ 
+ async def test_e2e_outflow_question(real_orchestrator: SwarmOrchestrator):
+     resp = await real_orchestrator.handle_question(
+         _question("Какой отток за месяц?"),
+     )
+     assert resp.answer
+ 
+ 
+ # ── 3. Comparison с chart ────────────────────────────────────────────────────
+ 
+ async def test_e2e_comparison(real_orchestrator: SwarmOrchestrator):
+     resp = await real_orchestrator.handle_question(
+         _question("Сравни выручку марта и февраля"),
+     )
+     assert resp.answer
+-    # comparison должен генерировать chart
++    # Comparison pipeline должен генерировать chart
+     if resp.image is not None:
+         assert resp.mime_type == "image/png"
+ 
+ 
+ # ── 4. Top masters ──────────────────────────────────────────────────────────
+ 
+ async def test_e2e_top_masters(real_orchestrator: SwarmOrchestrator):
+     resp = await real_orchestrator.handle_question(
+         _question("Топ-5 мастеров по выручке за март"),
+     )
+     assert resp.answer
+ 
+ 
+ # ── 5. Decomposition ────────────────────────────────────────────────────────
+ 
+ async def test_e2e_decomposition(real_orchestrator: SwarmOrchestrator):
+     resp = await real_orchestrator.handle_question(
+         _question("Почему упала выручка?"),
+     )
+     assert resp.answer
+ 
+ 
+ # ── 6. Unknown question ─────────────────────────────────────────────────────
+ 
+ async def test_e2e_unknown_question(real_orchestrator: SwarmOrchestrator):
+     resp = await real_orchestrator.handle_question(
+         _question("Как сварить борщ?"),
+     )
+     assert isinstance(resp, SwarmResponse)
+     # Должен вежливо отказать или дать общий ответ
+ 
+ 
+ # ── 7. Follow-up ────────────────────────────────────────────────────────────
+ 
+ async def test_e2e_follow_up(real_orchestrator: SwarmOrchestrator):
+     resp1 = await real_orchestrator.handle_question(
+         _question("выручка за март"),
+     )
+     assert resp1.answer
+     topic = resp1.topic
+ 
+     resp2 = await real_orchestrator.handle_question(
+         _question("а за февраль?", last_topic=topic),
+     )
+     assert resp2.answer
+ 
+ 
+ # ── 8. Chart generation ─────────────────────────────────────────────────────
+ 
+ async def test_e2e_chart_generation(real_orchestrator: SwarmOrchestrator):
+     resp = await real_orchestrator.handle_question(
+         _question("Покажи график выручки по неделям за квартал"),
+     )
+     assert resp.answer
+     # Если chart сгенерирован, проверяем формат
+     if resp.image is not None:
+         assert resp.mime_type == "image/png"
+         assert len(resp.image) > 100  # не пустой PNG
+ 
+ 
+ # ── 9. Telegram mock ────────────────────────────────────────────────────────
+ 
+ async def test_e2e_telegram_mock(real_orchestrator: SwarmOrchestrator):
+     """Проверяем что orchestrator возвращает корректный SwarmResponse."""
+     resp = await real_orchestrator.handle_question(
+         _question("статистика за март"),
+     )
+     assert isinstance(resp, SwarmResponse)
+     assert resp.confidence in ("low", "medium", "high")
+     assert isinstance(resp.follow_ups, list)
+     assert isinstance(resp.diagnostics, dict)
+ 
+ 
+ # ── 10. Concurrent users ────────────────────────────────────────────────────
+ 
+ async def test_e2e_concurrent_users(real_orchestrator: SwarmOrchestrator):
+     questions = [
+         _question("выручка за март", user_id="user-1"),
+         _question("отток клиентов", user_id="user-2"),
+         _question("коммуникации за март", user_id="user-3"),
+     ]
+     results = await asyncio.gather(
+         *[real_orchestrator.handle_question(q) for q in questions],
+     )
+     for i, resp in enumerate(results):
+         assert isinstance(resp, SwarmResponse), f"user-{i+1} got non-SwarmResponse"
+         assert resp.answer, f"user-{i+1} got empty answer"
++
++
++# ── 11. Comparison has chart ───────────────────────────────────────────────
++
++async def test_e2e_comparison_has_chart(real_orchestrator: SwarmOrchestrator):
++    """Comparison pipeline должен генерировать PNG chart."""
++    resp = await real_orchestrator.handle_question(
++        _question("Сравни отток за март и апрель"),
++    )
++    assert resp.answer
++    # comparison должен генерировать chart; None допустим только при отсутствии matplotlib
++    assert resp.image is not None, "Comparison should produce a chart"
++    assert resp.image[:4] == b"\x89PNG"
++
++
++# ── 12. Fallback: no raw SQL fields ───────────────────────────────────────
++
++async def test_e2e_fallback_no_raw_fields(real_orchestrator: SwarmOrchestrator):
++    """Ответ не должен содержать сырые SQL-имена полей."""
++    resp = await real_orchestrator.handle_question(
++        _question("Какой отток за месяц?"),
++    )
++    assert resp.answer
++    raw_fields = {"DaysSinceLastVisit", "ServicePeriodDays", "DaysOverdue", "ClientName", "Phone"}
++    for f in raw_fields:
++        assert f not in resp.answer, f"Raw field {f} leaked into answer"
++
++
++# ── 13. Fallback: has period ───────────────────────────────────────────────
++
++async def test_e2e_fallback_has_period(real_orchestrator: SwarmOrchestrator):
++    """Ответ содержит информацию о периоде."""
++    resp = await real_orchestrator.handle_question(
++        _question("статистика за март"),
++    )
++    assert resp.answer
++    # Ожидаем упоминание даты или месяца в ответе
++    assert resp.topic in ("statistics", "trend")
++
++
++# ── 14. Statistics money rounded ───────────────────────────────────────────
++
++async def test_e2e_statistics_money_rounded(real_orchestrator: SwarmOrchestrator):
++    """Денежные метрики не содержат чрезмерных десятичных знаков."""
++    resp = await real_orchestrator.handle_question(
++        _question("статистика за март"),
++    )
++    assert resp.answer
++    # Структурная проверка: ответ не пуст и topic корректен
++    assert resp.topic in ("statistics", "trend")
+diff --git a/swarm_powerbi_bot/tests/integration/test_real_llm.py b/swarm_powerbi_bot/tests/integration/test_real_llm.py
+index 0855642..01789f7 100644
+--- a/swarm_powerbi_bot/tests/integration/test_real_llm.py
++++ b/swarm_powerbi_bot/tests/integration/test_real_llm.py
+@@ -1,134 +1,134 @@
+ """Интеграционные тесты LLM через реальный Ollama.
+ 
+ Запуск: uv run pytest tests/integration/test_real_llm.py -m integration -v
+ """
+ from __future__ import annotations
+ 
+ import json
+ import urllib.request
+ 
+ import pytest
+ 
+ from swarm_powerbi_bot.agents import AnalystAgent, PlannerAgent
+ from swarm_powerbi_bot.models import AggregateResult, MultiPlan, UserQuestion
+ from swarm_powerbi_bot.services import LLMClient
+ from swarm_powerbi_bot.services.aggregate_registry import AggregateRegistry
+ 
+ pytestmark = pytest.mark.integration
+ 
+ 
+ # ── 1. Ollama health ─────────────────────────────────────────────────────────
+ 
+ def test_ollama_health(real_settings, ollama_ok):
+     if not ollama_ok:
+         pytest.skip("Ollama not available")
+     url = real_settings.ollama_base_url.rstrip("/") + "/api/tags"
+     resp = urllib.request.urlopen(url, timeout=10)  # noqa: S310
+     data = json.loads(resp.read())
+     assert "models" in data
+ 
+ 
+ # ── 2. Простое completion ────────────────────────────────────────────────────
+ 
+ def test_simple_completion(real_settings, ollama_ok):
+     if not ollama_ok:
+         pytest.skip("Ollama not available")
+     url = real_settings.ollama_base_url.rstrip("/") + "/api/chat"
+     payload = json.dumps({
+         "model": real_settings.ollama_model,
+         "messages": [{"role": "user", "content": "Скажи привет"}],
+         "stream": False,
+         "think": False,
+         "options": {"num_predict": 64},
+     }).encode()
+     req = urllib.request.Request(url, data=payload, headers={"Content-Type": "application/json"})
+     resp = urllib.request.urlopen(req, timeout=15)  # noqa: S310
+     body = json.loads(resp.read())
+     content = body.get("message", {}).get("content", "")
+     assert content.strip(), "Empty LLM response"
+ 
+ 
+ # ── 3. Planner keyword fallback ──────────────────────────────────────────────
+ 
+ async def test_planner_keyword_fallback(real_settings):
+-    """PlannerAgent без LLM (только keyword) должен вернуть Plan."""
++    """PlannerAgent без registry → keyword fallback должен вернуть Plan."""
+     llm_client = LLMClient(real_settings)
+     # Без registry — keyword mode
+     planner = PlannerAgent(llm_client=llm_client, aggregate_registry=None)
+     question = UserQuestion(user_id="test", text="выручка за март", object_id=506770)
+     plan = await planner.run(question)
+     assert plan.topic
+ 
+ 
+ # ── 4. Planner LLM mode ─────────────────────────────────────────────────────
+ 
+ async def test_planner_llm_mode(
+     real_settings, real_registry: AggregateRegistry, ollama_ok,
+ ):
+     if not ollama_ok:
+         pytest.skip("Ollama not available")
+     llm_client = LLMClient(real_settings)
+     planner = PlannerAgent(
+         llm_client=llm_client,
+         aggregate_registry=real_registry,
+         semantic_catalog_path=real_settings.semantic_catalog_path,
+     )
+     question = UserQuestion(user_id="test", text="выручка за март", object_id=506770)
+     plan = await planner.run_multi(question)
+     assert plan.queries, "Expected at least 1 query"
+     assert plan.intent
+ 
+ 
+ # ── 5. Planner comparison ────────────────────────────────────────────────────
+ 
+ async def test_planner_comparison(
+     real_settings, real_registry: AggregateRegistry, ollama_ok,
+ ):
+     if not ollama_ok:
+         pytest.skip("Ollama not available")
+     llm_client = LLMClient(real_settings)
+     planner = PlannerAgent(
+         llm_client=llm_client,
+         aggregate_registry=real_registry,
+         semantic_catalog_path=real_settings.semantic_catalog_path,
+     )
+     question = UserQuestion(
+         user_id="test", text="сравни выручку за март и апрель", object_id=506770,
+     )
+     plan = await planner.run_multi(question)
+     assert plan.intent == "comparison", f"expected comparison, got {plan.intent}"
+     assert len(plan.queries) >= 2, f"expected >=2 queries, got {len(plan.queries)}"
+ 
+ 
+ # ── 6. Planner decomposition ────────────────────────────────────────────────
+ 
+ async def test_planner_decomposition(
+     real_settings, real_registry: AggregateRegistry, ollama_ok,
+ ):
+     if not ollama_ok:
+         pytest.skip("Ollama not available")
+     llm_client = LLMClient(real_settings)
+     planner = PlannerAgent(
+         llm_client=llm_client,
+         aggregate_registry=real_registry,
+         semantic_catalog_path=real_settings.semantic_catalog_path,
+     )
+     question = UserQuestion(
+         user_id="test", text="почему упала выручка?", object_id=506770,
+     )
+     plan = await planner.run_multi(question)
+     assert plan.intent in ("decomposition", "single"), f"got {plan.intent}"
+     assert len(plan.queries) >= 1
+ 
+ 
+ # ── 7. Unknown topic graceful ────────────────────────────────────────────────
+ 
+ async def test_planner_unknown_topic(
+     real_settings, real_registry: AggregateRegistry, ollama_ok,
+ ):
+     if not ollama_ok:
+         pytest.skip("Ollama not available")
+     llm_client = LLMClient(real_settings)
+     planner = PlannerAgent(
+         llm_client=llm_client,
+         aggregate_registry=real_registry,
+@@ -141,80 +141,117 @@ async def test_planner_unknown_topic(
+ 
+ 
+ # ── 8. Analyst summary ──────────────────────────────────────────────────────
+ 
+ async def test_analyst_summary(real_settings, ollama_ok):
+     if not ollama_ok:
+         pytest.skip("Ollama not available")
+     llm_client = LLMClient(real_settings)
+     analyst = AnalystAgent(llm_client)
+     mock_results = [
+         AggregateResult(
+             aggregate_id="revenue_total",
+             label="Выручка",
+             rows=[{"Revenue": 1500000, "Visits": 320, "AvgCheck": 4687}],
+             row_count=1,
+             duration_ms=100,
+             status="ok",
+         ),
+     ]
+     question = UserQuestion(user_id="test", text="выручка за март", object_id=506770)
+     result = await analyst.run(question=question, sql_results=mock_results)
+     assert result.answer
+     assert len(result.answer) <= 2000
+ 
+ 
+ # ── 9. Circuit breaker ──────────────────────────────────────────────────────
+ 
+ async def test_circuit_breaker(real_settings):
+     """После N timeout-ов breaker открывается."""
+     from swarm_powerbi_bot.config import Settings
+ 
+     fast_settings = Settings(
+         ollama_base_url=real_settings.ollama_base_url,
+         ollama_model=real_settings.ollama_model,
+         llm_plan_timeout=0,  # мгновенный timeout
+         llm_circuit_breaker_threshold=2,
+         llm_circuit_breaker_cooldown=60,
+         aggregate_catalog_path=real_settings.aggregate_catalog_path,
+     )
+     llm_client = LLMClient(fast_settings)
+     registry = AggregateRegistry(real_settings.aggregate_catalog_path)
+     planner = PlannerAgent(
+         llm_client=llm_client, aggregate_registry=registry,
+         semantic_catalog_path=real_settings.semantic_catalog_path,
+     )
+     question = UserQuestion(user_id="test", text="выручка", object_id=506770)
+ 
+     # Несколько попыток для активации breaker
+     for _ in range(3):
+         plan = await planner.run_multi(question)
+ 
+     # После breaker — должен сработать fallback (keyword)
+     plan = await planner.run_multi(question)
+     assert isinstance(plan, MultiPlan)
+ 
+ 
+ # ── 10. LLM timeout не зависает ─────────────────────────────────────────────
+ 
+ async def test_llm_timeout(real_settings, ollama_ok):
+     if not ollama_ok:
+         pytest.skip("Ollama not available")
+     from swarm_powerbi_bot.config import Settings
+ 
+     # Крайне малый timeout
+     fast_settings = Settings(
+         ollama_base_url=real_settings.ollama_base_url,
+         ollama_model=real_settings.ollama_model,
+         llm_plan_timeout=0,
+         aggregate_catalog_path=real_settings.aggregate_catalog_path,
+     )
+     llm_client = LLMClient(fast_settings)
+     registry = AggregateRegistry(real_settings.aggregate_catalog_path)
+     planner = PlannerAgent(
+         llm_client=llm_client, aggregate_registry=registry,
+         semantic_catalog_path=real_settings.semantic_catalog_path,
+     )
+     question = UserQuestion(user_id="test", text="выручка за март", object_id=506770)
+     # Не должен зависнуть — должен вернуть fallback или timeout
+     plan = await planner.run_multi(question)
+     assert isinstance(plan, MultiPlan)
++
++
++# ── 11. Parametrized 10 questions → valid MultiPlan ─────────────────────────
++
++_PLANNER_10_QUESTIONS = [
++    "Покажи отток клиентов за месяц",
++    "Статистика за эту неделю",
++    "Динамика выручки по неделям за квартал",
++    "Загрузка мастеров за март",
++    "Каналы привлечения клиентов",
++    "Именинники на этой неделе",
++    "Результаты обзвонов за март",
++    "Прогноз визитов на следующую неделю",
++    "Популярные услуги за месяц",
++    "Контроль качества за март",
++]
++
++
++@pytest.mark.parametrize("question_text", _PLANNER_10_QUESTIONS)
++async def test_planner_10_questions(
++    real_settings, real_registry: AggregateRegistry, ollama_ok, question_text,
++):
++    if not ollama_ok:
++        pytest.skip("Ollama not available")
++    llm_client = LLMClient(real_settings)
++    planner = PlannerAgent(
++        llm_client=llm_client,
++        aggregate_registry=real_registry,
++        semantic_catalog_path=real_settings.semantic_catalog_path,
++    )
++    question = UserQuestion(user_id="test", text=question_text, object_id=506770)
++    plan = await planner.run_multi(question)
++    assert isinstance(plan, MultiPlan)
++    assert plan.queries, f"No queries for: {question_text}"
++    assert plan.topic, f"No topic for: {question_text}"
++    assert plan.intent in ("single", "comparison", "decomposition"), \
++        f"Invalid intent '{plan.intent}' for: {question_text}"
+diff --git a/swarm_powerbi_bot/tests/test_e2e_pipeline.py b/swarm_powerbi_bot/tests/test_e2e_pipeline.py
+index 697db39..7cee005 100644
+--- a/swarm_powerbi_bot/tests/test_e2e_pipeline.py
++++ b/swarm_powerbi_bot/tests/test_e2e_pipeline.py
+@@ -1,174 +1,401 @@
+ """End-to-end тесты pipeline: вопрос → topic → SQL params → chart → ответ.
+ 
+ Проверяет полную цепочку без обращения к MSSQL/LLM (моки).
+ """
+ import asyncio
++from datetime import date
+ 
+ import pytest
+ 
+ from swarm_powerbi_bot.agents.planner import PlannerAgent
+ from swarm_powerbi_bot.models import (
+     AnalysisResult,
+     ModelInsight,
+     Plan,
+     SQLInsight,
+     UserQuestion,
+ )
+ from swarm_powerbi_bot.orchestrator import SwarmOrchestrator
+ from swarm_powerbi_bot.services.chart_renderer import HAS_MPL
+ 
++from conftest import build_mock_orchestrator_multi
++
++pytestmark = pytest.mark.e2e
++
+ 
+ # ── Mock агенты с реалистичными данными ──────────────────────
+ 
+ class MockSQL:
+-    """Возвращает данные как настоящие хранимки."""
++    """Возвращает данные как настоящие хранимки — 11 тем (10 из checklist + leaving)."""
+     MOCK_DATA = {
+         "outflow": [
+-            {"ClientName": "Козлова Р.", "TotalSpent": 8112.6, "DaysSinceLastVisit": 275,
+-             "DaysOverdue": 240, "TotalVisits": 11, "ServicePeriodDays": 35, "SalonName": "Dream"},
+-            {"ClientName": "Белова Т.", "TotalSpent": 57054.0, "DaysSinceLastVisit": 283,
+-             "DaysOverdue": 238, "TotalVisits": 59, "ServicePeriodDays": 45, "SalonName": "Dream"},
++            {"ClientName": "Козлова Р.", "Phone": "79001111111", "TotalSpent": 8112.6,
++             "DaysSinceLastVisit": 275, "DaysOverdue": 240, "TotalVisits": 11,
++             "ServicePeriodDays": 35, "SalonName": "Dream"},
++            {"ClientName": "Белова Т.", "Phone": "79002222222", "TotalSpent": 57054.0,
++             "DaysSinceLastVisit": 283, "DaysOverdue": 238, "TotalVisits": 59,
++             "ServicePeriodDays": 45, "SalonName": "Dream"},
+         ],
+         "statistics": [
+-            {"TotalVisits": 219, "UniqueClients": 137, "TotalRevenue": 422028.0,
+-             "AvgCheck": 1954.0, "ActiveMasters": 14, "SalonName": "Dream"},
++            {"TotalVisits": 219, "UniqueClients": 137, "TotalRevenue": 422028.50,
++             "AvgCheck": 1954.33, "ActiveMasters": 14, "SalonName": "Dream"},
+         ],
+         "trend": [
+             {"WeekEnd": "2026-03-02", "Visits": 45, "Revenue": 77424, "UniqueClients": 30, "AvgCheck": 1720, "ActiveMasters": 7},
+             {"WeekEnd": "2026-03-09", "Visits": 50, "Revenue": 85000, "UniqueClients": 35, "AvgCheck": 1700, "ActiveMasters": 8},
+         ],
+         "masters": [
+             {"MasterName": "Мастер А", "TotalRevenue": 120000, "TotalVisits": 50, "AvgCheck": 2400, "SalonName": "Dream"},
+         ],
++        "referrals": [
++            {"AcquisitionChannel": "Instagram", "ClientCount": 50},
++            {"AcquisitionChannel": "Рекомендация", "ClientCount": 30},
++        ],
++        "birthday": [
++            {"ClientName": "Иванова А.", "Phone": "79003333333", "BirthDate": "2000-04-16"},
++        ],
++        "communications": [
++            {"Reason": "outflow", "Result": "Вернулся", "TotalCount": 15},
++            {"Reason": "leaving", "Result": "Нет ответа", "TotalCount": 8},
++        ],
++        "forecast": [
++            {"ClientName": "Петрова М.", "ExpectedNextVisit": "2026-04-17", "ServicePeriodDays": 28},
++        ],
++        "services": [
++            {"ServiceName": "Стрижка", "Revenue": 85000, "ServiceCount": 120},
++            {"ServiceName": "Окрашивание", "Revenue": 65000, "ServiceCount": 40},
++        ],
++        "quality": [
++            {"ClientName": "Сидоров К.", "DaysOverdue": 5, "TotalVisits": 3, "SalonName": "Dream"},
++        ],
++        "leaving": [
++            {"ClientName": "Нова Е.", "DaysOverdue": 15, "TotalSpent": 12000, "TotalVisits": 7, "SalonName": "Dream"},
++        ],
+     }
+ 
+     async def run(self, question: UserQuestion, plan: Plan) -> SQLInsight:
+         rows = self.MOCK_DATA.get(plan.topic, [])
+         return SQLInsight(
+             rows=rows,
+             summary=f"SQL вернул {len(rows)} строк по теме «{plan.topic}»",
+             topic=plan.topic,
+-            params={"DateFrom": "2026-03-15", "DateTo": "2026-04-14"},
++            params={"DateFrom": date(2026, 3, 15), "DateTo": date(2026, 4, 14)},
+         )
+ 
+ 
+ class MockPBI:
+     async def run(self, question, plan):
+         return ModelInsight(metrics={}, summary="model skipped")
+ 
+ 
+ class MockRender:
+     async def run(self, question, plan):
+         return None
+ 
+ 
+ class MockAnalyst:
++    """Возвращает canned output для проверки маршрутизации pipeline.
++
++    Реальную фильтрацию полей и качество формулировок проверяют
++    интеграционные тесты в tests/integration/test_real_e2e.py.
++    """
+     async def run(self, question, plan, sql_insight, model_insight, diagnostics, *, has_chart=False):
+         return AnalysisResult(
+             answer=f"Тема: {plan.topic}, строк: {len(sql_insight.rows)}",
+             confidence="medium",
+             follow_ups=["follow1"],
+         )
+ 
+ 
+ def _build_orchestrator():
+     return SwarmOrchestrator(
+         planner=PlannerAgent(),
+         sql_agent=MockSQL(),
+         powerbi_agent=MockPBI(),
+         render_agent=MockRender(),
+         analyst_agent=MockAnalyst(),
+     )
+ 
+ 
+ # ── E2E тесты ────────────────────────────────────────────────
+ 
+ class TestE2EPipeline:
+     def test_outflow_question(self):
+         orch = _build_orchestrator()
+         result = asyncio.run(orch.handle_question(
+             UserQuestion(user_id="1", text="отток за месяц"),
+         ))
+         assert "outflow" in result.answer
+         assert result.topic == "outflow"
+ 
+     def test_statistics_question(self):
+         orch = _build_orchestrator()
+         result = asyncio.run(orch.handle_question(
+             UserQuestion(user_id="1", text="покажи статистику за неделю"),
+         ))
+         assert "statistics" in result.answer
+         assert result.topic == "statistics"
+ 
+     def test_masters_question(self):
+         orch = _build_orchestrator()
+         result = asyncio.run(orch.handle_question(
+             UserQuestion(user_id="1", text="загрузка мастеров"),
+         ))
+         assert "masters" in result.answer
+ 
+     def test_followup_keeps_topic(self):
+         """Follow-up вопрос сохраняет тему."""
+         orch = _build_orchestrator()
+         result = asyncio.run(orch.handle_question(
+             UserQuestion(user_id="1", text="подробнее по неделям", last_topic="outflow"),
+         ))
+         assert result.topic == "outflow"
+ 
+     def test_response_has_follow_ups(self):
+         orch = _build_orchestrator()
+         result = asyncio.run(orch.handle_question(
+             UserQuestion(user_id="1", text="отток за месяц"),
+         ))
+         assert len(result.follow_ups) > 0
+ 
+     @pytest.mark.skipif(not HAS_MPL, reason="matplotlib not installed")
+     def test_outflow_generates_chart(self):
+         """Отток с данными → matplotlib-график."""
+         orch = _build_orchestrator()
+         result = asyncio.run(orch.handle_question(
+             UserQuestion(user_id="1", text="отток за месяц"),
+         ))
+         assert result.image is not None
+         assert result.image[:4] == b"\x89PNG"
+ 
+     @pytest.mark.skipif(not HAS_MPL, reason="matplotlib not installed")
+     def test_trend_generates_line_chart(self):
+         orch = _build_orchestrator()
+         result = asyncio.run(orch.handle_question(
+             UserQuestion(user_id="1", text="покажи тренд за квартал"),
+         ))
+         assert result.image is not None
+ 
+     def test_empty_data_no_crash(self):
+         """Если SQL вернул 0 строк — не падаем."""
+         orch = _build_orchestrator()
+         result = asyncio.run(orch.handle_question(
+             UserQuestion(user_id="1", text="покажи именинников"),
+         ))
+         assert result.answer is not None
+ 
+ 
+ # ── Planner тесты ────────────────────────────────────────────
+ 
+ class TestPlannerNotes:
+     def test_comparison_note(self):
+         planner = PlannerAgent()
+         plan = asyncio.run(planner.run(
+             UserQuestion(user_id="1", text="сравни отток по неделям"),
+         ))
+         assert "comparison_requested" in plan.notes
+ 
+     def test_period_note_week(self):
+         planner = PlannerAgent()
+         plan = asyncio.run(planner.run(
+             UserQuestion(user_id="1", text="статистика за неделю"),
+         ))
+         assert "period:week" in plan.notes
+ 
+     def test_breakdown_by_master(self):
+         planner = PlannerAgent()
+         plan = asyncio.run(planner.run(
+             UserQuestion(user_id="1", text="выручка по мастерам"),
+         ))
+         assert "breakdown_by_master" in plan.notes
++
++
++# ── T004: Comparison / Composition pipeline ─────────────────────
++
++class TestMultiPlanPipeline:
++    def test_comparison_pipeline(self):
++        """MultiPlan comparison → SwarmResponse с ответом и chart."""
++        orch = build_mock_orchestrator_multi(intent="comparison", topic="clients_outflow")
++        result = asyncio.run(orch.handle_question(
++            UserQuestion(user_id="1", text="сравни отток за два месяца"),
++        ))
++        assert result.answer is not None
++        assert "Сравнение" in result.answer
++        assert result.confidence in ("low", "medium", "high")
++
++    def test_comparison_pipeline_second_question(self):
++        """Второй comparison-вопрос через MultiPlan → корректный ответ."""
++        orch = build_mock_orchestrator_multi(intent="comparison", topic="clients_outflow")
++        result = asyncio.run(orch.handle_question(
++            UserQuestion(user_id="1", text="сравни отток по салонам"),
++        ))
++        assert result.answer
++        assert len(result.answer) > 0
++
++    def test_decomposition_pipeline(self):
++        """MultiPlan decomposition → SwarmResponse с multi-result анализом."""
++        orch = build_mock_orchestrator_multi(intent="decomposition", topic="revenue_total")
++        result = asyncio.run(orch.handle_question(
++            UserQuestion(user_id="1", text="почему упала выручка?"),
++        ))
++        assert result.answer is not None
++        assert result.confidence in ("low", "medium", "high")
++
++
++# ── T005: 10 checklist questions ────────────────────────────────
++
++_CHECKLIST_QUESTIONS = [
++    ("отток за месяц", "outflow"),
++    ("покажи статистику за неделю", "statistics"),
++    ("динамика по неделям", "trend"),
++    ("загрузка мастеров", "masters"),
++    ("реферальная программа", "referrals"),
++    ("именинники на этой неделе", "birthday"),
++    ("результаты обзвонов", "communications"),
++    ("прогноз визитов", "forecast"),
++    ("популярные услуги", "services"),
++    ("контроль качества", "quality"),
++]
++
++
++class TestChecklistQuestions:
++    @pytest.mark.parametrize("question_text,expected_topic", _CHECKLIST_QUESTIONS)
++    def test_10_checklist_questions(self, question_text, expected_topic):
++        """Каждый из 10 вопросов чеклиста → non-empty SwarmResponse."""
++        orch = _build_orchestrator()
++        result = asyncio.run(orch.handle_question(
++            UserQuestion(user_id="1", text=question_text),
++        ))
++        assert result.answer is not None
++        assert len(result.answer) > 0
++        assert result.topic == expected_topic
++
++
++# ── T006: Follow-up chains ──────────────────────────────────────
++
++class TestFollowUpChains:
++    def test_follow_up_chain(self):
++        """Цепочка follow-up: тема сохраняется через last_topic."""
++        orch = _build_orchestrator()
++        r1 = asyncio.run(orch.handle_question(
++            UserQuestion(user_id="1", text="отток за месяц"),
++        ))
++        assert r1.topic == "outflow"
++
++        r2 = asyncio.run(orch.handle_question(
++            UserQuestion(user_id="1", text="подробнее", last_topic="outflow"),
++        ))
++        assert r2.topic == "outflow"
++
++        r3 = asyncio.run(orch.handle_question(
++            UserQuestion(user_id="1", text="а по неделям?", last_topic="outflow"),
++        ))
++        assert r3.topic == "outflow"
++
++    def test_follow_up_to_comparison(self):
++        """Follow-up «сравни» с last_topic → comparison через MultiPlan."""
++        orch = build_mock_orchestrator_multi(intent="comparison", topic="clients_outflow")
++        result = asyncio.run(orch.handle_question(
++            UserQuestion(user_id="1", text="сравни по месяцам", last_topic="clients_outflow"),
++        ))
++        assert result.answer is not None
++        assert len(result.answer) > 0
++
++
++# ── T007: Negative scenarios ────────────────────────────────────
++
++class TestNegativeScenarios:
++    def test_negative_sql_injection(self):
++        """SQL-инъекция в тексте не ломает pipeline."""
++        orch = _build_orchestrator()
++        result = asyncio.run(orch.handle_question(
++            UserQuestion(user_id="1", text="'; DROP TABLE clients; --"),
++        ))
++        assert result.answer
++        assert "sql_error" not in result.diagnostics
++
++    def test_negative_off_topic(self):
++        """Вопрос не по теме → всё равно ответ (fallback topic)."""
++        orch = _build_orchestrator()
++        result = asyncio.run(orch.handle_question(
++            UserQuestion(user_id="1", text="какая погода в Москве?"),
++        ))
++        assert result.answer
++        assert result.topic  # непустой topic (fallback)
++
++    def test_negative_empty_text(self):
++        """Пустой текст запроса → не падаем."""
++        orch = _build_orchestrator()
++        result = asyncio.run(orch.handle_question(
++            UserQuestion(user_id="1", text=""),
++        ))
++        assert result.answer
++        assert result.topic
++
++    def test_negative_no_period(self):
++        """KPI-вопрос без указания периода → не падаем."""
++        orch = _build_orchestrator()
++        result = asyncio.run(orch.handle_question(
++            UserQuestion(user_id="1", text="покажи выручку"),
++        ))
++        assert result.answer
++        assert result.topic
++
++    def test_negative_long_text(self):
++        """Очень длинный текст → не падаем."""
++        orch = _build_orchestrator()
++        long_text = "отток " * 500
++        result = asyncio.run(orch.handle_question(
++            UserQuestion(user_id="1", text=long_text),
++        ))
++        assert result.answer
++        assert result.topic == "outflow"
++
++
++# ── T008: Smoke / fallback quality ──────────────────────────────
++# NB: MockAnalyst возвращает canned output — эти тесты проверяют маршрутизацию
++# pipeline, а не качество формулировок аналитика. Реальное качество ответов
++# (отсутствие сырых SQL-полей, форматирование чисел) проверяют интеграционные
++# тесты в tests/integration/test_real_e2e.py.
++
++class TestFallbackQuality:
++    def test_outflow_fallback_no_raw_fields(self):
++        """Mock pipeline: ответ не содержит сырых SQL-имён.
++
++        NB: MockAnalyst возвращает canned output — реальную фильтрацию
++        полей проверяет integration/test_real_e2e::test_e2e_fallback_no_raw_fields.
++        """
++        orch = _build_orchestrator()
++        result = asyncio.run(orch.handle_question(
++            UserQuestion(user_id="1", text="отток за месяц"),
++        ))
++        raw_fields = {"DaysSinceLastVisit", "DaysOverdue", "TotalSpent", "ServicePeriodDays", "Phone"}
++        for field in raw_fields:
++            assert field not in result.answer, f"Сырое поле {field} в ответе"
++
++    def test_statistics_pipeline_returns_correct_topic(self):
++        """Mock pipeline: маршрутизация statistics возвращает непустой ответ.
++
++        NB: MockAnalyst возвращает canned output — качество текста проверяют
++        интеграционные тесты в tests/integration/test_real_e2e.py.
++        """
++        orch = _build_orchestrator()
++        result = asyncio.run(orch.handle_question(
++            UserQuestion(user_id="1", text="покажи статистику за неделю"),
++        ))
++        assert result.topic == "statistics"
++        assert result.answer
++        assert result.confidence in ("low", "medium", "high")
++
++    def test_statistics_pipeline_has_follow_ups(self):
++        """Mock pipeline: statistics возвращает follow-up подсказки.
++
++        NB: MockAnalyst возвращает canned output — содержание follow-ups
++        проверяют интеграционные тесты в tests/integration/test_real_e2e.py.
++        """
++        orch = _build_orchestrator()
++        result = asyncio.run(orch.handle_question(
++            UserQuestion(user_id="1", text="покажи статистику за неделю"),
++        ))
++        assert result.topic == "statistics"
++        assert len(result.follow_ups) > 0
+diff --git a/swarm_powerbi_bot/tests/test_orchestrator.py b/swarm_powerbi_bot/tests/test_orchestrator.py
+index 3be2f2d..9c59e18 100644
+--- a/swarm_powerbi_bot/tests/test_orchestrator.py
++++ b/swarm_powerbi_bot/tests/test_orchestrator.py
+@@ -1,122 +1,116 @@
+ import asyncio
+ 
+ from swarm_powerbi_bot.models import (
+-    AggregateResult, AnalysisResult, ModelInsight, MultiPlan, Plan,
+-    RenderedArtifact, SQLInsight, UserQuestion,
++    AggregateResult, MultiPlan, Plan, UserQuestion,
+ )
+ from swarm_powerbi_bot.orchestrator import SwarmOrchestrator
+ 
+-
+-class DummyPlanner:
+-    aggregate_registry = None
+-
+-    async def run(self, question: UserQuestion) -> Plan:
+-        return Plan(objective=question.text, topic="statistics", sql_needed=True, powerbi_needed=True, render_needed=True)
+-
+-
+-class DummySQL:
+-    async def run(self, question: UserQuestion, plan: Plan) -> SQLInsight:
+-        return SQLInsight(rows=[{"kpi": "sales", "value": 100}], summary="sql ok")
+-
+-
+-class DummyPBI:
+-    async def run(self, question: UserQuestion, plan: Plan) -> ModelInsight:
+-        return ModelInsight(metrics={"margin": 0.32}, summary="model ok")
+-
+-
+-class DummyRender:
+-    async def run(self, question: UserQuestion, plan: Plan) -> RenderedArtifact:
+-        _ = question, plan
+-        return RenderedArtifact(image_bytes=b"png-bytes", source_url="http://report")
+-
+-
+-class DummyAnalyst:
+-    async def run(self, question, plan, sql_insight, model_insight, diagnostics, *, has_chart=False):
+-        _ = question, plan, sql_insight, model_insight, has_chart
+-        return AnalysisResult(answer="analysis", confidence="high", diagnostics=diagnostics)
++from conftest import (
++    DummyAnalyst, DummyPBI, DummyPlanner, DummyRender, DummySQL,
++    MockAnalystMulti, MockRegistry,
++)
+ 
+ 
+ def test_orchestrator_happy_path():
+     orchestrator = SwarmOrchestrator(
+         planner=DummyPlanner(),
+         sql_agent=DummySQL(),
+         powerbi_agent=DummyPBI(),
+         render_agent=DummyRender(),
+         analyst_agent=DummyAnalyst(),
+     )
+ 
+     result = asyncio.run(orchestrator.handle_question(UserQuestion(user_id="1", text="test")))
+     assert result.answer == "analysis"
+-    # Графики: matplotlib генерирует PNG из SQL данных, или Power BI рендер
++    # Изображение из DummyRender
+     assert result.image is not None
+     assert result.confidence == "high"
+ 
+ 
+ # ── #4: multi_all_failed → legacy SQL не вызывается ──────────
+ 
+ 
+ class DummySQLSpy(DummySQL):
+     """SQL agent that records whether run() was called."""
+     def __init__(self):
+         self.run_called = False
+ 
+     async def run(self, question, plan):
+         self.run_called = True
+         return await super().run(question, plan)
+ 
+     async def run_multi(self, multi_plan, registry, *, logger_=None):
+-        # All results failed
+         return [
+             AggregateResult(aggregate_id="clients_outflow", status="error", rows=[]),
+             AggregateResult(aggregate_id="clients_outflow", status="error", rows=[]),
+         ]
+ 
+ 
+-class DummyPlannerWithRegistry(DummyPlanner):
++class DummyPlannerWithRegistryFail(DummyPlanner):
+     def __init__(self, registry):
+         self.aggregate_registry = registry
+ 
+     async def run_multi(self, question):
+         return MultiPlan(
+             objective="сравни",
+             intent="comparison",
+             queries=[{"aggregate_id": "clients_outflow"}],
+             topic="clients_outflow",
+             render_needed=True,
+             notes=["planner_v2:llm"],
+         )
+ 
+     def multi_plan_to_plan(self, multi_plan, question):
+         return Plan(
+             objective=multi_plan.objective,
+             topic=multi_plan.topic,
+             notes=list(multi_plan.notes),
+         )
+ 
+ 
+-class DummyRegistry:
+-    """Minimal registry stub."""
+-    pass
+-
+-
+-class DummyAnalystMulti(DummyAnalyst):
+-    async def run_multi(self, question, results, plan):
+-        return AnalysisResult(answer="multi analysis", confidence="medium", diagnostics={})
+-
+-
+ def test_multi_all_failed_skips_legacy_sql():
+     """#4: Если все multi_results failed, legacy SQL НЕ должен вызываться."""
+-    registry = DummyRegistry()
++    registry = MockRegistry()
+     sql_spy = DummySQLSpy()
+     orchestrator = SwarmOrchestrator(
+-        planner=DummyPlannerWithRegistry(registry),
++        planner=DummyPlannerWithRegistryFail(registry),
+         sql_agent=sql_spy,
+         powerbi_agent=DummyPBI(),
+         render_agent=DummyRender(),
+-        analyst_agent=DummyAnalystMulti(),
++        analyst_agent=MockAnalystMulti(),
+         aggregate_registry=registry,
+     )
+ 
+     result = asyncio.run(orchestrator.handle_question(UserQuestion(user_id="1", text="сравни отток")))
++    assert result.answer, "Orchestrator должен вернуть ответ даже при all-failed multi"
+     assert not sql_spy.run_called, "Legacy SQL should NOT be called when all multi_results failed"
+     assert result.diagnostics.get("multi_all_failed") == "true"
++
++
++# ── planner_v2_error → graceful degradation to legacy ──────────
++
++
++class DummyPlannerV2Error(DummyPlanner):
++    """Planner с aggregate_registry, но run_multi() всегда падает."""
++    def __init__(self, registry):
++        self.aggregate_registry = registry
++
++    async def run_multi(self, question):
++        raise RuntimeError("LLM unavailable")
++
++
++def test_planner_v2_error_degrades_to_legacy():
++    """Если run_multi() падает — orchestrator деградирует на legacy planner.run()."""
++    registry = MockRegistry()
++    orchestrator = SwarmOrchestrator(
++        planner=DummyPlannerV2Error(registry),
++        sql_agent=DummySQL(),
++        powerbi_agent=DummyPBI(),
++        render_agent=DummyRender(),
++        analyst_agent=DummyAnalyst(),
++        aggregate_registry=registry,
++    )
++
++    result = asyncio.run(orchestrator.handle_question(UserQuestion(user_id="1", text="выручка")))
++    assert result.answer == "analysis"
++    assert "planner_v2_error" in result.diagnostics
+
+exec
+/bin/zsh -lc "sed -n '261,520p' tests/test_e2e_pipeline.py" in /Users/zerocold/Downloads/git/kpi/tg_bot/swarm_powerbi_bot
+ succeeded in 0ms:
+class TestChecklistQuestions:
+    @pytest.mark.parametrize("question_text,expected_topic", _CHECKLIST_QUESTIONS)
+    def test_10_checklist_questions(self, question_text, expected_topic):
+        """Каждый из 10 вопросов чеклиста → non-empty SwarmResponse."""
+        orch = _build_orchestrator()
+        result = asyncio.run(orch.handle_question(
+            UserQuestion(user_id="1", text=question_text),
+        ))
+        assert result.answer is not None
+        assert len(result.answer) > 0
+        assert result.topic == expected_topic
+
+
+# ── T006: Follow-up chains ──────────────────────────────────────
+
+class TestFollowUpChains:
+    def test_follow_up_chain(self):
+        """Цепочка follow-up: тема сохраняется через last_topic."""
+        orch = _build_orchestrator()
+        r1 = asyncio.run(orch.handle_question(
+            UserQuestion(user_id="1", text="отток за месяц"),
+        ))
+        assert r1.topic == "outflow"
+
+        r2 = asyncio.run(orch.handle_question(
+            UserQuestion(user_id="1", text="подробнее", last_topic="outflow"),
+        ))
+        assert r2.topic == "outflow"
+
+        r3 = asyncio.run(orch.handle_question(
+            UserQuestion(user_id="1", text="а по неделям?", last_topic="outflow"),
+        ))
+        assert r3.topic == "outflow"
+
+    def test_follow_up_to_comparison(self):
+        """Follow-up «сравни» с last_topic → comparison через MultiPlan."""
+        orch = build_mock_orchestrator_multi(intent="comparison", topic="clients_outflow")
+        result = asyncio.run(orch.handle_question(
+            UserQuestion(user_id="1", text="сравни по месяцам", last_topic="clients_outflow"),
+        ))
+        assert result.answer is not None
+        assert len(result.answer) > 0
+
+
+# ── T007: Negative scenarios ────────────────────────────────────
+
+class TestNegativeScenarios:
+    def test_negative_sql_injection(self):
+        """SQL-инъекция в тексте не ломает pipeline."""
+        orch = _build_orchestrator()
+        result = asyncio.run(orch.handle_question(
+            UserQuestion(user_id="1", text="'; DROP TABLE clients; --"),
+        ))
+        assert result.answer
+        assert "sql_error" not in result.diagnostics
+
+    def test_negative_off_topic(self):
+        """Вопрос не по теме → всё равно ответ (fallback topic)."""
+        orch = _build_orchestrator()
+        result = asyncio.run(orch.handle_question(
+            UserQuestion(user_id="1", text="какая погода в Москве?"),
+        ))
+        assert result.answer
+        assert result.topic  # непустой topic (fallback)
+
+    def test_negative_empty_text(self):
+        """Пустой текст запроса → не падаем."""
+        orch = _build_orchestrator()
+        result = asyncio.run(orch.handle_question(
+            UserQuestion(user_id="1", text=""),
+        ))
+        assert result.answer
+        assert result.topic
+
+    def test_negative_no_period(self):
+        """KPI-вопрос без указания периода → не падаем."""
+        orch = _build_orchestrator()
+        result = asyncio.run(orch.handle_question(
+            UserQuestion(user_id="1", text="покажи выручку"),
+        ))
+        assert result.answer
+        assert result.topic
+
+    def test_negative_long_text(self):
+        """Очень длинный текст → не падаем."""
+        orch = _build_orchestrator()
+        long_text = "отток " * 500
+        result = asyncio.run(orch.handle_question(
+            UserQuestion(user_id="1", text=long_text),
+        ))
+        assert result.answer
+        assert result.topic == "outflow"
+
+
+# ── T008: Smoke / fallback quality ──────────────────────────────
+# NB: MockAnalyst возвращает canned output — эти тесты проверяют маршрутизацию
+# pipeline, а не качество формулировок аналитика. Реальное качество ответов
+# (отсутствие сырых SQL-полей, форматирование чисел) проверяют интеграционные
+# тесты в tests/integration/test_real_e2e.py.
+
+class TestFallbackQuality:
+    def test_outflow_fallback_no_raw_fields(self):
+        """Mock pipeline: ответ не содержит сырых SQL-имён.
+
+        NB: MockAnalyst возвращает canned output — реальную фильтрацию
+        полей проверяет integration/test_real_e2e::test_e2e_fallback_no_raw_fields.
+        """
+        orch = _build_orchestrator()
+        result = asyncio.run(orch.handle_question(
+            UserQuestion(user_id="1", text="отток за месяц"),
+        ))
+        raw_fields = {"DaysSinceLastVisit", "DaysOverdue", "TotalSpent", "ServicePeriodDays", "Phone"}
+        for field in raw_fields:
+            assert field not in result.answer, f"Сырое поле {field} в ответе"
+
+    def test_statistics_pipeline_returns_correct_topic(self):
+        """Mock pipeline: маршрутизация statistics возвращает непустой ответ.
+
+        NB: MockAnalyst возвращает canned output — качество текста проверяют
+        интеграционные тесты в tests/integration/test_real_e2e.py.
+        """
+        orch = _build_orchestrator()
+        result = asyncio.run(orch.handle_question(
+            UserQuestion(user_id="1", text="покажи статистику за неделю"),
+        ))
+        assert result.topic == "statistics"
+        assert result.answer
+        assert result.confidence in ("low", "medium", "high")
+
+    def test_statistics_pipeline_has_follow_ups(self):
+        """Mock pipeline: statistics возвращает follow-up подсказки.
+
+        NB: MockAnalyst возвращает canned output — содержание follow-ups
+        проверяют интеграционные тесты в tests/integration/test_real_e2e.py.
+        """
+        orch = _build_orchestrator()
+        result = asyncio.run(orch.handle_question(
+            UserQuestion(user_id="1", text="покажи статистику за неделю"),
+        ))
+        assert result.topic == "statistics"
+        assert len(result.follow_ups) > 0
+
+exec
+/bin/zsh -lc "sed -n '1,260p' tests/test_orchestrator.py" in /Users/zerocold/Downloads/git/kpi/tg_bot/swarm_powerbi_bot
+ succeeded in 0ms:
+import asyncio
+
+from swarm_powerbi_bot.models import (
+    AggregateResult, MultiPlan, Plan, UserQuestion,
+)
+from swarm_powerbi_bot.orchestrator import SwarmOrchestrator
+
+from conftest import (
+    DummyAnalyst, DummyPBI, DummyPlanner, DummyRender, DummySQL,
+    MockAnalystMulti, MockRegistry,
+)
+
+
+def test_orchestrator_happy_path():
+    orchestrator = SwarmOrchestrator(
+        planner=DummyPlanner(),
+        sql_agent=DummySQL(),
+        powerbi_agent=DummyPBI(),
+        render_agent=DummyRender(),
+        analyst_agent=DummyAnalyst(),
+    )
+
+    result = asyncio.run(orchestrator.handle_question(UserQuestion(user_id="1", text="test")))
+    assert result.answer == "analysis"
+    # Изображение из DummyRender
+    assert result.image is not None
+    assert result.confidence == "high"
+
+
+# ── #4: multi_all_failed → legacy SQL не вызывается ──────────
+
+
+class DummySQLSpy(DummySQL):
+    """SQL agent that records whether run() was called."""
+    def __init__(self):
+        self.run_called = False
+
+    async def run(self, question, plan):
+        self.run_called = True
+        return await super().run(question, plan)
+
+    async def run_multi(self, multi_plan, registry, *, logger_=None):
+        return [
+            AggregateResult(aggregate_id="clients_outflow", status="error", rows=[]),
+            AggregateResult(aggregate_id="clients_outflow", status="error", rows=[]),
+        ]
+
+
+class DummyPlannerWithRegistryFail(DummyPlanner):
+    def __init__(self, registry):
+        self.aggregate_registry = registry
+
+    async def run_multi(self, question):
+        return MultiPlan(
+            objective="сравни",
+            intent="comparison",
+            queries=[{"aggregate_id": "clients_outflow"}],
+            topic="clients_outflow",
+            render_needed=True,
+            notes=["planner_v2:llm"],
+        )
+
+    def multi_plan_to_plan(self, multi_plan, question):
+        return Plan(
+            objective=multi_plan.objective,
+            topic=multi_plan.topic,
+            notes=list(multi_plan.notes),
+        )
+
+
+def test_multi_all_failed_skips_legacy_sql():
+    """#4: Если все multi_results failed, legacy SQL НЕ должен вызываться."""
+    registry = MockRegistry()
+    sql_spy = DummySQLSpy()
+    orchestrator = SwarmOrchestrator(
+        planner=DummyPlannerWithRegistryFail(registry),
+        sql_agent=sql_spy,
+        powerbi_agent=DummyPBI(),
+        render_agent=DummyRender(),
+        analyst_agent=MockAnalystMulti(),
+        aggregate_registry=registry,
+    )
+
+    result = asyncio.run(orchestrator.handle_question(UserQuestion(user_id="1", text="сравни отток")))
+    assert result.answer, "Orchestrator должен вернуть ответ даже при all-failed multi"
+    assert not sql_spy.run_called, "Legacy SQL should NOT be called when all multi_results failed"
+    assert result.diagnostics.get("multi_all_failed") == "true"
+
+
+# ── planner_v2_error → graceful degradation to legacy ──────────
+
+
+class DummyPlannerV2Error(DummyPlanner):
+    """Planner с aggregate_registry, но run_multi() всегда падает."""
+    def __init__(self, registry):
+        self.aggregate_registry = registry
+
+    async def run_multi(self, question):
+        raise RuntimeError("LLM unavailable")
+
+
+def test_planner_v2_error_degrades_to_legacy():
+    """Если run_multi() падает — orchestrator деградирует на legacy planner.run()."""
+    registry = MockRegistry()
+    orchestrator = SwarmOrchestrator(
+        planner=DummyPlannerV2Error(registry),
+        sql_agent=DummySQL(),
+        powerbi_agent=DummyPBI(),
+        render_agent=DummyRender(),
+        analyst_agent=DummyAnalyst(),
+        aggregate_registry=registry,
+    )
+
+    result = asyncio.run(orchestrator.handle_question(UserQuestion(user_id="1", text="выручка")))
+    assert result.answer == "analysis"
+    assert "planner_v2_error" in result.diagnostics
+
+codex
+I’ve reached the point where the review depends on the existing test harness behavior, not just the patch. I’m loading the orchestrator and both `conftest.py` files now to check whether the new tests genuinely exercise the intended code paths or accidentally bypass them.
+exec
+/bin/zsh -lc "sed -n '1,260p' tests/integration/conftest.py" in /Users/zerocold/Downloads/git/kpi/tg_bot/swarm_powerbi_bot
+ succeeded in 0ms:
+"""Fixtures для интеграционных тестов с реальным MSSQL и Ollama.
+
+Все тесты помечены @pytest.mark.integration и пропускаются
+если окружение недоступно (нет MSSQL_SERVER, нет Ollama).
+
+Запуск: uv run pytest tests/integration/ -m integration -v
+"""
+from __future__ import annotations
+
+import os
+import urllib.request
+
+import pytest
+
+from swarm_powerbi_bot.config import Settings
+from swarm_powerbi_bot.main import build_orchestrator
+from swarm_powerbi_bot.services import LLMClient, SQLClient
+from swarm_powerbi_bot.services.aggregate_registry import AggregateRegistry
+
+TEST_OBJECT_ID = 506770
+TEST_DATE_FROM = "2026-03-01"
+TEST_DATE_TO = "2026-03-31"
+
+
+def _mssql_available(settings: Settings) -> bool:
+    conn_str = settings.sql_connection_string()
+    if not conn_str:
+        return False
+    try:
+        import pyodbc
+
+        conn = pyodbc.connect(conn_str, timeout=5)
+        conn.close()
+        return True
+    except Exception:
+        return False
+
+
+def _ollama_available(settings: Settings) -> bool:
+    if not settings.ollama_base_url:
+        return False
+    try:
+        url = settings.ollama_base_url.rstrip("/") + "/api/tags"
+        req = urllib.request.Request(url)
+        urllib.request.urlopen(req, timeout=5)  # noqa: S310
+        return True
+    except Exception:
+        return False
+
+
+@pytest.fixture(scope="session")
+def real_settings() -> Settings:
+    return Settings.from_env()
+
+
+@pytest.fixture(scope="session")
+def mssql_ok(real_settings: Settings) -> bool:
+    return _mssql_available(real_settings)
+
+
+@pytest.fixture(scope="session")
+def ollama_ok(real_settings: Settings) -> bool:
+    return _ollama_available(real_settings)
+
+
+@pytest.fixture(scope="session")
+def real_sql_client(real_settings: Settings, mssql_ok: bool) -> SQLClient:
+    if not mssql_ok:
+        pytest.skip("MSSQL not available")
+    return SQLClient(real_settings)
+
+
+@pytest.fixture(scope="session")
+def real_llm_client(real_settings: Settings, ollama_ok: bool) -> LLMClient:
+    if not ollama_ok:
+        pytest.skip("Ollama not available")
+    return LLMClient(real_settings)
+
+
+@pytest.fixture(scope="session")
+def real_registry(real_settings: Settings) -> AggregateRegistry:
+    path = real_settings.aggregate_catalog_path
+    if not os.path.exists(path):
+        pytest.skip(f"Catalog not found: {path}")
+    return AggregateRegistry(path)
+
+
+@pytest.fixture(scope="session")
+def real_orchestrator(real_settings: Settings, mssql_ok: bool, ollama_ok: bool):
+    if not mssql_ok:
+        pytest.skip("MSSQL not available")
+    if not ollama_ok:
+        pytest.skip("Ollama not available")
+    return build_orchestrator(real_settings)
+
+
+@pytest.fixture
+def test_object_id() -> int:
+    return TEST_OBJECT_ID
+
+
+@pytest.fixture
+def test_date_range() -> tuple[str, str]:
+    return TEST_DATE_FROM, TEST_DATE_TO
+
+exec
+/bin/zsh -lc "sed -n '1,320p' src/swarm_powerbi_bot/orchestrator.py" in /Users/zerocold/Downloads/git/kpi/tg_bot/swarm_powerbi_bot
+exec
+/bin/zsh -lc "sed -n '1,260p' tests/integration/test_real_e2e.py" in /Users/zerocold/Downloads/git/kpi/tg_bot/swarm_powerbi_bot
+ succeeded in 0ms:
+"""Интеграционные E2E тесты через реальный MSSQL + Ollama.
+
+Запуск: uv run pytest tests/integration/test_real_e2e.py -m integration -v
+"""
+from __future__ import annotations
+
+import asyncio
+
+import pytest
+
+from swarm_powerbi_bot.models import SwarmResponse, UserQuestion
+from swarm_powerbi_bot.orchestrator import SwarmOrchestrator
+
+pytestmark = pytest.mark.integration
+
+# Совпадает с TEST_OBJECT_ID в tests/integration/conftest.py.
+# Прямой import невозможен — pytest резолвит `from conftest` на tests/conftest.py.
+_TEST_OBJECT_ID = 506770
+
+
+def _question(text: str, **kwargs) -> UserQuestion:
+    defaults = {"user_id": "e2e-test", "object_id": _TEST_OBJECT_ID}
+    defaults.update(kwargs)
+    return UserQuestion(text=text, **defaults)
+
+
+# ── 1. Revenue question ─────────────────────────────────────────────────────
+
+async def test_e2e_revenue_question(real_orchestrator: SwarmOrchestrator):
+    resp = await real_orchestrator.handle_question(_question("Покажи выручку за март"))
+    assert resp.answer, "empty answer"
+    assert resp.topic != "unknown", f"topic should not be unknown, got {resp.topic}"
+
+
+# ── 2. Outflow question ─────────────────────────────────────────────────────
+
+async def test_e2e_outflow_question(real_orchestrator: SwarmOrchestrator):
+    resp = await real_orchestrator.handle_question(
+        _question("Какой отток за месяц?"),
+    )
+    assert resp.answer
+
+
+# ── 3. Comparison с chart ────────────────────────────────────────────────────
+
+async def test_e2e_comparison(real_orchestrator: SwarmOrchestrator):
+    resp = await real_orchestrator.handle_question(
+        _question("Сравни выручку марта и февраля"),
+    )
+    assert resp.answer
+    # Comparison pipeline должен генерировать chart
+    if resp.image is not None:
+        assert resp.mime_type == "image/png"
+
+
+# ── 4. Top masters ──────────────────────────────────────────────────────────
+
+async def test_e2e_top_masters(real_orchestrator: SwarmOrchestrator):
+    resp = await real_orchestrator.handle_question(
+        _question("Топ-5 мастеров по выручке за март"),
+    )
+    assert resp.answer
+
+
+# ── 5. Decomposition ────────────────────────────────────────────────────────
+
+async def test_e2e_decomposition(real_orchestrator: SwarmOrchestrator):
+    resp = await real_orchestrator.handle_question(
+        _question("Почему упала выручка?"),
+    )
+    assert resp.answer
+
+
+# ── 6. Unknown question ─────────────────────────────────────────────────────
+
+async def test_e2e_unknown_question(real_orchestrator: SwarmOrchestrator):
+    resp = await real_orchestrator.handle_question(
+        _question("Как сварить борщ?"),
+    )
+    assert isinstance(resp, SwarmResponse)
+    # Должен вежливо отказать или дать общий ответ
+
+
+# ── 7. Follow-up ────────────────────────────────────────────────────────────
+
+async def test_e2e_follow_up(real_orchestrator: SwarmOrchestrator):
+    resp1 = await real_orchestrator.handle_question(
+        _question("выручка за март"),
+    )
+    assert resp1.answer
+    topic = resp1.topic
+
+    resp2 = await real_orchestrator.handle_question(
+        _question("а за февраль?", last_topic=topic),
+    )
+    assert resp2.answer
+
+
+# ── 8. Chart generation ─────────────────────────────────────────────────────
+
+async def test_e2e_chart_generation(real_orchestrator: SwarmOrchestrator):
+    resp = await real_orchestrator.handle_question(
+        _question("Покажи график выручки по неделям за квартал"),
+    )
+    assert resp.answer
+    # Если chart сгенерирован, проверяем формат
+    if resp.image is not None:
+        assert resp.mime_type == "image/png"
+        assert len(resp.image) > 100  # не пустой PNG
+
+
+# ── 9. Telegram mock ────────────────────────────────────────────────────────
+
+async def test_e2e_telegram_mock(real_orchestrator: SwarmOrchestrator):
+    """Проверяем что orchestrator возвращает корректный SwarmResponse."""
+    resp = await real_orchestrator.handle_question(
+        _question("статистика за март"),
+    )
+    assert isinstance(resp, SwarmResponse)
+    assert resp.confidence in ("low", "medium", "high")
+    assert isinstance(resp.follow_ups, list)
+    assert isinstance(resp.diagnostics, dict)
+
+
+# ── 10. Concurrent users ────────────────────────────────────────────────────
+
+async def test_e2e_concurrent_users(real_orchestrator: SwarmOrchestrator):
+    questions = [
+        _question("выручка за март", user_id="user-1"),
+        _question("отток клиентов", user_id="user-2"),
+        _question("коммуникации за март", user_id="user-3"),
+    ]
+    results = await asyncio.gather(
+        *[real_orchestrator.handle_question(q) for q in questions],
+    )
+    for i, resp in enumerate(results):
+        assert isinstance(resp, SwarmResponse), f"user-{i+1} got non-SwarmResponse"
+        assert resp.answer, f"user-{i+1} got empty answer"
+
+
+# ── 11. Comparison has chart ───────────────────────────────────────────────
+
+async def test_e2e_comparison_has_chart(real_orchestrator: SwarmOrchestrator):
+    """Comparison pipeline должен генерировать PNG chart."""
+    resp = await real_orchestrator.handle_question(
+        _question("Сравни отток за март и апрель"),
+    )
+    assert resp.answer
+    # comparison должен генерировать chart; None допустим только при отсутствии matplotlib
+    assert resp.image is not None, "Comparison should produce a chart"
+    assert resp.image[:4] == b"\x89PNG"
+
+
+# ── 12. Fallback: no raw SQL fields ───────────────────────────────────────
+
+async def test_e2e_fallback_no_raw_fields(real_orchestrator: SwarmOrchestrator):
+    """Ответ не должен содержать сырые SQL-имена полей."""
+    resp = await real_orchestrator.handle_question(
+        _question("Какой отток за месяц?"),
+    )
+    assert resp.answer
+    raw_fields = {"DaysSinceLastVisit", "ServicePeriodDays", "DaysOverdue", "ClientName", "Phone"}
+    for f in raw_fields:
+        assert f not in resp.answer, f"Raw field {f} leaked into answer"
+
+
+# ── 13. Fallback: has period ───────────────────────────────────────────────
+
+async def test_e2e_fallback_has_period(real_orchestrator: SwarmOrchestrator):
+    """Ответ содержит информацию о периоде."""
+    resp = await real_orchestrator.handle_question(
+        _question("статистика за март"),
+    )
+    assert resp.answer
+    # Ожидаем упоминание даты или месяца в ответе
+    assert resp.topic in ("statistics", "trend")
+
+
+# ── 14. Statistics money rounded ───────────────────────────────────────────
+
+async def test_e2e_statistics_money_rounded(real_orchestrator: SwarmOrchestrator):
+    """Денежные метрики не содержат чрезмерных десятичных знаков."""
+    resp = await real_orchestrator.handle_question(
+        _question("статистика за март"),
+    )
+    assert resp.answer
+    # Структурная проверка: ответ не пуст и topic корректен
+    assert resp.topic in ("statistics", "trend")
+
+ succeeded in 0ms:
+from __future__ import annotations
+
+import asyncio
+import logging
+from typing import TYPE_CHECKING
+
+from .agents import AnalystAgent, PlannerAgent, PowerBIModelAgent, RenderAgent, SQLAgent
+from .models import (
+    AggregateResult,
+    ModelInsight,
+    MultiPlan,
+    SQLInsight,
+    SwarmResponse,
+    UserQuestion,
+)
+from .services.chart_renderer import render_chart, render_comparison
+
+if TYPE_CHECKING:
+    from .services.aggregate_registry import AggregateRegistry
+    from .services.query_logger import QueryLogger
+
+logger = logging.getLogger(__name__)
+
+
+class SwarmOrchestrator:
+    def __init__(
+        self,
+        planner: PlannerAgent,
+        sql_agent: SQLAgent,
+        powerbi_agent: PowerBIModelAgent,
+        render_agent: RenderAgent,
+        analyst_agent: AnalystAgent,
+        aggregate_registry: "AggregateRegistry | None" = None,
+        query_logger: "QueryLogger | None" = None,
+    ):
+        self.planner = planner
+        self.sql_agent = sql_agent
+        self.powerbi_agent = powerbi_agent
+        self.render_agent = render_agent
+        self.analyst_agent = analyst_agent
+        self.aggregate_registry = aggregate_registry
+        self.query_logger = query_logger
+
+    async def handle_question(self, question: UserQuestion) -> SwarmResponse:
+        diagnostics: dict[str, str] = {}
+
+        # T026: Пробуем LLM-планирование с каталогом агрегатов (MultiPlan)
+        multi_plan: MultiPlan | None = None
+        if getattr(self.planner, "aggregate_registry", None) is not None:
+            try:
+                multi_plan = await self.planner.run_multi(question)
+                planner_v2_mode = (
+                    "llm" if "planner_v2:llm" in multi_plan.notes else "keyword"
+                )
+                logger.info(
+                    "[PLAN_V2] %s | intent=%s | topic=%s | queries=%d",
+                    planner_v2_mode,
+                    multi_plan.intent,
+                    multi_plan.topic,
+                    len(multi_plan.queries),
+                )
+                diagnostics["planner_v2"] = planner_v2_mode
+            except Exception as exc:
+                logger.error("[PLAN_V2] ERROR: %s", exc)
+                diagnostics["planner_v2_error"] = str(exc)
+                multi_plan = None
+
+        # I1: Пропускаем legacy planner.run() если multi_plan с запросами уже получен —
+        # иначе два LLM-вызова на каждый вопрос (двойной cost/latency)
+        if multi_plan and multi_plan.queries:
+            plan = self.planner.multi_plan_to_plan(multi_plan, question)
+        else:
+            try:
+                plan = await self.planner.run(question)
+            except Exception as exc:
+                logger.error("[PLAN] ERROR: %s", exc)
+                diagnostics["plan_error"] = str(exc)
+                plan = self.planner.empty_plan(question.text)
+
+        # T031: Если есть MultiPlan и aggregate_registry — выполняем все запросы через SQLAgent.run_multi()
+        # Пропускаем run_multi() для keyword-fallback планов: их aggregate_id — topic-идентификаторы,
+        # не валидные catalog aggregate_ids, и они провалят registry.validate().
+        # Исключение: comparison:fallback генерирует реальные catalog aggregate_ids.
+        multi_results: list[AggregateResult] = []
+        _notes = multi_plan.notes or [] if multi_plan else []
+        _skip_keyword = "planner_v2:keyword" in _notes and "comparison:fallback" not in _notes
+        if (
+            multi_plan
+            and multi_plan.queries
+            and self.aggregate_registry is not None
+            and not _skip_keyword
+        ):
+            diagnostics["multi_plan_intent"] = multi_plan.intent
+            diagnostics["multi_plan_queries"] = str(len(multi_plan.queries))
+            try:
+                multi_results = await self.sql_agent.run_multi(
+                    multi_plan,
+                    self.aggregate_registry,
+                    logger_=self.query_logger,
+                )
+                ok_count = sum(1 for r in multi_results if r.status == "ok")
+                diagnostics["multi_plan_ok"] = str(ok_count)
+                logger.info(
+                    "[MULTI_SQL] queries=%d ok=%d",
+                    len(multi_results),
+                    ok_count,
+                )
+            except Exception as exc:
+                logger.error("[MULTI_SQL] ERROR: %s", exc)
+                diagnostics["multi_sql_error"] = str(exc)
+        elif multi_plan and multi_plan.queries:
+            # Degradation: LLM спланировал запросы, но registry не инициализирован
+            # (нет каталога агрегатов) — запросы не могут быть валидированы и выполнены.
+            # Логируем для диагностики, fallback на legacy plan.
+            first_query = multi_plan.queries[0]
+            diagnostics["multi_plan_aggregate"] = first_query.aggregate_id
+            diagnostics["multi_plan_intent"] = multi_plan.intent
+
+        # Диагностика планировщика
+        planner_mode = "llm" if "planner:llm" in plan.notes else "keyword"
+        qp = plan.query_params
+        if qp:
+            logger.info(
+                "[PLAN] %s | topic=%s | proc=%s group_by=%s filter=%s reason=%s | %s..%s",
+                planner_mode,
+                plan.topic,
+                qp.procedure,
+                qp.group_by,
+                qp.filter,
+                qp.reason,
+                qp.date_from,
+                qp.date_to,
+            )
+        else:
+            logger.info(
+                "[PLAN] %s | topic=%s | no query_params", planner_mode, plan.topic
+            )
+
+        # Пропускаем legacy SQL если run_multi() уже получил данные — иначе дублируем запрос
+        has_multi_ok = any(r.status == "ok" for r in multi_results) if multi_results else False
+        multi_all_failed = bool(multi_results) and not has_multi_ok
+        if has_multi_ok:
+            sql_insight = SQLInsight(rows=[], summary="skipped: multi_results available")
+            pbi_insight = await self._run_pbi(question, plan, diagnostics)
+        elif multi_all_failed:
+            # #4: Все multi_results failed — НЕ запускаем legacy SQL с catalog topic_id,
+            # иначе legacy не знает catalog id и дефолтит на statistics (неверные данные).
+            sql_insight = SQLInsight(rows=[], summary="multi_results all failed")
+            pbi_insight = await self._run_pbi(question, plan, diagnostics)
+            diagnostics["multi_all_failed"] = "true"
+        else:
+            sql_task = asyncio.create_task(self._run_sql(question, plan, diagnostics))
+            pbi_task = asyncio.create_task(self._run_pbi(question, plan, diagnostics))
+            sql_insight, pbi_insight = await asyncio.gather(sql_task, pbi_task)
+
+        # Генерируем график
+        image = None
+        mime_type = None
+        has_chart = False
+
+        # Comparison chart из multi_results (два периода → grouped bar)
+        if (
+            multi_results
+            and multi_plan
+            and multi_plan.intent == "comparison"
+            and len(multi_results) >= 2
+        ):
+            ok_results = [r for r in multi_results if r.status == "ok" and r.rows]
+            if len(ok_results) >= 2:
+                try:
+                    chart_bytes = await asyncio.to_thread(
+                        render_comparison,
+                        multi_plan.topic,
+                        ok_results[0].rows,
+                        ok_results[1].rows,
+                        ok_results[0].label or ok_results[0].aggregate_id,
+                        ok_results[1].label or ok_results[1].aggregate_id,
+                        group_by=ok_results[0].group_by,
+                    )
+                    if chart_bytes:
+                        image = chart_bytes
+                        mime_type = "image/png"
+                        has_chart = True
+                        diagnostics["chart_type"] = "matplotlib_comparison"
+                except Exception as exc:
+                    diagnostics["chart_error"] = str(exc)
+
+        # Обычный график из legacy SQL-данных (single query)
+        if image is None and sql_insight.rows:
+            try:
+                chart_params = dict(sql_insight.params)
+                chart_params["topic"] = plan.topic
+                chart_bytes = await asyncio.to_thread(
+                    render_chart,
+                    plan.topic,
+                    sql_insight.rows,
+                    chart_params,
+                )
+                if chart_bytes:
+                    image = chart_bytes
+                    mime_type = "image/png"
+                    has_chart = True
+                    diagnostics["chart_type"] = "matplotlib"
+            except Exception as exc:
+                diagnostics["chart_error"] = str(exc)
+
+        # Если matplotlib-график не получился и нужен Power BI рендер
+        if image is None and plan.render_needed:
+            try:
+                artifact = await self.render_agent.run(question, plan)
+                if artifact is not None:
+                    image = artifact.image_bytes
+                    mime_type = artifact.mime_type
+                    if artifact.source_url:
+                        diagnostics["render_source"] = artifact.source_url
+            except Exception as exc:
+                diagnostics["render_error"] = str(exc)
+
+        # Если есть УСПЕШНЫЕ multi_results — используем run_multi для синтеза нескольких агрегатов,
+        # иначе — legacy run() с одним SQL-результатом.
+        # has_multi_ok уже вычислен выше; если все multi-queries failed, используем legacy analyst.
+        if multi_results and multi_plan and has_multi_ok:
+            analysis = await self.analyst_agent.run_multi(
+                question=question.text,
+                results=multi_results,
+                plan=multi_plan,
+            )
+        else:
+            analysis = await self.analyst_agent.run(
+                question=question,
+                plan=plan,
+                sql_insight=sql_insight,
+                model_insight=pbi_insight,
+                diagnostics=diagnostics,
+                has_chart=has_chart,
+            )
+
+        merged_diagnostics = dict(diagnostics)
+        merged_diagnostics.update(analysis.diagnostics)
+
+        return SwarmResponse(
+            answer=analysis.answer,
+            image=image,
+            mime_type=mime_type,
+            confidence=analysis.confidence,
+            topic=plan.topic,
+            follow_ups=analysis.follow_ups,
+            diagnostics=merged_diagnostics,
+        )
+
+    async def _run_sql(self, question, plan, diagnostics: dict[str, str]) -> SQLInsight:
+        try:
+            result = await self.sql_agent.run(question, plan)
+            logger.info("[SQL] topic=%s rows=%d", plan.topic, len(result.rows))
+            return result
+        except Exception as exc:
+            logger.error("[SQL] ERROR: %s", exc)
+            diagnostics["sql_error"] = str(exc)
+            return SQLInsight(rows=[], summary="SQL step failed")
+
+    async def _run_pbi(
+        self, question, plan, diagnostics: dict[str, str]
+    ) -> ModelInsight:
+        try:
+            return await self.powerbi_agent.run(question, plan)
+        except Exception as exc:
+            logger.error("[PBI] ERROR: %s", exc)
+            diagnostics["powerbi_model_error"] = str(exc)
+            return ModelInsight(metrics={}, summary="Power BI model step failed")
+
+codex
+I’ve found several places where the new assertions look suspiciously weak. I’m running a narrow test slice next to separate “bad coverage” from “actually broken under pytest” and to confirm whether the new `conftest` interactions behave the way the patch assumes.
+exec
+/bin/zsh -c 'PYTHONDONTWRITEBYTECODE=1 pytest -q -p no:cacheprovider tests/test_orchestrator.py' in /Users/zerocold/Downloads/git/kpi/tg_bot/swarm_powerbi_bot
+exec
+/bin/zsh -c 'PYTHONDONTWRITEBYTECODE=1 pytest -q -p no:cacheprovider tests/test_e2e_pipeline.py' in /Users/zerocold/Downloads/git/kpi/tg_bot/swarm_powerbi_bot
+exec
+/bin/zsh -c "PYTHONDONTWRITEBYTECODE=1 pytest -q -p no:cacheprovider tests/integration/test_real_e2e.py -m integration -k 'fallback_has_period or statistics_money_rounded'" in /Users/zerocold/Downloads/git/kpi/tg_bot/swarm_powerbi_bot
+ exited 1 in 245ms:
+Traceback (most recent call last):
+  File "/Users/zerocold/Downloads/git/kpi/tg_bot/.venv/bin/pytest", line 10, in <module>
+    sys.exit(console_main())
+             ^^^^^^^^^^^^^^
+  File "/Users/zerocold/Downloads/git/kpi/tg_bot/.venv/lib/python3.12/site-packages/_pytest/config/__init__.py", line 223, in console_main
+    code = main()
+           ^^^^^^
+  File "/Users/zerocold/Downloads/git/kpi/tg_bot/.venv/lib/python3.12/site-packages/_pytest/config/__init__.py", line 193, in main
+    config = _prepareconfig(new_args, plugins)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/zerocold/Downloads/git/kpi/tg_bot/.venv/lib/python3.12/site-packages/_pytest/config/__init__.py", line 361, in _prepareconfig
+    config: Config = pluginmanager.hook.pytest_cmdline_parse(
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/zerocold/Downloads/git/kpi/tg_bot/.venv/lib/python3.12/site-packages/pluggy/_hooks.py", line 512, in __call__
+    return self._hookexec(self.name, self._hookimpls.copy(), kwargs, firstresult)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/zerocold/Downloads/git/kpi/tg_bot/.venv/lib/python3.12/site-packages/pluggy/_manager.py", line 120, in _hookexec
+    return self._inner_hookexec(hook_name, methods, kwargs, firstresult)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/zerocold/Downloads/git/kpi/tg_bot/.venv/lib/python3.12/site-packages/pluggy/_callers.py", line 167, in _multicall
+    raise exception
+  File "/Users/zerocold/Downloads/git/kpi/tg_bot/.venv/lib/python3.12/site-packages/pluggy/_callers.py", line 139, in _multicall
+    teardown.throw(exception)
+  File "/Users/zerocold/Downloads/git/kpi/tg_bot/.venv/lib/python3.12/site-packages/_pytest/helpconfig.py", line 124, in pytest_cmdline_parse
+    config = yield
+             ^^^^^
+  File "/Users/zerocold/Downloads/git/kpi/tg_bot/.venv/lib/python3.12/site-packages/pluggy/_callers.py", line 121, in _multicall
+    res = hook_impl.function(*args)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/zerocold/Downloads/git/kpi/tg_bot/.venv/lib/python3.12/site-packages/_pytest/config/__init__.py", line 1192, in pytest_cmdline_parse
+    self.parse(args)
+  File "/Users/zerocold/Downloads/git/kpi/tg_bot/.venv/lib/python3.12/site-packages/_pytest/config/__init__.py", line 1562, in parse
+    self.hook.pytest_load_initial_conftests(
+  File "/Users/zerocold/Downloads/git/kpi/tg_bot/.venv/lib/python3.12/site-packages/pluggy/_hooks.py", line 512, in __call__
+    return self._hookexec(self.name, self._hookimpls.copy(), kwargs, firstresult)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/zerocold/Downloads/git/kpi/tg_bot/.venv/lib/python3.12/site-packages/pluggy/_manager.py", line 120, in _hookexec
+    return self._inner_hookexec(hook_name, methods, kwargs, firstresult)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/zerocold/Downloads/git/kpi/tg_bot/.venv/lib/python3.12/site-packages/pluggy/_callers.py", line 167, in _multicall
+    raise exception
+  File "/Users/zerocold/Downloads/git/kpi/tg_bot/.venv/lib/python3.12/site-packages/pluggy/_callers.py", line 139, in _multicall
+    teardown.throw(exception)
+  File "/Users/zerocold/Downloads/git/kpi/tg_bot/.venv/lib/python3.12/site-packages/_pytest/warnings.py", line 128, in pytest_load_initial_conftests
+    return (yield)
+            ^^^^^
+  File "/Users/zerocold/Downloads/git/kpi/tg_bot/.venv/lib/python3.12/site-packages/pluggy/_callers.py", line 116, in _multicall
+    next(function_gen)  # first yield
+    ^^^^^^^^^^^^^^^^^^
+  File "/Users/zerocold/Downloads/git/kpi/tg_bot/.venv/lib/python3.12/site-packages/_pytest/capture.py", line 170, in pytest_load_initial_conftests
+    capman.start_global_capturing()
+  File "/Users/zerocold/Downloads/git/kpi/tg_bot/.venv/lib/python3.12/site-packages/_pytest/capture.py", line 773, in start_global_capturing
+    self._global_capturing = _get_multicapture(self._method)
+                             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/zerocold/Downloads/git/kpi/tg_bot/.venv/lib/python3.12/site-packages/_pytest/capture.py", line 714, in _get_multicapture
+    return MultiCapture(in_=FDCapture(0), out=FDCapture(1), err=FDCapture(2))
+                                              ^^^^^^^^^^^^
+  File "/Users/zerocold/Downloads/git/kpi/tg_bot/.venv/lib/python3.12/site-packages/_pytest/capture.py", line 493, in __init__
+    TemporaryFile(buffering=0),
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/homebrew/Caskroom/miniconda/base/lib/python3.12/tempfile.py", line 631, in TemporaryFile
+    prefix, suffix, dir, output_type = _sanitize_params(prefix, suffix, dir)
+                                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/homebrew/Caskroom/miniconda/base/lib/python3.12/tempfile.py", line 126, in _sanitize_params
+    dir = gettempdir()
+          ^^^^^^^^^^^^
+  File "/opt/homebrew/Caskroom/miniconda/base/lib/python3.12/tempfile.py", line 315, in gettempdir
+    return _os.fsdecode(_gettempdir())
+                        ^^^^^^^^^^^^^
+  File "/opt/homebrew/Caskroom/miniconda/base/lib/python3.12/tempfile.py", line 308, in _gettempdir
+    tempdir = _get_default_tempdir()
+              ^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/homebrew/Caskroom/miniconda/base/lib/python3.12/tempfile.py", line 223, in _get_default_tempdir
+    raise FileNotFoundError(_errno.ENOENT,
+FileNotFoundError: [Errno 2] No usable temporary directory found in ['/var/folders/xc/29fk4qln2lx__qzv0wlwvnph0000gn/T/', '/tmp', '/var/tmp', '/usr/tmp', '/Users/zerocold/Downloads/git/kpi/tg_bot/swarm_powerbi_bot']
+
+ exited 1 in 264ms:
+Traceback (most recent call last):
+  File "/Users/zerocold/Downloads/git/kpi/tg_bot/.venv/bin/pytest", line 10, in <module>
+    sys.exit(console_main())
+             ^^^^^^^^^^^^^^
+  File "/Users/zerocold/Downloads/git/kpi/tg_bot/.venv/lib/python3.12/site-packages/_pytest/config/__init__.py", line 223, in console_main
+    code = main()
+           ^^^^^^
+  File "/Users/zerocold/Downloads/git/kpi/tg_bot/.venv/lib/python3.12/site-packages/_pytest/config/__init__.py", line 193, in main
+    config = _prepareconfig(new_args, plugins)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/zerocold/Downloads/git/kpi/tg_bot/.venv/lib/python3.12/site-packages/_pytest/config/__init__.py", line 361, in _prepareconfig
+    config: Config = pluginmanager.hook.pytest_cmdline_parse(
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/zerocold/Downloads/git/kpi/tg_bot/.venv/lib/python3.12/site-packages/pluggy/_hooks.py", line 512, in __call__
+    return self._hookexec(self.name, self._hookimpls.copy(), kwargs, firstresult)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/zerocold/Downloads/git/kpi/tg_bot/.venv/lib/python3.12/site-packages/pluggy/_manager.py", line 120, in _hookexec
+    return self._inner_hookexec(hook_name, methods, kwargs, firstresult)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/zerocold/Downloads/git/kpi/tg_bot/.venv/lib/python3.12/site-packages/pluggy/_callers.py", line 167, in _multicall
+    raise exception
+  File "/Users/zerocold/Downloads/git/kpi/tg_bot/.venv/lib/python3.12/site-packages/pluggy/_callers.py", line 139, in _multicall
+    teardown.throw(exception)
+  File "/Users/zerocold/Downloads/git/kpi/tg_bot/.venv/lib/python3.12/site-packages/_pytest/helpconfig.py", line 124, in pytest_cmdline_parse
+    config = yield
+             ^^^^^
+  File "/Users/zerocold/Downloads/git/kpi/tg_bot/.venv/lib/python3.12/site-packages/pluggy/_callers.py", line 121, in _multicall
+    res = hook_impl.function(*args)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/zerocold/Downloads/git/kpi/tg_bot/.venv/lib/python3.12/site-packages/_pytest/config/__init__.py", line 1192, in pytest_cmdline_parse
+    self.parse(args)
+  File "/Users/zerocold/Downloads/git/kpi/tg_bot/.venv/lib/python3.12/site-packages/_pytest/config/__init__.py", line 1562, in parse
+    self.hook.pytest_load_initial_conftests(
+  File "/Users/zerocold/Downloads/git/kpi/tg_bot/.venv/lib/python3.12/site-packages/pluggy/_hooks.py", line 512, in __call__
+    return self._hookexec(self.name, self._hookimpls.copy(), kwargs, firstresult)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/zerocold/Downloads/git/kpi/tg_bot/.venv/lib/python3.12/site-packages/pluggy/_manager.py", line 120, in _hookexec
+    return self._inner_hookexec(hook_name, methods, kwargs, firstresult)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/zerocold/Downloads/git/kpi/tg_bot/.venv/lib/python3.12/site-packages/pluggy/_callers.py", line 167, in _multicall
+    raise exception
+  File "/Users/zerocold/Downloads/git/kpi/tg_bot/.venv/lib/python3.12/site-packages/pluggy/_callers.py", line 139, in _multicall
+    teardown.throw(exception)
+  File "/Users/zerocold/Downloads/git/kpi/tg_bot/.venv/lib/python3.12/site-packages/_pytest/warnings.py", line 128, in pytest_load_initial_conftests
+    return (yield)
+            ^^^^^
+  File "/Users/zerocold/Downloads/git/kpi/tg_bot/.venv/lib/python3.12/site-packages/pluggy/_callers.py", line 116, in _multicall
+    next(function_gen)  # first yield
+    ^^^^^^^^^^^^^^^^^^
+  File "/Users/zerocold/Downloads/git/kpi/tg_bot/.venv/lib/python3.12/site-packages/_pytest/capture.py", line 170, in pytest_load_initial_conftests
+    capman.start_global_capturing()
+  File "/Users/zerocold/Downloads/git/kpi/tg_bot/.venv/lib/python3.12/site-packages/_pytest/capture.py", line 773, in start_global_capturing
+    self._global_capturing = _get_multicapture(self._method)
+                             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/zerocold/Downloads/git/kpi/tg_bot/.venv/lib/python3.12/site-packages/_pytest/capture.py", line 714, in _get_multicapture
+    return MultiCapture(in_=FDCapture(0), out=FDCapture(1), err=FDCapture(2))
+                                              ^^^^^^^^^^^^
+  File "/Users/zerocold/Downloads/git/kpi/tg_bot/.venv/lib/python3.12/site-packages/_pytest/capture.py", line 493, in __init__
+    TemporaryFile(buffering=0),
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/homebrew/Caskroom/miniconda/base/lib/python3.12/tempfile.py", line 631, in TemporaryFile
+    prefix, suffix, dir, output_type = _sanitize_params(prefix, suffix, dir)
+                                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/homebrew/Caskroom/miniconda/base/lib/python3.12/tempfile.py", line 126, in _sanitize_params
+    dir = gettempdir()
+          ^^^^^^^^^^^^
+  File "/opt/homebrew/Caskroom/miniconda/base/lib/python3.12/tempfile.py", line 315, in gettempdir
+    return _os.fsdecode(_gettempdir())
+                        ^^^^^^^^^^^^^
+  File "/opt/homebrew/Caskroom/miniconda/base/lib/python3.12/tempfile.py", line 308, in _gettempdir
+    tempdir = _get_default_tempdir()
+              ^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/homebrew/Caskroom/miniconda/base/lib/python3.12/tempfile.py", line 223, in _get_default_tempdir
+    raise FileNotFoundError(_errno.ENOENT,
+FileNotFoundError: [Errno 2] No usable temporary directory found in ['/var/folders/xc/29fk4qln2lx__qzv0wlwvnph0000gn/T/', '/tmp', '/var/tmp', '/usr/tmp', '/Users/zerocold/Downloads/git/kpi/tg_bot/swarm_powerbi_bot']
+
+ exited 1 in 246ms:
+Traceback (most recent call last):
+  File "/Users/zerocold/Downloads/git/kpi/tg_bot/.venv/bin/pytest", line 10, in <module>
+    sys.exit(console_main())
+             ^^^^^^^^^^^^^^
+  File "/Users/zerocold/Downloads/git/kpi/tg_bot/.venv/lib/python3.12/site-packages/_pytest/config/__init__.py", line 223, in console_main
+    code = main()
+           ^^^^^^
+  File "/Users/zerocold/Downloads/git/kpi/tg_bot/.venv/lib/python3.12/site-packages/_pytest/config/__init__.py", line 193, in main
+    config = _prepareconfig(new_args, plugins)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/zerocold/Downloads/git/kpi/tg_bot/.venv/lib/python3.12/site-packages/_pytest/config/__init__.py", line 361, in _prepareconfig
+    config: Config = pluginmanager.hook.pytest_cmdline_parse(
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/zerocold/Downloads/git/kpi/tg_bot/.venv/lib/python3.12/site-packages/pluggy/_hooks.py", line 512, in __call__
+    return self._hookexec(self.name, self._hookimpls.copy(), kwargs, firstresult)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/zerocold/Downloads/git/kpi/tg_bot/.venv/lib/python3.12/site-packages/pluggy/_manager.py", line 120, in _hookexec
+    return self._inner_hookexec(hook_name, methods, kwargs, firstresult)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/zerocold/Downloads/git/kpi/tg_bot/.venv/lib/python3.12/site-packages/pluggy/_callers.py", line 167, in _multicall
+    raise exception
+  File "/Users/zerocold/Downloads/git/kpi/tg_bot/.venv/lib/python3.12/site-packages/pluggy/_callers.py", line 139, in _multicall
+    teardown.throw(exception)
+  File "/Users/zerocold/Downloads/git/kpi/tg_bot/.venv/lib/python3.12/site-packages/_pytest/helpconfig.py", line 124, in pytest_cmdline_parse
+    config = yield
+             ^^^^^
+  File "/Users/zerocold/Downloads/git/kpi/tg_bot/.venv/lib/python3.12/site-packages/pluggy/_callers.py", line 121, in _multicall
+    res = hook_impl.function(*args)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/zerocold/Downloads/git/kpi/tg_bot/.venv/lib/python3.12/site-packages/_pytest/config/__init__.py", line 1192, in pytest_cmdline_parse
+    self.parse(args)
+  File "/Users/zerocold/Downloads/git/kpi/tg_bot/.venv/lib/python3.12/site-packages/_pytest/config/__init__.py", line 1562, in parse
+    self.hook.pytest_load_initial_conftests(
+  File "/Users/zerocold/Downloads/git/kpi/tg_bot/.venv/lib/python3.12/site-packages/pluggy/_hooks.py", line 512, in __call__
+    return self._hookexec(self.name, self._hookimpls.copy(), kwargs, firstresult)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/zerocold/Downloads/git/kpi/tg_bot/.venv/lib/python3.12/site-packages/pluggy/_manager.py", line 120, in _hookexec
+    return self._inner_hookexec(hook_name, methods, kwargs, firstresult)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/zerocold/Downloads/git/kpi/tg_bot/.venv/lib/python3.12/site-packages/pluggy/_callers.py", line 167, in _multicall
+    raise exception
+  File "/Users/zerocold/Downloads/git/kpi/tg_bot/.venv/lib/python3.12/site-packages/pluggy/_callers.py", line 139, in _multicall
+    teardown.throw(exception)
+  File "/Users/zerocold/Downloads/git/kpi/tg_bot/.venv/lib/python3.12/site-packages/_pytest/warnings.py", line 128, in pytest_load_initial_conftests
+    return (yield)
+            ^^^^^
+  File "/Users/zerocold/Downloads/git/kpi/tg_bot/.venv/lib/python3.12/site-packages/pluggy/_callers.py", line 116, in _multicall
+    next(function_gen)  # first yield
+    ^^^^^^^^^^^^^^^^^^
+  File "/Users/zerocold/Downloads/git/kpi/tg_bot/.venv/lib/python3.12/site-packages/_pytest/capture.py", line 170, in pytest_load_initial_conftests
+    capman.start_global_capturing()
+  File "/Users/zerocold/Downloads/git/kpi/tg_bot/.venv/lib/python3.12/site-packages/_pytest/capture.py", line 773, in start_global_capturing
+    self._global_capturing = _get_multicapture(self._method)
+                             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/zerocold/Downloads/git/kpi/tg_bot/.venv/lib/python3.12/site-packages/_pytest/capture.py", line 714, in _get_multicapture
+    return MultiCapture(in_=FDCapture(0), out=FDCapture(1), err=FDCapture(2))
+                                              ^^^^^^^^^^^^
+  File "/Users/zerocold/Downloads/git/kpi/tg_bot/.venv/lib/python3.12/site-packages/_pytest/capture.py", line 493, in __init__
+    TemporaryFile(buffering=0),
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/homebrew/Caskroom/miniconda/base/lib/python3.12/tempfile.py", line 631, in TemporaryFile
+    prefix, suffix, dir, output_type = _sanitize_params(prefix, suffix, dir)
+                                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/homebrew/Caskroom/miniconda/base/lib/python3.12/tempfile.py", line 126, in _sanitize_params
+    dir = gettempdir()
+          ^^^^^^^^^^^^
+  File "/opt/homebrew/Caskroom/miniconda/base/lib/python3.12/tempfile.py", line 315, in gettempdir
+    return _os.fsdecode(_gettempdir())
+                        ^^^^^^^^^^^^^
+  File "/opt/homebrew/Caskroom/miniconda/base/lib/python3.12/tempfile.py", line 308, in _gettempdir
+    tempdir = _get_default_tempdir()
+              ^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/homebrew/Caskroom/miniconda/base/lib/python3.12/tempfile.py", line 223, in _get_default_tempdir
+    raise FileNotFoundError(_errno.ENOENT,
+FileNotFoundError: [Errno 2] No usable temporary directory found in ['/var/folders/xc/29fk4qln2lx__qzv0wlwvnph0000gn/T/', '/tmp', '/var/tmp', '/usr/tmp', '/Users/zerocold/Downloads/git/kpi/tg_bot/swarm_powerbi_bot']
+
+codex
+I’ve confirmed two likely spec gaps already, but I’m checking the models before I write findings because several of these new MultiPlan tests depend on implicit Pydantic coercion. If that assumption is wrong, some of the new tests aren’t just weak, they’re invalid.
+exec
+/bin/zsh -lc "nl -ba tests/integration/test_real_e2e.py | sed -n '1,240p'" in /Users/zerocold/Downloads/git/kpi/tg_bot/swarm_powerbi_bot
+exec
+/bin/zsh -lc "sed -n '1,320p' src/swarm_powerbi_bot/models.py" in /Users/zerocold/Downloads/git/kpi/tg_bot/swarm_powerbi_bot
+exec
+/bin/zsh -lc "nl -ba tests/test_e2e_pipeline.py | sed -n '1,360p'" in /Users/zerocold/Downloads/git/kpi/tg_bot/swarm_powerbi_bot
  succeeded in 0ms:
 from __future__ import annotations
 
@@ -1571,6 +3375,7 @@ class AggregateResult:
 
     aggregate_id: str = ""
     label: str = ""
+    group_by: str = ""
     rows: list[dict[str, Any]] = field(default_factory=list)
     row_count: int = 0
     duration_ms: int = 0
@@ -1605,6 +3410,1330 @@ class SwarmResponse:
     topic: str = ""  # Определённая тема (для контекста следующего вопроса)
     follow_ups: list[str] = field(default_factory=list)
     diagnostics: dict[str, str] = field(default_factory=dict)
+
+ succeeded in 0ms:
+     1	"""Интеграционные E2E тесты через реальный MSSQL + Ollama.
+     2	
+     3	Запуск: uv run pytest tests/integration/test_real_e2e.py -m integration -v
+     4	"""
+     5	from __future__ import annotations
+     6	
+     7	import asyncio
+     8	
+     9	import pytest
+    10	
+    11	from swarm_powerbi_bot.models import SwarmResponse, UserQuestion
+    12	from swarm_powerbi_bot.orchestrator import SwarmOrchestrator
+    13	
+    14	pytestmark = pytest.mark.integration
+    15	
+    16	# Совпадает с TEST_OBJECT_ID в tests/integration/conftest.py.
+    17	# Прямой import невозможен — pytest резолвит `from conftest` на tests/conftest.py.
+    18	_TEST_OBJECT_ID = 506770
+    19	
+    20	
+    21	def _question(text: str, **kwargs) -> UserQuestion:
+    22	    defaults = {"user_id": "e2e-test", "object_id": _TEST_OBJECT_ID}
+    23	    defaults.update(kwargs)
+    24	    return UserQuestion(text=text, **defaults)
+    25	
+    26	
+    27	# ── 1. Revenue question ─────────────────────────────────────────────────────
+    28	
+    29	async def test_e2e_revenue_question(real_orchestrator: SwarmOrchestrator):
+    30	    resp = await real_orchestrator.handle_question(_question("Покажи выручку за март"))
+    31	    assert resp.answer, "empty answer"
+    32	    assert resp.topic != "unknown", f"topic should not be unknown, got {resp.topic}"
+    33	
+    34	
+    35	# ── 2. Outflow question ─────────────────────────────────────────────────────
+    36	
+    37	async def test_e2e_outflow_question(real_orchestrator: SwarmOrchestrator):
+    38	    resp = await real_orchestrator.handle_question(
+    39	        _question("Какой отток за месяц?"),
+    40	    )
+    41	    assert resp.answer
+    42	
+    43	
+    44	# ── 3. Comparison с chart ────────────────────────────────────────────────────
+    45	
+    46	async def test_e2e_comparison(real_orchestrator: SwarmOrchestrator):
+    47	    resp = await real_orchestrator.handle_question(
+    48	        _question("Сравни выручку марта и февраля"),
+    49	    )
+    50	    assert resp.answer
+    51	    # Comparison pipeline должен генерировать chart
+    52	    if resp.image is not None:
+    53	        assert resp.mime_type == "image/png"
+    54	
+    55	
+    56	# ── 4. Top masters ──────────────────────────────────────────────────────────
+    57	
+    58	async def test_e2e_top_masters(real_orchestrator: SwarmOrchestrator):
+    59	    resp = await real_orchestrator.handle_question(
+    60	        _question("Топ-5 мастеров по выручке за март"),
+    61	    )
+    62	    assert resp.answer
+    63	
+    64	
+    65	# ── 5. Decomposition ────────────────────────────────────────────────────────
+    66	
+    67	async def test_e2e_decomposition(real_orchestrator: SwarmOrchestrator):
+    68	    resp = await real_orchestrator.handle_question(
+    69	        _question("Почему упала выручка?"),
+    70	    )
+    71	    assert resp.answer
+    72	
+    73	
+    74	# ── 6. Unknown question ─────────────────────────────────────────────────────
+    75	
+    76	async def test_e2e_unknown_question(real_orchestrator: SwarmOrchestrator):
+    77	    resp = await real_orchestrator.handle_question(
+    78	        _question("Как сварить борщ?"),
+    79	    )
+    80	    assert isinstance(resp, SwarmResponse)
+    81	    # Должен вежливо отказать или дать общий ответ
+    82	
+    83	
+    84	# ── 7. Follow-up ────────────────────────────────────────────────────────────
+    85	
+    86	async def test_e2e_follow_up(real_orchestrator: SwarmOrchestrator):
+    87	    resp1 = await real_orchestrator.handle_question(
+    88	        _question("выручка за март"),
+    89	    )
+    90	    assert resp1.answer
+    91	    topic = resp1.topic
+    92	
+    93	    resp2 = await real_orchestrator.handle_question(
+    94	        _question("а за февраль?", last_topic=topic),
+    95	    )
+    96	    assert resp2.answer
+    97	
+    98	
+    99	# ── 8. Chart generation ─────────────────────────────────────────────────────
+   100	
+   101	async def test_e2e_chart_generation(real_orchestrator: SwarmOrchestrator):
+   102	    resp = await real_orchestrator.handle_question(
+   103	        _question("Покажи график выручки по неделям за квартал"),
+   104	    )
+   105	    assert resp.answer
+   106	    # Если chart сгенерирован, проверяем формат
+   107	    if resp.image is not None:
+   108	        assert resp.mime_type == "image/png"
+   109	        assert len(resp.image) > 100  # не пустой PNG
+   110	
+   111	
+   112	# ── 9. Telegram mock ────────────────────────────────────────────────────────
+   113	
+   114	async def test_e2e_telegram_mock(real_orchestrator: SwarmOrchestrator):
+   115	    """Проверяем что orchestrator возвращает корректный SwarmResponse."""
+   116	    resp = await real_orchestrator.handle_question(
+   117	        _question("статистика за март"),
+   118	    )
+   119	    assert isinstance(resp, SwarmResponse)
+   120	    assert resp.confidence in ("low", "medium", "high")
+   121	    assert isinstance(resp.follow_ups, list)
+   122	    assert isinstance(resp.diagnostics, dict)
+   123	
+   124	
+   125	# ── 10. Concurrent users ────────────────────────────────────────────────────
+   126	
+   127	async def test_e2e_concurrent_users(real_orchestrator: SwarmOrchestrator):
+   128	    questions = [
+   129	        _question("выручка за март", user_id="user-1"),
+   130	        _question("отток клиентов", user_id="user-2"),
+   131	        _question("коммуникации за март", user_id="user-3"),
+   132	    ]
+   133	    results = await asyncio.gather(
+   134	        *[real_orchestrator.handle_question(q) for q in questions],
+   135	    )
+   136	    for i, resp in enumerate(results):
+   137	        assert isinstance(resp, SwarmResponse), f"user-{i+1} got non-SwarmResponse"
+   138	        assert resp.answer, f"user-{i+1} got empty answer"
+   139	
+   140	
+   141	# ── 11. Comparison has chart ───────────────────────────────────────────────
+   142	
+   143	async def test_e2e_comparison_has_chart(real_orchestrator: SwarmOrchestrator):
+   144	    """Comparison pipeline должен генерировать PNG chart."""
+   145	    resp = await real_orchestrator.handle_question(
+   146	        _question("Сравни отток за март и апрель"),
+   147	    )
+   148	    assert resp.answer
+   149	    # comparison должен генерировать chart; None допустим только при отсутствии matplotlib
+   150	    assert resp.image is not None, "Comparison should produce a chart"
+   151	    assert resp.image[:4] == b"\x89PNG"
+   152	
+   153	
+   154	# ── 12. Fallback: no raw SQL fields ───────────────────────────────────────
+   155	
+   156	async def test_e2e_fallback_no_raw_fields(real_orchestrator: SwarmOrchestrator):
+   157	    """Ответ не должен содержать сырые SQL-имена полей."""
+   158	    resp = await real_orchestrator.handle_question(
+   159	        _question("Какой отток за месяц?"),
+   160	    )
+   161	    assert resp.answer
+   162	    raw_fields = {"DaysSinceLastVisit", "ServicePeriodDays", "DaysOverdue", "ClientName", "Phone"}
+   163	    for f in raw_fields:
+   164	        assert f not in resp.answer, f"Raw field {f} leaked into answer"
+   165	
+   166	
+   167	# ── 13. Fallback: has period ───────────────────────────────────────────────
+   168	
+   169	async def test_e2e_fallback_has_period(real_orchestrator: SwarmOrchestrator):
+   170	    """Ответ содержит информацию о периоде."""
+   171	    resp = await real_orchestrator.handle_question(
+   172	        _question("статистика за март"),
+   173	    )
+   174	    assert resp.answer
+   175	    # Ожидаем упоминание даты или месяца в ответе
+   176	    assert resp.topic in ("statistics", "trend")
+   177	
+   178	
+   179	# ── 14. Statistics money rounded ───────────────────────────────────────────
+   180	
+   181	async def test_e2e_statistics_money_rounded(real_orchestrator: SwarmOrchestrator):
+   182	    """Денежные метрики не содержат чрезмерных десятичных знаков."""
+   183	    resp = await real_orchestrator.handle_question(
+   184	        _question("статистика за март"),
+   185	    )
+   186	    assert resp.answer
+   187	    # Структурная проверка: ответ не пуст и topic корректен
+   188	    assert resp.topic in ("statistics", "trend")
+
+ succeeded in 0ms:
+     1	"""End-to-end тесты pipeline: вопрос → topic → SQL params → chart → ответ.
+     2	
+     3	Проверяет полную цепочку без обращения к MSSQL/LLM (моки).
+     4	"""
+     5	import asyncio
+     6	from datetime import date
+     7	
+     8	import pytest
+     9	
+    10	from swarm_powerbi_bot.agents.planner import PlannerAgent
+    11	from swarm_powerbi_bot.models import (
+    12	    AnalysisResult,
+    13	    ModelInsight,
+    14	    Plan,
+    15	    SQLInsight,
+    16	    UserQuestion,
+    17	)
+    18	from swarm_powerbi_bot.orchestrator import SwarmOrchestrator
+    19	from swarm_powerbi_bot.services.chart_renderer import HAS_MPL
+    20	
+    21	from conftest import build_mock_orchestrator_multi
+    22	
+    23	pytestmark = pytest.mark.e2e
+    24	
+    25	
+    26	# ── Mock агенты с реалистичными данными ──────────────────────
+    27	
+    28	class MockSQL:
+    29	    """Возвращает данные как настоящие хранимки — 11 тем (10 из checklist + leaving)."""
+    30	    MOCK_DATA = {
+    31	        "outflow": [
+    32	            {"ClientName": "Козлова Р.", "Phone": "79001111111", "TotalSpent": 8112.6,
+    33	             "DaysSinceLastVisit": 275, "DaysOverdue": 240, "TotalVisits": 11,
+    34	             "ServicePeriodDays": 35, "SalonName": "Dream"},
+    35	            {"ClientName": "Белова Т.", "Phone": "79002222222", "TotalSpent": 57054.0,
+    36	             "DaysSinceLastVisit": 283, "DaysOverdue": 238, "TotalVisits": 59,
+    37	             "ServicePeriodDays": 45, "SalonName": "Dream"},
+    38	        ],
+    39	        "statistics": [
+    40	            {"TotalVisits": 219, "UniqueClients": 137, "TotalRevenue": 422028.50,
+    41	             "AvgCheck": 1954.33, "ActiveMasters": 14, "SalonName": "Dream"},
+    42	        ],
+    43	        "trend": [
+    44	            {"WeekEnd": "2026-03-02", "Visits": 45, "Revenue": 77424, "UniqueClients": 30, "AvgCheck": 1720, "ActiveMasters": 7},
+    45	            {"WeekEnd": "2026-03-09", "Visits": 50, "Revenue": 85000, "UniqueClients": 35, "AvgCheck": 1700, "ActiveMasters": 8},
+    46	        ],
+    47	        "masters": [
+    48	            {"MasterName": "Мастер А", "TotalRevenue": 120000, "TotalVisits": 50, "AvgCheck": 2400, "SalonName": "Dream"},
+    49	        ],
+    50	        "referrals": [
+    51	            {"AcquisitionChannel": "Instagram", "ClientCount": 50},
+    52	            {"AcquisitionChannel": "Рекомендация", "ClientCount": 30},
+    53	        ],
+    54	        "birthday": [
+    55	            {"ClientName": "Иванова А.", "Phone": "79003333333", "BirthDate": "2000-04-16"},
+    56	        ],
+    57	        "communications": [
+    58	            {"Reason": "outflow", "Result": "Вернулся", "TotalCount": 15},
+    59	            {"Reason": "leaving", "Result": "Нет ответа", "TotalCount": 8},
+    60	        ],
+    61	        "forecast": [
+    62	            {"ClientName": "Петрова М.", "ExpectedNextVisit": "2026-04-17", "ServicePeriodDays": 28},
+    63	        ],
+    64	        "services": [
+    65	            {"ServiceName": "Стрижка", "Revenue": 85000, "ServiceCount": 120},
+    66	            {"ServiceName": "Окрашивание", "Revenue": 65000, "ServiceCount": 40},
+    67	        ],
+    68	        "quality": [
+    69	            {"ClientName": "Сидоров К.", "DaysOverdue": 5, "TotalVisits": 3, "SalonName": "Dream"},
+    70	        ],
+    71	        "leaving": [
+    72	            {"ClientName": "Нова Е.", "DaysOverdue": 15, "TotalSpent": 12000, "TotalVisits": 7, "SalonName": "Dream"},
+    73	        ],
+    74	    }
+    75	
+    76	    async def run(self, question: UserQuestion, plan: Plan) -> SQLInsight:
+    77	        rows = self.MOCK_DATA.get(plan.topic, [])
+    78	        return SQLInsight(
+    79	            rows=rows,
+    80	            summary=f"SQL вернул {len(rows)} строк по теме «{plan.topic}»",
+    81	            topic=plan.topic,
+    82	            params={"DateFrom": date(2026, 3, 15), "DateTo": date(2026, 4, 14)},
+    83	        )
+    84	
+    85	
+    86	class MockPBI:
+    87	    async def run(self, question, plan):
+    88	        return ModelInsight(metrics={}, summary="model skipped")
+    89	
+    90	
+    91	class MockRender:
+    92	    async def run(self, question, plan):
+    93	        return None
+    94	
+    95	
+    96	class MockAnalyst:
+    97	    """Возвращает canned output для проверки маршрутизации pipeline.
+    98	
+    99	    Реальную фильтрацию полей и качество формулировок проверяют
+   100	    интеграционные тесты в tests/integration/test_real_e2e.py.
+   101	    """
+   102	    async def run(self, question, plan, sql_insight, model_insight, diagnostics, *, has_chart=False):
+   103	        return AnalysisResult(
+   104	            answer=f"Тема: {plan.topic}, строк: {len(sql_insight.rows)}",
+   105	            confidence="medium",
+   106	            follow_ups=["follow1"],
+   107	        )
+   108	
+   109	
+   110	def _build_orchestrator():
+   111	    return SwarmOrchestrator(
+   112	        planner=PlannerAgent(),
+   113	        sql_agent=MockSQL(),
+   114	        powerbi_agent=MockPBI(),
+   115	        render_agent=MockRender(),
+   116	        analyst_agent=MockAnalyst(),
+   117	    )
+   118	
+   119	
+   120	# ── E2E тесты ────────────────────────────────────────────────
+   121	
+   122	class TestE2EPipeline:
+   123	    def test_outflow_question(self):
+   124	        orch = _build_orchestrator()
+   125	        result = asyncio.run(orch.handle_question(
+   126	            UserQuestion(user_id="1", text="отток за месяц"),
+   127	        ))
+   128	        assert "outflow" in result.answer
+   129	        assert result.topic == "outflow"
+   130	
+   131	    def test_statistics_question(self):
+   132	        orch = _build_orchestrator()
+   133	        result = asyncio.run(orch.handle_question(
+   134	            UserQuestion(user_id="1", text="покажи статистику за неделю"),
+   135	        ))
+   136	        assert "statistics" in result.answer
+   137	        assert result.topic == "statistics"
+   138	
+   139	    def test_masters_question(self):
+   140	        orch = _build_orchestrator()
+   141	        result = asyncio.run(orch.handle_question(
+   142	            UserQuestion(user_id="1", text="загрузка мастеров"),
+   143	        ))
+   144	        assert "masters" in result.answer
+   145	
+   146	    def test_followup_keeps_topic(self):
+   147	        """Follow-up вопрос сохраняет тему."""
+   148	        orch = _build_orchestrator()
+   149	        result = asyncio.run(orch.handle_question(
+   150	            UserQuestion(user_id="1", text="подробнее по неделям", last_topic="outflow"),
+   151	        ))
+   152	        assert result.topic == "outflow"
+   153	
+   154	    def test_response_has_follow_ups(self):
+   155	        orch = _build_orchestrator()
+   156	        result = asyncio.run(orch.handle_question(
+   157	            UserQuestion(user_id="1", text="отток за месяц"),
+   158	        ))
+   159	        assert len(result.follow_ups) > 0
+   160	
+   161	    @pytest.mark.skipif(not HAS_MPL, reason="matplotlib not installed")
+   162	    def test_outflow_generates_chart(self):
+   163	        """Отток с данными → matplotlib-график."""
+   164	        orch = _build_orchestrator()
+   165	        result = asyncio.run(orch.handle_question(
+   166	            UserQuestion(user_id="1", text="отток за месяц"),
+   167	        ))
+   168	        assert result.image is not None
+   169	        assert result.image[:4] == b"\x89PNG"
+   170	
+   171	    @pytest.mark.skipif(not HAS_MPL, reason="matplotlib not installed")
+   172	    def test_trend_generates_line_chart(self):
+   173	        orch = _build_orchestrator()
+   174	        result = asyncio.run(orch.handle_question(
+   175	            UserQuestion(user_id="1", text="покажи тренд за квартал"),
+   176	        ))
+   177	        assert result.image is not None
+   178	
+   179	    def test_empty_data_no_crash(self):
+   180	        """Если SQL вернул 0 строк — не падаем."""
+   181	        orch = _build_orchestrator()
+   182	        result = asyncio.run(orch.handle_question(
+   183	            UserQuestion(user_id="1", text="покажи именинников"),
+   184	        ))
+   185	        assert result.answer is not None
+   186	
+   187	
+   188	# ── Planner тесты ────────────────────────────────────────────
+   189	
+   190	class TestPlannerNotes:
+   191	    def test_comparison_note(self):
+   192	        planner = PlannerAgent()
+   193	        plan = asyncio.run(planner.run(
+   194	            UserQuestion(user_id="1", text="сравни отток по неделям"),
+   195	        ))
+   196	        assert "comparison_requested" in plan.notes
+   197	
+   198	    def test_period_note_week(self):
+   199	        planner = PlannerAgent()
+   200	        plan = asyncio.run(planner.run(
+   201	            UserQuestion(user_id="1", text="статистика за неделю"),
+   202	        ))
+   203	        assert "period:week" in plan.notes
+   204	
+   205	    def test_breakdown_by_master(self):
+   206	        planner = PlannerAgent()
+   207	        plan = asyncio.run(planner.run(
+   208	            UserQuestion(user_id="1", text="выручка по мастерам"),
+   209	        ))
+   210	        assert "breakdown_by_master" in plan.notes
+   211	
+   212	
+   213	# ── T004: Comparison / Composition pipeline ─────────────────────
+   214	
+   215	class TestMultiPlanPipeline:
+   216	    def test_comparison_pipeline(self):
+   217	        """MultiPlan comparison → SwarmResponse с ответом и chart."""
+   218	        orch = build_mock_orchestrator_multi(intent="comparison", topic="clients_outflow")
+   219	        result = asyncio.run(orch.handle_question(
+   220	            UserQuestion(user_id="1", text="сравни отток за два месяца"),
+   221	        ))
+   222	        assert result.answer is not None
+   223	        assert "Сравнение" in result.answer
+   224	        assert result.confidence in ("low", "medium", "high")
+   225	
+   226	    def test_comparison_pipeline_second_question(self):
+   227	        """Второй comparison-вопрос через MultiPlan → корректный ответ."""
+   228	        orch = build_mock_orchestrator_multi(intent="comparison", topic="clients_outflow")
+   229	        result = asyncio.run(orch.handle_question(
+   230	            UserQuestion(user_id="1", text="сравни отток по салонам"),
+   231	        ))
+   232	        assert result.answer
+   233	        assert len(result.answer) > 0
+   234	
+   235	    def test_decomposition_pipeline(self):
+   236	        """MultiPlan decomposition → SwarmResponse с multi-result анализом."""
+   237	        orch = build_mock_orchestrator_multi(intent="decomposition", topic="revenue_total")
+   238	        result = asyncio.run(orch.handle_question(
+   239	            UserQuestion(user_id="1", text="почему упала выручка?"),
+   240	        ))
+   241	        assert result.answer is not None
+   242	        assert result.confidence in ("low", "medium", "high")
+   243	
+   244	
+   245	# ── T005: 10 checklist questions ────────────────────────────────
+   246	
+   247	_CHECKLIST_QUESTIONS = [
+   248	    ("отток за месяц", "outflow"),
+   249	    ("покажи статистику за неделю", "statistics"),
+   250	    ("динамика по неделям", "trend"),
+   251	    ("загрузка мастеров", "masters"),
+   252	    ("реферальная программа", "referrals"),
+   253	    ("именинники на этой неделе", "birthday"),
+   254	    ("результаты обзвонов", "communications"),
+   255	    ("прогноз визитов", "forecast"),
+   256	    ("популярные услуги", "services"),
+   257	    ("контроль качества", "quality"),
+   258	]
+   259	
+   260	
+   261	class TestChecklistQuestions:
+   262	    @pytest.mark.parametrize("question_text,expected_topic", _CHECKLIST_QUESTIONS)
+   263	    def test_10_checklist_questions(self, question_text, expected_topic):
+   264	        """Каждый из 10 вопросов чеклиста → non-empty SwarmResponse."""
+   265	        orch = _build_orchestrator()
+   266	        result = asyncio.run(orch.handle_question(
+   267	            UserQuestion(user_id="1", text=question_text),
+   268	        ))
+   269	        assert result.answer is not None
+   270	        assert len(result.answer) > 0
+   271	        assert result.topic == expected_topic
+   272	
+   273	
+   274	# ── T006: Follow-up chains ──────────────────────────────────────
+   275	
+   276	class TestFollowUpChains:
+   277	    def test_follow_up_chain(self):
+   278	        """Цепочка follow-up: тема сохраняется через last_topic."""
+   279	        orch = _build_orchestrator()
+   280	        r1 = asyncio.run(orch.handle_question(
+   281	            UserQuestion(user_id="1", text="отток за месяц"),
+   282	        ))
+   283	        assert r1.topic == "outflow"
+   284	
+   285	        r2 = asyncio.run(orch.handle_question(
+   286	            UserQuestion(user_id="1", text="подробнее", last_topic="outflow"),
+   287	        ))
+   288	        assert r2.topic == "outflow"
+   289	
+   290	        r3 = asyncio.run(orch.handle_question(
+   291	            UserQuestion(user_id="1", text="а по неделям?", last_topic="outflow"),
+   292	        ))
+   293	        assert r3.topic == "outflow"
+   294	
+   295	    def test_follow_up_to_comparison(self):
+   296	        """Follow-up «сравни» с last_topic → comparison через MultiPlan."""
+   297	        orch = build_mock_orchestrator_multi(intent="comparison", topic="clients_outflow")
+   298	        result = asyncio.run(orch.handle_question(
+   299	            UserQuestion(user_id="1", text="сравни по месяцам", last_topic="clients_outflow"),
+   300	        ))
+   301	        assert result.answer is not None
+   302	        assert len(result.answer) > 0
+   303	
+   304	
+   305	# ── T007: Negative scenarios ────────────────────────────────────
+   306	
+   307	class TestNegativeScenarios:
+   308	    def test_negative_sql_injection(self):
+   309	        """SQL-инъекция в тексте не ломает pipeline."""
+   310	        orch = _build_orchestrator()
+   311	        result = asyncio.run(orch.handle_question(
+   312	            UserQuestion(user_id="1", text="'; DROP TABLE clients; --"),
+   313	        ))
+   314	        assert result.answer
+   315	        assert "sql_error" not in result.diagnostics
+   316	
+   317	    def test_negative_off_topic(self):
+   318	        """Вопрос не по теме → всё равно ответ (fallback topic)."""
+   319	        orch = _build_orchestrator()
+   320	        result = asyncio.run(orch.handle_question(
+   321	            UserQuestion(user_id="1", text="какая погода в Москве?"),
+   322	        ))
+   323	        assert result.answer
+   324	        assert result.topic  # непустой topic (fallback)
+   325	
+   326	    def test_negative_empty_text(self):
+   327	        """Пустой текст запроса → не падаем."""
+   328	        orch = _build_orchestrator()
+   329	        result = asyncio.run(orch.handle_question(
+   330	            UserQuestion(user_id="1", text=""),
+   331	        ))
+   332	        assert result.answer
+   333	        assert result.topic
+   334	
+   335	    def test_negative_no_period(self):
+   336	        """KPI-вопрос без указания периода → не падаем."""
+   337	        orch = _build_orchestrator()
+   338	        result = asyncio.run(orch.handle_question(
+   339	            UserQuestion(user_id="1", text="покажи выручку"),
+   340	        ))
+   341	        assert result.answer
+   342	        assert result.topic
+   343	
+   344	    def test_negative_long_text(self):
+   345	        """Очень длинный текст → не падаем."""
+   346	        orch = _build_orchestrator()
+   347	        long_text = "отток " * 500
+   348	        result = asyncio.run(orch.handle_question(
+   349	            UserQuestion(user_id="1", text=long_text),
+   350	        ))
+   351	        assert result.answer
+   352	        assert result.topic == "outflow"
+   353	
+   354	
+   355	# ── T008: Smoke / fallback quality ──────────────────────────────
+   356	# NB: MockAnalyst возвращает canned output — эти тесты проверяют маршрутизацию
+   357	# pipeline, а не качество формулировок аналитика. Реальное качество ответов
+   358	# (отсутствие сырых SQL-полей, форматирование чисел) проверяют интеграционные
+   359	# тесты в tests/integration/test_real_e2e.py.
+   360	
+
+exec
+/bin/zsh -lc "nl -ba tests/test_e2e_pipeline.py | sed -n '360,460p'" in /Users/zerocold/Downloads/git/kpi/tg_bot/swarm_powerbi_bot
+ succeeded in 0ms:
+   360	
+   361	class TestFallbackQuality:
+   362	    def test_outflow_fallback_no_raw_fields(self):
+   363	        """Mock pipeline: ответ не содержит сырых SQL-имён.
+   364	
+   365	        NB: MockAnalyst возвращает canned output — реальную фильтрацию
+   366	        полей проверяет integration/test_real_e2e::test_e2e_fallback_no_raw_fields.
+   367	        """
+   368	        orch = _build_orchestrator()
+   369	        result = asyncio.run(orch.handle_question(
+   370	            UserQuestion(user_id="1", text="отток за месяц"),
+   371	        ))
+   372	        raw_fields = {"DaysSinceLastVisit", "DaysOverdue", "TotalSpent", "ServicePeriodDays", "Phone"}
+   373	        for field in raw_fields:
+   374	            assert field not in result.answer, f"Сырое поле {field} в ответе"
+   375	
+   376	    def test_statistics_pipeline_returns_correct_topic(self):
+   377	        """Mock pipeline: маршрутизация statistics возвращает непустой ответ.
+   378	
+   379	        NB: MockAnalyst возвращает canned output — качество текста проверяют
+   380	        интеграционные тесты в tests/integration/test_real_e2e.py.
+   381	        """
+   382	        orch = _build_orchestrator()
+   383	        result = asyncio.run(orch.handle_question(
+   384	            UserQuestion(user_id="1", text="покажи статистику за неделю"),
+   385	        ))
+   386	        assert result.topic == "statistics"
+   387	        assert result.answer
+   388	        assert result.confidence in ("low", "medium", "high")
+   389	
+   390	    def test_statistics_pipeline_has_follow_ups(self):
+   391	        """Mock pipeline: statistics возвращает follow-up подсказки.
+   392	
+   393	        NB: MockAnalyst возвращает canned output — содержание follow-ups
+   394	        проверяют интеграционные тесты в tests/integration/test_real_e2e.py.
+   395	        """
+   396	        orch = _build_orchestrator()
+   397	        result = asyncio.run(orch.handle_question(
+   398	            UserQuestion(user_id="1", text="покажи статистику за неделю"),
+   399	        ))
+   400	        assert result.topic == "statistics"
+   401	        assert len(result.follow_ups) > 0
+
+exec
+/bin/zsh -lc "nl -ba tests/conftest.py | sed -n '1,240p'" in /Users/zerocold/Downloads/git/kpi/tg_bot/swarm_powerbi_bot
+ succeeded in 0ms:
+     1	"""Shared mock classes and fixtures for E2E and orchestrator tests."""
+     2	from __future__ import annotations
+     3	
+     4	from swarm_powerbi_bot.models import (
+     5	    AggregateResult,
+     6	    AnalysisResult,
+     7	    ModelInsight,
+     8	    MultiPlan,
+     9	    Plan,
+    10	    RenderedArtifact,
+    11	    SQLInsight,
+    12	    UserQuestion,
+    13	)
+    14	from swarm_powerbi_bot.orchestrator import SwarmOrchestrator
+    15	
+    16	
+    17	# ── Base Dummy classes ──────────────────────────────────────────
+    18	
+    19	
+    20	class DummyPlanner:
+    21	    aggregate_registry = None
+    22	
+    23	    async def run(self, question: UserQuestion) -> Plan:
+    24	        return Plan(
+    25	            objective=question.text, topic="statistics",
+    26	            sql_needed=True, powerbi_needed=True, render_needed=True,
+    27	        )
+    28	
+    29	
+    30	class DummySQL:
+    31	    async def run(self, question: UserQuestion, plan: Plan) -> SQLInsight:
+    32	        return SQLInsight(rows=[{"kpi": "sales", "value": 100}], summary="sql ok")
+    33	
+    34	
+    35	class DummyPBI:
+    36	    async def run(self, question: UserQuestion, plan: Plan) -> ModelInsight:
+    37	        return ModelInsight(metrics={"margin": 0.32}, summary="model ok")
+    38	
+    39	
+    40	class DummyRender:
+    41	    async def run(self, question: UserQuestion, plan: Plan) -> RenderedArtifact:
+    42	        _ = question, plan
+    43	        return RenderedArtifact(image_bytes=b"png-bytes", source_url="http://report")
+    44	
+    45	
+    46	class DummyAnalyst:
+    47	    async def run(self, question, plan, sql_insight, model_insight, diagnostics, *, has_chart=False):
+    48	        _ = question, plan, sql_insight, model_insight, has_chart
+    49	        return AnalysisResult(answer="analysis", confidence="high", diagnostics=diagnostics)
+    50	
+    51	
+    52	# ── MultiPlan-aware mocks ──────────────────────────────────────
+    53	
+    54	
+    55	class MockRegistry:
+    56	    """Minimal AggregateRegistry stub."""
+    57	
+    58	    def get_aggregate(self, agg_id: str):
+    59	        return {"id": agg_id, "procedure": "spKDO_Aggregate", "parameters": []}
+    60	
+    61	    def list_aggregates(self):
+    62	        return [{"id": "revenue_total"}, {"id": "clients_outflow"}]
+    63	
+    64	
+    65	class MockPlannerWithRegistry(DummyPlanner):
+    66	    def __init__(self, registry=None, *, intent="comparison", topic="clients_outflow", n_queries=2):
+    67	        self.aggregate_registry = registry or MockRegistry()
+    68	        self._intent = intent
+    69	        self._topic = topic
+    70	        self._n_queries = n_queries
+    71	
+    72	    async def run_multi(self, question):
+    73	        return MultiPlan(
+    74	            objective=question.text,
+    75	            intent=self._intent,
+    76	            queries=[{"aggregate_id": self._topic} for _ in range(self._n_queries)],
+    77	            topic=self._topic,
+    78	            render_needed=True,
+    79	            notes=["planner_v2:llm"],
+    80	        )
+    81	
+    82	    def multi_plan_to_plan(self, multi_plan, question):
+    83	        return Plan(
+    84	            objective=multi_plan.objective,
+    85	            topic=multi_plan.topic,
+    86	            notes=list(multi_plan.notes),
+    87	        )
+    88	
+    89	
+    90	class MockSQLMulti(DummySQL):
+    91	    """SQL agent that supports run_multi() with configurable results."""
+    92	
+    93	    def __init__(self, results: list[AggregateResult] | None = None):
+    94	        self._results = results or [
+    95	            AggregateResult(
+    96	                aggregate_id="clients_outflow", label="Март 2026",
+    97	                group_by="status", status="ok",
+    98	                rows=[
+    99	                    {"ClientStatus": "Отток", "ClientCount": 20},
+   100	                    {"ClientStatus": "Уходящие", "ClientCount": 15},
+   101	                ],
+   102	            ),
+   103	            AggregateResult(
+   104	                aggregate_id="clients_outflow", label="Апрель 2026",
+   105	                group_by="status", status="ok",
+   106	                rows=[
+   107	                    {"ClientStatus": "Отток", "ClientCount": 18},
+   108	                    {"ClientStatus": "Уходящие", "ClientCount": 12},
+   109	                ],
+   110	            ),
+   111	        ]
+   112	
+   113	    async def run_multi(self, multi_plan, registry, *, logger_=None):
+   114	        return self._results
+   115	
+   116	
+   117	class MockAnalystMulti(DummyAnalyst):
+   118	    async def run_multi(self, question, results, plan):
+   119	        ok = [r for r in results if r.status == "ok"]
+   120	        if len(ok) >= 2:
+   121	            answer = f"Сравнение: {ok[0].label} vs {ok[1].label}\n• Клиенты: +17%"
+   122	        elif ok:
+   123	            answer = f"Анализ: {ok[0].label}, {ok[0].row_count} строк"
+   124	        else:
+   125	            answer = "Нет данных для анализа"
+   126	        return AnalysisResult(
+   127	            answer=answer,
+   128	            confidence="medium",
+   129	            diagnostics={},
+   130	        )
+   131	
+   132	
+   133	def build_mock_orchestrator_multi(*, intent="comparison", topic="clients_outflow"):
+   134	    """Build orchestrator wired for MultiPlan flow."""
+   135	    registry = MockRegistry()
+   136	    return SwarmOrchestrator(
+   137	        planner=MockPlannerWithRegistry(registry, intent=intent, topic=topic),
+   138	        sql_agent=MockSQLMulti(),
+   139	        powerbi_agent=DummyPBI(),
+   140	        render_agent=DummyRender(),
+   141	        analyst_agent=MockAnalystMulti(),
+   142	        aggregate_registry=registry,
+   143	    )
+
+exec
+/bin/zsh -lc "nl -ba tests/integration/test_real_llm.py | sed -n '1,260p'" in /Users/zerocold/Downloads/git/kpi/tg_bot/swarm_powerbi_bot
+ succeeded in 0ms:
+     1	"""Интеграционные тесты LLM через реальный Ollama.
+     2	
+     3	Запуск: uv run pytest tests/integration/test_real_llm.py -m integration -v
+     4	"""
+     5	from __future__ import annotations
+     6	
+     7	import json
+     8	import urllib.request
+     9	
+    10	import pytest
+    11	
+    12	from swarm_powerbi_bot.agents import AnalystAgent, PlannerAgent
+    13	from swarm_powerbi_bot.models import AggregateResult, MultiPlan, UserQuestion
+    14	from swarm_powerbi_bot.services import LLMClient
+    15	from swarm_powerbi_bot.services.aggregate_registry import AggregateRegistry
+    16	
+    17	pytestmark = pytest.mark.integration
+    18	
+    19	
+    20	# ── 1. Ollama health ─────────────────────────────────────────────────────────
+    21	
+    22	def test_ollama_health(real_settings, ollama_ok):
+    23	    if not ollama_ok:
+    24	        pytest.skip("Ollama not available")
+    25	    url = real_settings.ollama_base_url.rstrip("/") + "/api/tags"
+    26	    resp = urllib.request.urlopen(url, timeout=10)  # noqa: S310
+    27	    data = json.loads(resp.read())
+    28	    assert "models" in data
+    29	
+    30	
+    31	# ── 2. Простое completion ────────────────────────────────────────────────────
+    32	
+    33	def test_simple_completion(real_settings, ollama_ok):
+    34	    if not ollama_ok:
+    35	        pytest.skip("Ollama not available")
+    36	    url = real_settings.ollama_base_url.rstrip("/") + "/api/chat"
+    37	    payload = json.dumps({
+    38	        "model": real_settings.ollama_model,
+    39	        "messages": [{"role": "user", "content": "Скажи привет"}],
+    40	        "stream": False,
+    41	        "think": False,
+    42	        "options": {"num_predict": 64},
+    43	    }).encode()
+    44	    req = urllib.request.Request(url, data=payload, headers={"Content-Type": "application/json"})
+    45	    resp = urllib.request.urlopen(req, timeout=15)  # noqa: S310
+    46	    body = json.loads(resp.read())
+    47	    content = body.get("message", {}).get("content", "")
+    48	    assert content.strip(), "Empty LLM response"
+    49	
+    50	
+    51	# ── 3. Planner keyword fallback ──────────────────────────────────────────────
+    52	
+    53	async def test_planner_keyword_fallback(real_settings):
+    54	    """PlannerAgent без registry → keyword fallback должен вернуть Plan."""
+    55	    llm_client = LLMClient(real_settings)
+    56	    # Без registry — keyword mode
+    57	    planner = PlannerAgent(llm_client=llm_client, aggregate_registry=None)
+    58	    question = UserQuestion(user_id="test", text="выручка за март", object_id=506770)
+    59	    plan = await planner.run(question)
+    60	    assert plan.topic
+    61	
+    62	
+    63	# ── 4. Planner LLM mode ─────────────────────────────────────────────────────
+    64	
+    65	async def test_planner_llm_mode(
+    66	    real_settings, real_registry: AggregateRegistry, ollama_ok,
+    67	):
+    68	    if not ollama_ok:
+    69	        pytest.skip("Ollama not available")
+    70	    llm_client = LLMClient(real_settings)
+    71	    planner = PlannerAgent(
+    72	        llm_client=llm_client,
+    73	        aggregate_registry=real_registry,
+    74	        semantic_catalog_path=real_settings.semantic_catalog_path,
+    75	    )
+    76	    question = UserQuestion(user_id="test", text="выручка за март", object_id=506770)
+    77	    plan = await planner.run_multi(question)
+    78	    assert plan.queries, "Expected at least 1 query"
+    79	    assert plan.intent
+    80	
+    81	
+    82	# ── 5. Planner comparison ────────────────────────────────────────────────────
+    83	
+    84	async def test_planner_comparison(
+    85	    real_settings, real_registry: AggregateRegistry, ollama_ok,
+    86	):
+    87	    if not ollama_ok:
+    88	        pytest.skip("Ollama not available")
+    89	    llm_client = LLMClient(real_settings)
+    90	    planner = PlannerAgent(
+    91	        llm_client=llm_client,
+    92	        aggregate_registry=real_registry,
+    93	        semantic_catalog_path=real_settings.semantic_catalog_path,
+    94	    )
+    95	    question = UserQuestion(
+    96	        user_id="test", text="сравни выручку за март и апрель", object_id=506770,
+    97	    )
+    98	    plan = await planner.run_multi(question)
+    99	    assert plan.intent == "comparison", f"expected comparison, got {plan.intent}"
+   100	    assert len(plan.queries) >= 2, f"expected >=2 queries, got {len(plan.queries)}"
+   101	
+   102	
+   103	# ── 6. Planner decomposition ────────────────────────────────────────────────
+   104	
+   105	async def test_planner_decomposition(
+   106	    real_settings, real_registry: AggregateRegistry, ollama_ok,
+   107	):
+   108	    if not ollama_ok:
+   109	        pytest.skip("Ollama not available")
+   110	    llm_client = LLMClient(real_settings)
+   111	    planner = PlannerAgent(
+   112	        llm_client=llm_client,
+   113	        aggregate_registry=real_registry,
+   114	        semantic_catalog_path=real_settings.semantic_catalog_path,
+   115	    )
+   116	    question = UserQuestion(
+   117	        user_id="test", text="почему упала выручка?", object_id=506770,
+   118	    )
+   119	    plan = await planner.run_multi(question)
+   120	    assert plan.intent in ("decomposition", "single"), f"got {plan.intent}"
+   121	    assert len(plan.queries) >= 1
+   122	
+   123	
+   124	# ── 7. Unknown topic graceful ────────────────────────────────────────────────
+   125	
+   126	async def test_planner_unknown_topic(
+   127	    real_settings, real_registry: AggregateRegistry, ollama_ok,
+   128	):
+   129	    if not ollama_ok:
+   130	        pytest.skip("Ollama not available")
+   131	    llm_client = LLMClient(real_settings)
+   132	    planner = PlannerAgent(
+   133	        llm_client=llm_client,
+   134	        aggregate_registry=real_registry,
+   135	        semantic_catalog_path=real_settings.semantic_catalog_path,
+   136	    )
+   137	    question = UserQuestion(user_id="test", text="рецепт борща", object_id=506770)
+   138	    plan = await planner.run_multi(question)
+   139	    # Не должен падать — либо пустой план, либо fallback
+   140	    assert isinstance(plan, MultiPlan)
+   141	
+   142	
+   143	# ── 8. Analyst summary ──────────────────────────────────────────────────────
+   144	
+   145	async def test_analyst_summary(real_settings, ollama_ok):
+   146	    if not ollama_ok:
+   147	        pytest.skip("Ollama not available")
+   148	    llm_client = LLMClient(real_settings)
+   149	    analyst = AnalystAgent(llm_client)
+   150	    mock_results = [
+   151	        AggregateResult(
+   152	            aggregate_id="revenue_total",
+   153	            label="Выручка",
+   154	            rows=[{"Revenue": 1500000, "Visits": 320, "AvgCheck": 4687}],
+   155	            row_count=1,
+   156	            duration_ms=100,
+   157	            status="ok",
+   158	        ),
+   159	    ]
+   160	    question = UserQuestion(user_id="test", text="выручка за март", object_id=506770)
+   161	    result = await analyst.run(question=question, sql_results=mock_results)
+   162	    assert result.answer
+   163	    assert len(result.answer) <= 2000
+   164	
+   165	
+   166	# ── 9. Circuit breaker ──────────────────────────────────────────────────────
+   167	
+   168	async def test_circuit_breaker(real_settings):
+   169	    """После N timeout-ов breaker открывается."""
+   170	    from swarm_powerbi_bot.config import Settings
+   171	
+   172	    fast_settings = Settings(
+   173	        ollama_base_url=real_settings.ollama_base_url,
+   174	        ollama_model=real_settings.ollama_model,
+   175	        llm_plan_timeout=0,  # мгновенный timeout
+   176	        llm_circuit_breaker_threshold=2,
+   177	        llm_circuit_breaker_cooldown=60,
+   178	        aggregate_catalog_path=real_settings.aggregate_catalog_path,
+   179	    )
+   180	    llm_client = LLMClient(fast_settings)
+   181	    registry = AggregateRegistry(real_settings.aggregate_catalog_path)
+   182	    planner = PlannerAgent(
+   183	        llm_client=llm_client, aggregate_registry=registry,
+   184	        semantic_catalog_path=real_settings.semantic_catalog_path,
+   185	    )
+   186	    question = UserQuestion(user_id="test", text="выручка", object_id=506770)
+   187	
+   188	    # Несколько попыток для активации breaker
+   189	    for _ in range(3):
+   190	        plan = await planner.run_multi(question)
+   191	
+   192	    # После breaker — должен сработать fallback (keyword)
+   193	    plan = await planner.run_multi(question)
+   194	    assert isinstance(plan, MultiPlan)
+   195	
+   196	
+   197	# ── 10. LLM timeout не зависает ─────────────────────────────────────────────
+   198	
+   199	async def test_llm_timeout(real_settings, ollama_ok):
+   200	    if not ollama_ok:
+   201	        pytest.skip("Ollama not available")
+   202	    from swarm_powerbi_bot.config import Settings
+   203	
+   204	    # Крайне малый timeout
+   205	    fast_settings = Settings(
+   206	        ollama_base_url=real_settings.ollama_base_url,
+   207	        ollama_model=real_settings.ollama_model,
+   208	        llm_plan_timeout=0,
+   209	        aggregate_catalog_path=real_settings.aggregate_catalog_path,
+   210	    )
+   211	    llm_client = LLMClient(fast_settings)
+   212	    registry = AggregateRegistry(real_settings.aggregate_catalog_path)
+   213	    planner = PlannerAgent(
+   214	        llm_client=llm_client, aggregate_registry=registry,
+   215	        semantic_catalog_path=real_settings.semantic_catalog_path,
+   216	    )
+   217	    question = UserQuestion(user_id="test", text="выручка за март", object_id=506770)
+   218	    # Не должен зависнуть — должен вернуть fallback или timeout
+   219	    plan = await planner.run_multi(question)
+   220	    assert isinstance(plan, MultiPlan)
+   221	
+   222	
+   223	# ── 11. Parametrized 10 questions → valid MultiPlan ─────────────────────────
+   224	
+   225	_PLANNER_10_QUESTIONS = [
+   226	    "Покажи отток клиентов за месяц",
+   227	    "Статистика за эту неделю",
+   228	    "Динамика выручки по неделям за квартал",
+   229	    "Загрузка мастеров за март",
+   230	    "Каналы привлечения клиентов",
+   231	    "Именинники на этой неделе",
+   232	    "Результаты обзвонов за март",
+   233	    "Прогноз визитов на следующую неделю",
+   234	    "Популярные услуги за месяц",
+   235	    "Контроль качества за март",
+   236	]
+   237	
+   238	
+   239	@pytest.mark.parametrize("question_text", _PLANNER_10_QUESTIONS)
+   240	async def test_planner_10_questions(
+   241	    real_settings, real_registry: AggregateRegistry, ollama_ok, question_text,
+   242	):
+   243	    if not ollama_ok:
+   244	        pytest.skip("Ollama not available")
+   245	    llm_client = LLMClient(real_settings)
+   246	    planner = PlannerAgent(
+   247	        llm_client=llm_client,
+   248	        aggregate_registry=real_registry,
+   249	        semantic_catalog_path=real_settings.semantic_catalog_path,
+   250	    )
+   251	    question = UserQuestion(user_id="test", text=question_text, object_id=506770)
+   252	    plan = await planner.run_multi(question)
+   253	    assert isinstance(plan, MultiPlan)
+   254	    assert plan.queries, f"No queries for: {question_text}"
+   255	    assert plan.topic, f"No topic for: {question_text}"
+   256	    assert plan.intent in ("single", "comparison", "decomposition"), \
+   257	        f"Invalid intent '{plan.intent}' for: {question_text}"
+
+exec
+/bin/zsh -lc "sed -n '1,240p' specs/010-test-coverage/tasks.md" in /Users/zerocold/Downloads/git/kpi/tg_bot/swarm_powerbi_bot
+ succeeded in 0ms:
+# Задачи: Расширение тестового покрытия (#10)
+
+## Фаза 1: Инфраструктура
+
+- [x] **T001**: Зарегистрировать marker `e2e` в `pyproject.toml` (не исключать из default run)
+  - Файл: `pyproject.toml`
+
+- [x] **T002**: Создать `tests/conftest.py` — вынести shared DummyClasses из `test_orchestrator.py`, добавить MockRegistry, MockPlannerWithRegistry, MockSQLMulti, MockAnalystMulti, fixture `mock_orchestrator_multi`
+  - Файлы: `tests/conftest.py`, `tests/test_orchestrator.py` (импорт из conftest)
+
+## Фаза 2: E2E mock — расширение MOCK_DATA и pipeline
+
+- [x] **T003**: Расширить `MockSQL.MOCK_DATA` в `test_e2e_pipeline.py` до 10 тем (добавить referrals, birthday, communications, forecast, services, quality)
+  - Файл: `tests/test_e2e_pipeline.py`
+
+- [x] **T004**: E2E mock: comparison pipeline через MultiPlan — `test_comparison_pipeline` (chart PNG + delta text), `test_composition_pipeline` (decomposition, multi_results)
+  - Файл: `tests/test_e2e_pipeline.py`
+
+- [x] **T005**: E2E mock: parametrized `test_10_checklist_questions` — 10 вопросов из test-checklist.md, каждый → non-empty SwarmResponse
+  - Файл: `tests/test_e2e_pipeline.py`
+
+- [x] **T006**: E2E mock: follow-up chains — `test_follow_up_chain` (topic preserved), `test_follow_up_to_comparison`
+  - Файл: `tests/test_e2e_pipeline.py`
+
+## Фаза 3: E2E mock — negative scenarios
+
+- [x] **T007**: Negative: `test_negative_sql_injection`, `test_negative_off_topic`, `test_negative_empty_period`, `test_negative_long_text`
+  - Файл: `tests/test_e2e_pipeline.py`
+
+## Фаза 4: Smoke — fallback quality
+
+- [x] **T008**: Smoke: `test_outflow_fallback_no_raw_fields`, `test_statistics_fallback_russian_labels`, `test_statistics_has_period`
+  - Файл: `tests/test_e2e_pipeline.py`
+
+## Фаза 5: Integration — новые фичи
+
+- [x] **T009**: Integration: `test_e2e_comparison_has_chart`, `test_e2e_fallback_no_raw_fields`, `test_e2e_fallback_has_period`, `test_e2e_statistics_money_rounded` — structural assertions only
+  - Файл: `tests/integration/test_real_e2e.py`
+
+- [x] **T010**: Integration: parametrized `test_planner_10_questions` — 10 вопросов → valid MultiPlan
+  - Файл: `tests/integration/test_real_llm.py`
+
+exec
+/bin/zsh -lc 'git diff --unified=20 main...HEAD -- tests/integration/test_real_llm.py' in /Users/zerocold/Downloads/git/kpi/tg_bot/swarm_powerbi_bot
+ succeeded in 1462ms:
+2026-04-15 23:13:02.972 xcodebuild[33852:108889597]  DVTFilePathFSEvents: Failed to start fs event stream.
+2026-04-15 23:13:03.149 xcodebuild[33852:108889596] [MT] DVTDeveloperPaths: Failed to get length of DARWIN_USER_CACHE_DIR from confstr(3), error = Error Domain=NSPOSIXErrorDomain Code=5 "Input/output error". Using NSCachesDirectory instead.
+git: warning: confstr() failed with code 5: couldn't get path of DARWIN_USER_TEMP_DIR; using /tmp instead
+git: error: couldn't create cache file '/tmp/xcrun_db-ojNEZpqW' (errno=Operation not permitted)
+2026-04-15 23:13:03.499 xcodebuild[33855:108889635]  DVTFilePathFSEvents: Failed to start fs event stream.
+2026-04-15 23:13:03.608 xcodebuild[33855:108889634] [MT] DVTDeveloperPaths: Failed to get length of DARWIN_USER_CACHE_DIR from confstr(3), error = Error Domain=NSPOSIXErrorDomain Code=5 "Input/output error". Using NSCachesDirectory instead.
+diff --git a/swarm_powerbi_bot/tests/integration/test_real_llm.py b/swarm_powerbi_bot/tests/integration/test_real_llm.py
+index 0855642..01789f7 100644
+--- a/swarm_powerbi_bot/tests/integration/test_real_llm.py
++++ b/swarm_powerbi_bot/tests/integration/test_real_llm.py
+@@ -34,41 +34,41 @@ def test_simple_completion(real_settings, ollama_ok):
+     if not ollama_ok:
+         pytest.skip("Ollama not available")
+     url = real_settings.ollama_base_url.rstrip("/") + "/api/chat"
+     payload = json.dumps({
+         "model": real_settings.ollama_model,
+         "messages": [{"role": "user", "content": "Скажи привет"}],
+         "stream": False,
+         "think": False,
+         "options": {"num_predict": 64},
+     }).encode()
+     req = urllib.request.Request(url, data=payload, headers={"Content-Type": "application/json"})
+     resp = urllib.request.urlopen(req, timeout=15)  # noqa: S310
+     body = json.loads(resp.read())
+     content = body.get("message", {}).get("content", "")
+     assert content.strip(), "Empty LLM response"
+ 
+ 
+ # ── 3. Planner keyword fallback ──────────────────────────────────────────────
+ 
+ async def test_planner_keyword_fallback(real_settings):
+-    """PlannerAgent без LLM (только keyword) должен вернуть Plan."""
++    """PlannerAgent без registry → keyword fallback должен вернуть Plan."""
+     llm_client = LLMClient(real_settings)
+     # Без registry — keyword mode
+     planner = PlannerAgent(llm_client=llm_client, aggregate_registry=None)
+     question = UserQuestion(user_id="test", text="выручка за март", object_id=506770)
+     plan = await planner.run(question)
+     assert plan.topic
+ 
+ 
+ # ── 4. Planner LLM mode ─────────────────────────────────────────────────────
+ 
+ async def test_planner_llm_mode(
+     real_settings, real_registry: AggregateRegistry, ollama_ok,
+ ):
+     if not ollama_ok:
+         pytest.skip("Ollama not available")
+     llm_client = LLMClient(real_settings)
+     planner = PlannerAgent(
+         llm_client=llm_client,
+         aggregate_registry=real_registry,
+         semantic_catalog_path=real_settings.semantic_catalog_path,
+@@ -201,20 +201,57 @@ async def test_llm_timeout(real_settings, ollama_ok):
+         pytest.skip("Ollama not available")
+     from swarm_powerbi_bot.config import Settings
+ 
+     # Крайне малый timeout
+     fast_settings = Settings(
+         ollama_base_url=real_settings.ollama_base_url,
+         ollama_model=real_settings.ollama_model,
+         llm_plan_timeout=0,
+         aggregate_catalog_path=real_settings.aggregate_catalog_path,
+     )
+     llm_client = LLMClient(fast_settings)
+     registry = AggregateRegistry(real_settings.aggregate_catalog_path)
+     planner = PlannerAgent(
+         llm_client=llm_client, aggregate_registry=registry,
+         semantic_catalog_path=real_settings.semantic_catalog_path,
+     )
+     question = UserQuestion(user_id="test", text="выручка за март", object_id=506770)
+     # Не должен зависнуть — должен вернуть fallback или timeout
+     plan = await planner.run_multi(question)
+     assert isinstance(plan, MultiPlan)
++
++
++# ── 11. Parametrized 10 questions → valid MultiPlan ─────────────────────────
++
++_PLANNER_10_QUESTIONS = [
++    "Покажи отток клиентов за месяц",
++    "Статистика за эту неделю",
++    "Динамика выручки по неделям за квартал",
++    "Загрузка мастеров за март",
++    "Каналы привлечения клиентов",
++    "Именинники на этой неделе",
++    "Результаты обзвонов за март",
++    "Прогноз визитов на следующую неделю",
++    "Популярные услуги за месяц",
++    "Контроль качества за март",
++]
++
++
++@pytest.mark.parametrize("question_text", _PLANNER_10_QUESTIONS)
++async def test_planner_10_questions(
++    real_settings, real_registry: AggregateRegistry, ollama_ok, question_text,
++):
++    if not ollama_ok:
++        pytest.skip("Ollama not available")
++    llm_client = LLMClient(real_settings)
++    planner = PlannerAgent(
++        llm_client=llm_client,
++        aggregate_registry=real_registry,
++        semantic_catalog_path=real_settings.semantic_catalog_path,
++    )
++    question = UserQuestion(user_id="test", text=question_text, object_id=506770)
++    plan = await planner.run_multi(question)
++    assert isinstance(plan, MultiPlan)
++    assert plan.queries, f"No queries for: {question_text}"
++    assert plan.topic, f"No topic for: {question_text}"
++    assert plan.intent in ("single", "comparison", "decomposition"), \
++        f"Invalid intent '{plan.intent}' for: {question_text}"
+
+codex
+I have enough to write findings, but I’m checking one more thing: whether the mock MultiPlan objects actually match the production contract. If the mocks are using the wrong shape and the fake SQL agent ignores it, the new MultiPlan tests are effectively testing a different API.
+exec
+/bin/zsh -lc "sed -n '1,260p' src/swarm_powerbi_bot/agents/planner.py" in /Users/zerocold/Downloads/git/kpi/tg_bot/swarm_powerbi_bot
+exec
+/bin/zsh -lc "sed -n '1,260p' src/swarm_powerbi_bot/agents/sql.py" in /Users/zerocold/Downloads/git/kpi/tg_bot/swarm_powerbi_bot
+ succeeded in 0ms:
+from __future__ import annotations
+
+import asyncio
+import logging
+
+from typing import TYPE_CHECKING
+
+from .base import Agent
+from ..config import Settings
+from ..models import AggregateQuery, AggregateResult, MultiPlan, Plan, SQLInsight, UserQuestion
+from ..services.sql_client import SQLClient
+
+logger = logging.getLogger(__name__)
+
+if TYPE_CHECKING:
+    from ..services.aggregate_registry import AggregateRegistry
+    from ..services.query_logger import QueryLogger
+
+
+class SQLAgent(Agent):
+    name = "sql"
+
+    def __init__(self, client: SQLClient, settings: Settings | None = None):
+        self.client = client
+        self.settings = settings
+
+    async def run(self, question: UserQuestion, plan: Plan) -> SQLInsight:
+        if not plan.sql_needed:
+            return SQLInsight(rows=[], summary="SQL step skipped by planner")
+
+        # Если есть LLM-параметры — используем их напрямую
+        if plan.query_params and plan.query_params.procedure:
+            rows, topic_id, params = await self.client.fetch_rows_with_params(
+                plan.query_params,
+            )
+        else:
+            # Fallback: старый путь через keyword-детекцию
+            rows, topic_id, params = await self.client.fetch_rows(
+                question.text, topic=plan.topic, object_id=question.object_id,
+            )
+
+        effective_topic = topic_id or plan.topic
+        status = "ok" if rows else "empty"
+        logger.info(
+            "sql.run user=%s topic=%s rows=%d status=%s",
+            question.user_id,
+            effective_topic,
+            len(rows),
+            status,
+        )
+
+        if not rows:
+            return SQLInsight(
+                rows=[],
+                summary="SQL вернул 0 строк или соединение не настроено",
+                topic=effective_topic,
+                params=params,
+            )
+
+        return SQLInsight(
+            rows=rows,
+            summary=f"SQL вернул {len(rows)} строк(и) по теме «{effective_topic}»",
+            topic=effective_topic,
+            params=params,
+        )
+
+    async def run_multi(
+        self,
+        plan: MultiPlan,
+        registry: "AggregateRegistry",
+        sql_client: SQLClient | None = None,
+        logger_: "QueryLogger | None" = None,
+        user_id: str = "system",
+    ) -> list[AggregateResult]:
+        """T029/T032: Выполняет несколько агрегатных запросов параллельно.
+
+        - Ограничивает количество запросов до settings.sql_max_queries
+        - Использует asyncio.Semaphore(settings.sql_max_concurrency) для ограничения параллельности
+        - При timeout/error возвращает AggregateResult с соответствующим статусом
+        - Логирует каждый вызов через QueryLogger если передан
+        """
+        client = sql_client or self.client
+
+        # Определяем лимиты из settings или используем дефолты
+        max_queries = 10
+        max_concurrency = 5
+        query_timeout = 10
+        if self.settings is not None:
+            max_queries = self.settings.sql_max_queries
+            max_concurrency = self.settings.sql_max_concurrency
+            query_timeout = self.settings.sql_query_timeout
+
+        queries = plan.queries[:max_queries]
+        semaphore = asyncio.Semaphore(max_concurrency)
+
+        async def _run_one(query: AggregateQuery) -> AggregateResult:
+            async with semaphore:
+                try:
+                    result = await asyncio.wait_for(
+                        client.execute_aggregate(query.aggregate_id, query.params, registry),
+                        timeout=query_timeout,
+                    )
+                    # Подставляем label и group_by из запроса
+                    effective_label = query.label or result.label
+                    effective_group_by = query.params.get("group_by", "")
+                    if effective_label != result.label or effective_group_by:
+                        result = AggregateResult(
+                            aggregate_id=result.aggregate_id,
+                            label=effective_label,
+                            group_by=effective_group_by,
+                            rows=result.rows,
+                            row_count=result.row_count,
+                            duration_ms=result.duration_ms,
+                            status=result.status,
+                            error=result.error,
+                        )
+                except asyncio.TimeoutError:
+                    result = AggregateResult(
+                        aggregate_id=query.aggregate_id,
+                        label=query.label,
+                        status="timeout",
+                        error="SQL query timed out",
+                    )
+                except Exception as exc:
+                    logger.error("run_multi error for %r: %s", query.aggregate_id, exc)
+                    result = AggregateResult(
+                        aggregate_id=query.aggregate_id,
+                        label=query.label,
+                        status="error",
+                        error=str(exc),
+                    )
+
+                # T032: логируем каждый вызов
+                if logger_ is not None:
+                    try:
+                        logger_.log(
+                            user_id=user_id,
+                            aggregate_id=result.aggregate_id,
+                            params=query.params,
+                            duration_ms=result.duration_ms,
+                            row_count=result.row_count,
+                            status=result.status,
+                            error=result.error,
+                        )
+                    except Exception as log_exc:
+                        logger.warning("QueryLogger.log failed: %s", log_exc)
+
+                return result
+
+        return list(await asyncio.gather(*[_run_one(q) for q in queries]))
 
  succeeded in 0ms:
 from __future__ import annotations
@@ -1867,1562 +4996,21 @@ class PlannerAgent(Agent):
 
         queries_raw = raw_dict.get("queries")
         if not queries_raw or not isinstance(queries_raw, list):
-            logger.warning("plan_aggregates: 'queries' is missing or empty")
-            return None
-
-        _ALLOWED_INTENTS = {"single", "comparison", "decomposition", "trend", "ranking"}
-        raw_intent = raw_dict.get("intent", "single")
-        intent = raw_intent if raw_intent in _ALLOWED_INTENTS else "single"
-        if raw_intent != intent:
-            logger.warning(
-                "plan_aggregates: unknown intent %r from LLM, falling back to 'single'",
-                raw_intent,
-            )
-
-        # T037/T038: для декомпозиции допускаем до 5 запросов; глобальный max — 10
-        _MAX_QUERIES_DECOMPOSITION = 5
-        _MAX_QUERIES_DEFAULT = 10
-        max_queries = (
-            _MAX_QUERIES_DECOMPOSITION
-            if intent == "decomposition"
-            else _MAX_QUERIES_DEFAULT
-        )
-        queries_raw = queries_raw[:max_queries]
-
-        # Валидируем каждый aggregate_id против whitelist
-        queries: list[AggregateQuery] = []
-        for q in queries_raw:
-            agg_id = q.get("aggregate_id", "")
-            if not registry.get_aggregate(agg_id):
-                logger.warning(
-                    "plan_aggregates: aggregate_id %r not in catalog — falling back",
-                    agg_id,
-                )
-                return None  # ANY invalid → полный fallback
-            raw_params = dict(q.get("params", {}))
-            # Инжектим object_id из подписки пользователя, только если каталог
-            # требует его (required: true). Для salon-wide агрегатов (required: false)
-            # object_id намеренно не подставляем.
-            if "object_id" not in raw_params and question.object_id is not None:
-                entry = registry.get_aggregate(agg_id)
-                if entry:
-                    params_meta = entry.get("parameters", [])
-                    obj_required = any(
-                        p.get("name") == "object_id" and p.get("required", False)
-                        for p in params_meta
-                    )
-                    if obj_required:
-                        raw_params["object_id"] = question.object_id
-            queries.append(
-                AggregateQuery(
-                    aggregate_id=agg_id,
-                    params=AggregateParams(raw_params),
-                    label=q.get("label", ""),
-                )
-            )
-
-        if not queries:
-            return None
-
-        topic = raw_dict.get("topic", "statistics")
-        # intent was already extracted above for query limit calculation
-
-        # Разрешаем period_hint → конкретные даты для ВСЕХ интентов
-        for q_obj in queries:
-            period_hint = q_obj.params.get("period_hint", "")
-            if period_hint and "date_from" not in q_obj.params:
-                resolved_from, resolved_to = _resolve_period(period_hint)
-                q_obj.params["date_from"] = resolved_from
-                q_obj.params["date_to"] = resolved_to
-
-        # T034: для intent="comparison" убеждаемся что есть ровно 2 запроса
-        if intent == "comparison":
-            if len(queries) < 2:
-                logger.warning(
-                    "plan_aggregates: comparison intent but only %d queries — falling back",
-                    len(queries),
-                )
-                return None
-
-        return MultiPlan(
-            objective=question.text,
-            intent=intent,
-            queries=queries,
-            topic=topic,
-            render_needed=render_needed,
-            notes=["planner_v2:llm"],
-        )
-
-    _COMPARISON_KEYWORDS = {"сравни", "сравнен", "сравнить", "сравнение", "compare", "сопостав", "vs"}
-    _CLIENT_AGGREGATES = {
-        "clients_outflow", "clients_leaving", "clients_forecast",
-        "clients_noshow", "clients_quality", "clients_birthday", "clients_all",
-    }
-
-    def _fallback_multi_plan(
-        self, question: UserQuestion, render_needed: bool
-    ) -> MultiPlan:
-        """Fallback: keyword-based TopicRegistry → AggregateQuery(s).
-
-        Определяет intent=comparison по ключевым словам и генерирует
-        2 запроса с разными периодами при наличии контекста (last_topic).
-        """
-        topic = detect_topic(question.text, last_topic=question.last_topic)
-        text_lower = question.text.lower()
-
-        is_comparison = any(kw in text_lower for kw in self._COMPARISON_KEYWORDS)
-
-        if is_comparison and question.last_topic:
-            agg_id = question.last_topic
-            # Для клиентских агрегатов — group_by=status (агрегированные цифры)
-            group_by = "status" if agg_id in self._CLIENT_AGGREGATES else ""
-            today = date.today()
-            first_of_current = today.replace(day=1)
-            last_of_prev = first_of_current - timedelta(days=1)
-            first_of_prev = last_of_prev.replace(day=1)
-
-            params_prev: dict = {
-                "date_from": first_of_prev.isoformat(),
-                "date_to": last_of_prev.isoformat(),
-            }
-            params_curr: dict = {
-                "date_from": first_of_current.isoformat(),
-                "date_to": today.isoformat(),
-            }
-            if group_by:
-                params_prev["group_by"] = group_by
-                params_curr["group_by"] = group_by
-
-            _RU_MONTHS = [
-                "", "Январь", "Февраль", "Март", "Апрель", "Май", "Июнь",
-                "Июль", "Август", "Сентябрь", "Октябрь", "Ноябрь", "Декабрь",
-            ]
-            prev_label = f"{_RU_MONTHS[first_of_prev.month]} {first_of_prev.year}"
-            curr_label = f"{_RU_MONTHS[first_of_current.month]} {first_of_current.year}"
-
-            queries = [
-                AggregateQuery(aggregate_id=agg_id, params=AggregateParams(params_prev), label=prev_label),
-                AggregateQuery(aggregate_id=agg_id, params=AggregateParams(params_curr), label=curr_label),
-            ]
-            return MultiPlan(
-                objective=question.text,
-                intent="comparison",
-                queries=queries,
-                topic=agg_id,
-                render_needed=render_needed,
-                notes=["planner_v2:keyword", "comparison:fallback"],
-            )
-
-        agg_query = AggregateQuery(
-            aggregate_id=topic,
-            params={},
-            label=topic,
-        )
-
-        return MultiPlan(
-            objective=question.text,
-            intent="single",
-            queries=[agg_query],
-            topic=topic,
-            render_needed=render_needed,
-            notes=["planner_v2:keyword"],
-        )
 
 exec
-/bin/zsh -lc "sed -n '1,260p' src/swarm_powerbi_bot/services/aggregate_registry.py" in /Users/zerocold/Downloads/git/kpi/tg_bot/swarm_powerbi_bot
-exec
-/bin/zsh -lc "sed -n '1,320p' src/swarm_powerbi_bot/services/topic_registry.py" in /Users/zerocold/Downloads/git/kpi/tg_bot/swarm_powerbi_bot
+/bin/zsh -lc "rg -n \"def run_multi|aggregate_id|queries\\[\" src/swarm_powerbi_bot/agents src/swarm_powerbi_bot/services | sed -n '1,240p'" in /Users/zerocold/Downloads/git/kpi/tg_bot/swarm_powerbi_bot
  succeeded in 0ms:
-from __future__ import annotations
-
-import datetime
-import logging
-import re
-from pathlib import Path
-
-try:
-    import yaml
-except ImportError as exc:  # pragma: no cover
-    raise ImportError(
-        "PyYAML is required for aggregate_registry. Install it: uv add pyyaml"
-    ) from exc
-
-logger = logging.getLogger(__name__)
-
-# ── constants ──────────────────────────────────────────────────────────────────
-
-_DATE_RE = re.compile(r"^\d{4}-\d{2}-\d{2}$")
-
-_FILTER_VALUES = frozenset(
-    {"all", "outflow", "leaving", "forecast", "noshow", "quality", "birthday"}
-)
-
-_REASON_VALUES = frozenset(
-    {"all", "outflow", "leaving", "forecast", "noshow", "quality", "birthday", "waitlist", "opz"}
-)
-
-
-# ── helpers ────────────────────────────────────────────────────────────────────
-
-
-def _is_date(value: object) -> bool:
-    if not isinstance(value, str) or not _DATE_RE.match(value):
-        return False
-    try:
-        datetime.date.fromisoformat(value)
-        return True
-    except ValueError:
-        return False
-
-
-def _load_catalog(path: str) -> dict[str, dict]:
-    """Загружает YAML-каталог, возвращает {aggregate_id: entry}.
-
-    Raises:
-        FileNotFoundError: файл не найден
-        yaml.YAMLError: невалидный YAML
-        ValueError: запись без обязательного поля 'id'
-    """
-    try:
-        raw = yaml.safe_load(Path(path).read_text(encoding="utf-8"))
-    except FileNotFoundError:
-        logger.error("Catalog file not found: %s", path)
-        raise
-    except yaml.YAMLError as exc:
-        logger.error("Invalid YAML in catalog %s: %s", path, exc)
-        raise
-
-    if not isinstance(raw, dict):
-        logger.warning("Catalog %s has unexpected format, returning empty", path)
-        return {}
-
-    entries = raw.get("aggregates", [])
-    result: dict[str, dict] = {}
-    for idx, entry in enumerate(entries):
-        if not isinstance(entry, dict) or "id" not in entry:
-            raise ValueError(
-                f"Catalog {path}: entry #{idx} missing required 'id' field: {entry!r}"
-            )
-        result[entry["id"]] = entry
-    return result
-
-
-def _validate_entry_params(
-    aggregate_id: str,
-    entry: dict,
-    params: dict,
-) -> tuple[bool, str]:
-    """Общая валидация параметров для записи каталога."""
-    allowed_group_by: list[str] = entry.get("allowed_group_by", [])
-
-    # Проверяем наличие обязательных параметров из каталога
-    catalog_params: list[dict] = entry.get("parameters", [])
-    for catalog_param in catalog_params:
-        if catalog_param.get("required", False):
-            param_name = catalog_param.get("name", "")
-            if param_name and param_name not in params:
-                return False, (
-                    f"required param {param_name!r} missing for aggregate {aggregate_id!r}"
-                )
-
-    for key, value in params.items():
-        if key in ("date_from", "date_to"):
-            if not _is_date(value):
-                return False, f"{key} must be YYYY-MM-DD, got {value!r}"
-
-        elif key == "object_id":
-            if not isinstance(value, int):
-                return False, f"object_id must be int, got {type(value).__name__}"
-
-        elif key == "master_id":
-            if value is not None and not isinstance(value, int):
-                return (
-                    False,
-                    f"master_id must be int or None, got {type(value).__name__}",
-                )
-
-        elif key == "group_by":
-            if value not in allowed_group_by:
-                return False, (
-                    f"group_by {value!r} not allowed for {aggregate_id!r}; "
-                    f"allowed: {allowed_group_by}"
-                )
-
-        elif key == "filter":
-            if value not in _FILTER_VALUES:
-                return False, (
-                    f"filter {value!r} not in allowed set {sorted(_FILTER_VALUES)}"
-                )
-
-        elif key == "reason":
-            if value not in _REASON_VALUES:
-                return False, (
-                    f"reason {value!r} not in allowed set {sorted(_REASON_VALUES)}"
-                )
-
-        elif key in ("top_n", "top"):
-            if not isinstance(value, int) or not (1 <= value <= 50):
-                return False, f"{key} must be int in [1, 50], got {value!r}"
-
-    return True, ""
-
-
-# ── module-level state (populated by load_catalog()) ──────────────────────────
-
-_catalog: dict[str, dict] = {}
-
-
-def load_catalog(path: str) -> None:
-    """Загружает каталог агрегатов из YAML-файла. Вызывается при старте."""
-    global _catalog
-    _catalog = _load_catalog(path)
-
-
-# ── public functions ───────────────────────────────────────────────────────────
-
-
-def validate_aggregate_id(aggregate_id: str) -> bool:
-    """True, если aggregate_id есть в загруженном каталоге."""
-    return aggregate_id in _catalog
-
-
-def validate_params(aggregate_id: str, params: dict) -> tuple[bool, str]:
-    """Валидирует params для указанного агрегата.
-
-    Возвращает (True, "") при успехе или (False, <причина>) при ошибке.
-    """
-    entry = _catalog.get(aggregate_id)
-    if entry is None:
-        return False, f"unknown aggregate_id: {aggregate_id!r}"
-    return _validate_entry_params(aggregate_id, entry, params)
-
-
-# ── Registry class ─────────────────────────────────────────────────────────────
-
-
-class AggregateRegistry:
-    def __init__(self, catalog_path: str) -> None:
-        self._catalog: dict[str, dict] = _load_catalog(catalog_path)
-
-    def get_aggregate(self, aggregate_id: str) -> dict | None:
-        return self._catalog.get(aggregate_id)
-
-    def validate(self, aggregate_id: str, params: dict) -> tuple[bool, str]:
-        """Комбинирует проверку whitelist и параметров."""
-        entry = self._catalog.get(aggregate_id)
-        if entry is None:
-            return False, f"unknown aggregate_id: {aggregate_id!r}"
-        return _validate_entry_params(aggregate_id, entry, params)
-
-    def list_aggregates(self) -> list[dict]:
-        """Возвращает все агрегаты — используется при формировании LLM-промпта."""
-        return list(self._catalog.values())
-
- succeeded in 0ms:
-"""Реестр аналитических тем КДО — маппинг вопросов на хранимые процедуры."""
-from __future__ import annotations
-
-from dataclasses import dataclass, field
-
-
-@dataclass(frozen=True)
-class TopicEntry:
-    topic_id: str
-    procedure: str
-    keywords: list[str] = field(default_factory=list)
-    description: str = ""
-
-
-# ──────────────────────────────────────────────
-# Реестр 15 тем из модели КДО 3.2.1
-# ──────────────────────────────────────────────
-
-TOPICS: list[TopicEntry] = [
-    TopicEntry(
-        topic_id="all_clients",
-        procedure="dbo.spKDO_AllClients",
-        keywords=["база клиент", "клиентов в базе", "количество клиент", "новые клиент", "все клиент", "клиентская база"],
-        description="Все клиенты — база, сегментация, количество",
-    ),
-    TopicEntry(
-        topic_id="outflow",
-        procedure="dbo.spKDO_Outflow",
-        keywords=["отток", "потер", "ушедш", "не вернул", "потеряли"],
-        description="Отток клиентов — кто уходит и почему",
-    ),
-    TopicEntry(
-        topic_id="leaving",
-        procedure="dbo.spKDO_Leaving",
-        keywords=["уходящ", "покида", "расставан", "уход клиент", "на грани ухода"],
-        description="Уходящие — клиенты на грани ухода",
-    ),
-    TopicEntry(
-        topic_id="statistics",
-        procedure="dbo.spKDO_Statistics",
-        keywords=["статистик", "сводк", "итог", "показател", "общ", "kpi"],
-        description="Статистика — сводные KPI-показатели",
-    ),
-    TopicEntry(
-        topic_id="trend",
-        procedure="dbo.spKDO_Trend",
-        keywords=["тренд", "динамик", "рост", "падени", "изменен",
-                  "сравнен", "сравни", "неделя к недел", "по неделям",
-                  "по месяцам", "помесячно", "понедельно"],
-        description="Тренды — динамика метрик во времени",
-    ),
-    TopicEntry(
-        topic_id="forecast",
-        procedure="dbo.spKDO_Forecast",
-        keywords=["прогноз", "предсказ", "ожидаем", "план визит", "загрузк"],
-        description="Прогноз визитов — загрузка мастеров",
-    ),
-    TopicEntry(
-        topic_id="communications",
-        procedure="dbo.spKDO_Communications",
-        keywords=["коммуникац", "звонок", "обзвон", "сообщен", "связь с клиент"],
-        description="Коммуникации — работа с клиентами",
-    ),
-    TopicEntry(
-        topic_id="referrals",
-        procedure="dbo.spKDO_Referrals",
-        keywords=["реферж", "реферал", "приглаш", "рекоменда", "привёл"],
-        description="Рефережи — реферальная программа",
-    ),
-    TopicEntry(
-        topic_id="quality",
-        procedure="dbo.spKDO_Quality",
-        keywords=["качество", "контроль качеств", "оценк", "отзыв", "жалоб"],
-        description="Контроль качества — оценки и NPS",
-    ),
-    TopicEntry(
-        topic_id="attachments",
-        procedure="dbo.spKDO_Attachments",
-        keywords=["вложен", "абонемент", "подписк", "членств"],
-        description="Вложения/Абонементы — подписки клиентов",
-    ),
-    TopicEntry(
-        topic_id="birthday",
-        procedure="dbo.spKDO_Birthday",
-        keywords=["рожден", "именинник", "поздравлен", "день рожд"],
-        description="Дни рождения — именинники и поздравления",
-    ),
-    TopicEntry(
-        topic_id="waitlist",
-        procedure="dbo.spKDO_WaitList",
-        keywords=["ожидан", "лист ожидан", "очередь", "запись"],
-        description="Лист ожидания — очередь клиентов",
-    ),
-    TopicEntry(
-        topic_id="training",
-        procedure="dbo.spKDO_Training",
-        keywords=["обучен", "тренинг", "курс", "материал"],
-        description="Обучение — обучающие материалы для мастеров",
-    ),
-    TopicEntry(
-        topic_id="masters",
-        procedure="dbo.spKDO_Masters",
-        keywords=["мастер", "специалист", "сотрудник", "загрузка мастер", "персонал"],
-        description="Мастера — загрузка, эффективность специалистов",
-    ),
-    TopicEntry(
-        topic_id="services",
-        procedure="dbo.spKDO_Services",
-        keywords=["услуг", "выручк", "чек", "оборот", "продаж", "средний чек", "доход"],
-        description="Услуги/Финансы — выручка, средний чек, популярные услуги",
-    ),
-    TopicEntry(
-        topic_id="noshow",
-        procedure="dbo.spKDO_NoShow",
-        keywords=["недошедш", "не дошёл", "не дошел", "не пришёл", "не пришел", "отменил запись", "отмена записи"],
-        description="Недошедшие — клиенты с отменёнными записями",
-    ),
-    TopicEntry(
-        topic_id="opz",
-        procedure="dbo.spKDO_OPZ",
-        keywords=["опз", "оперативн", "оперативная запись"],
-        description="ОПЗ — оперативные записи на другой день",
-    ),
-]
-
-# Индекс для быстрого поиска
-_TOPICS_BY_ID: dict[str, TopicEntry] = {t.topic_id: t for t in TOPICS}
-
-DEFAULT_TOPIC = "statistics"
-
-
-# Слова-модификаторы: меняют отображение, но не тему
-# Если вопрос состоит ТОЛЬКО из модификаторов — это follow-up к предыдущей теме
-_MODIFIER_KEYWORDS = {
-    "сравнен", "сравни", "неделя к недел", "по неделям", "по месяцам",
-    "помесячно", "понедельно", "динамик", "тренд", "изменен",
-    "подробн", "детальн", "разбивк", "группиров",
-}
-
-
-def detect_topic(question: str, last_topic: str = "") -> str:
-    """Определяет тему вопроса по ключевым словам (скоринг).
-
-    Если вопрос содержит только модификаторы (сравни, по неделям)
-    без явной темы — используем last_topic как контекст разговора.
-    """
-    text = question.lower()
-    best_id = DEFAULT_TOPIC
-    best_score = 0
-
-    for entry in TOPICS:
-        score = sum(1 for kw in entry.keywords if kw in text)
-        if score > best_score:
-            best_score = score
-            best_id = entry.topic_id
-
-    # Follow-up: вопрос без явной темы + есть предыдущий контекст
-    if last_topic and last_topic in _TOPICS_BY_ID:
-        # Если тема не найдена (score=0) — берём контекст
-        if best_score == 0:
-            return last_topic
-        # Если совпал только trend по модификаторам — это follow-up
-        if best_id == "trend" and best_score <= 2:
-            has_real_topic = any(
-                kw in text for entry in TOPICS
-                if entry.topic_id != "trend"
-                for kw in entry.keywords
-            )
-            if not has_real_topic:
-                return last_topic
-
-    # Тема не определена и нет контекста разговора — не выполняем SQL
-    if best_score == 0:
-        return "unknown"
-
-    return best_id
-
-
-def get_topic(topic_id: str) -> TopicEntry | None:
-    return _TOPICS_BY_ID.get(topic_id)
-
-
-def get_procedure(topic_id: str) -> str:
-    entry = _TOPICS_BY_ID.get(topic_id)
-    if entry:
-        return entry.procedure
-    return _TOPICS_BY_ID[DEFAULT_TOPIC].procedure
-
-
-def get_description(topic_id: str) -> str:
-    entry = _TOPICS_BY_ID.get(topic_id)
-    return entry.description if entry else ""
-
-exec
-/bin/zsh -lc "sed -n '261,520p' tests/test_planner_v2.py" in /Users/zerocold/Downloads/git/kpi/tg_bot/swarm_powerbi_bot
- succeeded in 0ms:
-
-
-# ── T022-4: Cross-domain query → multiple aggregates ─────────────────────────
-
-class TestCrossDomainMultipleAggregates:
-    """Cross-domain вопрос → несколько агрегатов в плане."""
-
-    def test_two_valid_aggregates(self, registry):
-        multi_json = """{
-            "intent": "comparison",
-            "queries": [
-                {"aggregate_id": "revenue_total", "params": {"date_from": "2026-04-01", "date_to": "2026-04-15"}, "label": "Выручка"},
-                {"aggregate_id": "outflow_clients", "params": {"date_from": "2026-04-01", "date_to": "2026-04-15"}, "label": "Отток"}
-            ],
-            "topic": "statistics",
-            "render_needed": true
-        }"""
-        planner = _make_planner(multi_json, registry)
-        q = UserQuestion(user_id="1", text="покажи выручку и отток")
-        import asyncio
-        plan = asyncio.run(planner.run_multi(q))
-        assert isinstance(plan, MultiPlan)
-        assert plan.intent == "comparison"
-        assert len(plan.queries) == 2
-        ids = {aq.aggregate_id for aq in plan.queries}
-        assert ids == {"revenue_total", "outflow_clients"}
-        assert "planner_v2:llm" in plan.notes
-
-    def test_three_aggregates_cross_domain(self, registry):
-        multi_json = """{
-            "intent": "decomposition",
-            "queries": [
-                {"aggregate_id": "revenue_total", "params": {}, "label": "Выручка"},
-                {"aggregate_id": "outflow_clients", "params": {}, "label": "Отток"},
-                {"aggregate_id": "communications_all", "params": {}, "label": "Коммуникации"}
-            ],
-            "topic": "statistics",
-            "render_needed": true
-        }"""
-        planner = _make_planner(multi_json, registry)
-        q = UserQuestion(user_id="1", text="полный дашборд: выручка, отток и коммуникации")
-        import asyncio
-        plan = asyncio.run(planner.run_multi(q))
-        assert len(plan.queries) == 3
-        assert plan.intent == "decomposition"
-
-
-# ── Issue #2: Follow-up comparison intent ────────────────────────────────────
-
-class TestFollowUpComparison:
-    """Fix #2: follow-up «сравни по месяцам» должен возвращать comparison."""
-
-    def test_followup_comparison_llm(self, registry):
-        """LLM получает last_topic и возвращает comparison plan."""
-        comparison_json = """{
-            "intent": "comparison",
-            "queries": [
-                {"aggregate_id": "clients_outflow", "params": {"date_from": "2026-03-01", "date_to": "2026-03-31", "group_by": "status"}, "label": "Март"},
-                {"aggregate_id": "clients_outflow", "params": {"date_from": "2026-02-01", "date_to": "2026-02-28", "group_by": "status"}, "label": "Февраль"}
-            ],
-            "topic": "clients_outflow",
-            "render_needed": true
-        }"""
-        planner = _make_planner(comparison_json, registry)
-        q = UserQuestion(
-            user_id="1",
-            text="сравни по месяцам за два месяца",
-            last_topic="clients_outflow",
-        )
-        import asyncio
-        plan = asyncio.run(planner.run_multi(q))
-
-        assert plan.intent == "comparison"
-        assert len(plan.queries) == 2
-        assert all(aq.aggregate_id == "clients_outflow" for aq in plan.queries)
-        # Проверяем что last_topic был передан в plan_aggregates
-        call_kwargs = planner.llm_client.plan_aggregates.call_args
-        assert call_kwargs is not None
-        assert call_kwargs.kwargs.get("last_topic") == "clients_outflow"
-
-    def test_followup_comparison_fallback(self, registry):
-        """Без LLM: «сравни» + last_topic → comparison с 2 запросами."""
-        planner = _make_planner(None, registry)  # LLM unavailable
-        q = UserQuestion(
-            user_id="1",
-            text="сравни по месяцам за два месяца",
-            last_topic="clients_outflow",
-        )
-        import asyncio
-        plan = asyncio.run(planner.run_multi(q))
-
-        assert plan.intent == "comparison"
-        assert len(plan.queries) == 2
-        assert all(aq.aggregate_id == "clients_outflow" for aq in plan.queries)
-        # Клиентский агрегат → group_by=status (не list)
-        for aq in plan.queries:
-            assert aq.params.get("group_by") == "status"
-        assert "comparison:fallback" in plan.notes
-
-    def test_followup_comparison_no_context(self, registry):
-        """«сравни» без last_topic → fallback single (нет контекста для comparison)."""
-        planner = _make_planner(None, registry)
-        q = UserQuestion(user_id="1", text="сравни что-то")
-        import asyncio
-        plan = asyncio.run(planner.run_multi(q))
-
-        assert isinstance(plan, MultiPlan)
-        # Без контекста topic_registry вернёт unknown → single
-        assert plan.intent == "single"
-
-exec
-/bin/zsh -lc "rg -n \"comparison:fallback|last_topic|plan_aggregates\\(\" tests src/swarm_powerbi_bot | sed -n '1,220p'" in /Users/zerocold/Downloads/git/kpi/tg_bot/swarm_powerbi_bot
- succeeded in 0ms:
-src/swarm_powerbi_bot/services/topic_registry.py:141:def detect_topic(question: str, last_topic: str = "") -> str:
-src/swarm_powerbi_bot/services/topic_registry.py:145:    без явной темы — используем last_topic как контекст разговора.
-src/swarm_powerbi_bot/services/topic_registry.py:158:    if last_topic and last_topic in _TOPICS_BY_ID:
-src/swarm_powerbi_bot/services/topic_registry.py:161:            return last_topic
-src/swarm_powerbi_bot/services/topic_registry.py:170:                return last_topic
-src/swarm_powerbi_bot/services/llm_client.py:19:    """Валидирует last_topic: только a-z, 0-9, _ (до 64 символов)."""
-src/swarm_powerbi_bot/services/llm_client.py:123:        self, question: str, today: str, last_topic: str = ""
-src/swarm_powerbi_bot/services/llm_client.py:134:        if last_topic:
-src/swarm_powerbi_bot/services/llm_client.py:136:                f"Предыдущая тема диалога: {last_topic}. "
-src/swarm_powerbi_bot/services/llm_client.py:150:    async def plan_aggregates(
-src/swarm_powerbi_bot/services/llm_client.py:155:        last_topic: str = "",
-src/swarm_powerbi_bot/services/llm_client.py:199:            "Если указан last_topic — пользователь продолжает предыдущий разговор. "
-src/swarm_powerbi_bot/services/llm_client.py:200:            "Используй last_topic как основу для выбора агрегата.\n"
-src/swarm_powerbi_bot/services/llm_client.py:201:            "Пример: last_topic=clients_outflow, вопрос=«сравни по месяцам» "
-src/swarm_powerbi_bot/services/llm_client.py:220:                    f"{question}\nКонтекст: last_topic={_sanitize_topic(last_topic)}"
-src/swarm_powerbi_bot/services/llm_client.py:221:                    if last_topic else question
-src/swarm_powerbi_bot/models.py:13:    last_topic: str = ""  # Тема предыдущего вопроса (для контекста разговора)
-tests/test_llm_planner.py:106:            UserQuestion(user_id="1", text="сравни по неделям", last_topic="outflow"),
-tests/test_llm_planner.py:222:            UserQuestion(user_id="1", text="подробнее", last_topic="outflow"),
-tests/test_circuit_breaker.py:47:                result = await client.plan_aggregates("вопрос", "каталог", "семантика")
-tests/test_circuit_breaker.py:59:            result = await client.plan_aggregates("вопрос", "каталог", "семантика")
-tests/test_circuit_breaker.py:69:            result = await client.plan_aggregates("вопрос", "каталог", "семантика")
-tests/test_circuit_breaker.py:81:            result = await client.plan_aggregates("вопрос", "каталог", "семантика")
-tests/test_circuit_breaker.py:90:            result = await client.plan_aggregates("вопрос", "каталог", "семантика")
-tests/test_planner_v2.py:314:        """LLM получает last_topic и возвращает comparison plan."""
-tests/test_planner_v2.py:328:            last_topic="clients_outflow",
-tests/test_planner_v2.py:336:        # Проверяем что last_topic был передан в plan_aggregates
-tests/test_planner_v2.py:339:        assert call_kwargs.kwargs.get("last_topic") == "clients_outflow"
-tests/test_planner_v2.py:342:        """Без LLM: «сравни» + last_topic → comparison с 2 запросами."""
-tests/test_planner_v2.py:347:            last_topic="clients_outflow",
-tests/test_planner_v2.py:358:        assert "comparison:fallback" in plan.notes
-tests/test_planner_v2.py:361:        """«сравни» без last_topic → fallback single (нет контекста для comparison)."""
-tests/test_context_switching.py:5:- Использует last_topic для follow-up вопросов
-tests/test_context_switching.py:19:        topic = detect_topic("сравни месяц к месяцу", last_topic="outflow")
-tests/test_context_switching.py:23:        topic = detect_topic("покажи по неделям", last_topic="outflow")
-tests/test_context_switching.py:27:        topic = detect_topic("подробнее", last_topic="masters")
-tests/test_context_switching.py:31:        topic = detect_topic("по месяцам за квартал", last_topic="services")
-tests/test_context_switching.py:35:        topic = detect_topic("покажи динамику", last_topic="leaving")
-tests/test_context_switching.py:40:        topic = detect_topic("разбивка по категориям", last_topic="quality")
-tests/test_context_switching.py:50:        topic = detect_topic("покажи мастеров за неделю", last_topic="outflow")
-tests/test_context_switching.py:54:        topic = detect_topic("какая выручка за месяц?", last_topic="outflow")
-tests/test_context_switching.py:58:        topic = detect_topic("покажи отток", last_topic="masters")
-tests/test_context_switching.py:62:        topic = detect_topic("контроль качества за неделю", last_topic="statistics")
-tests/test_context_switching.py:66:        topic = detect_topic("кто не дошёл?", last_topic="outflow")
-tests/test_context_switching.py:73:    """Без last_topic модификаторы идут в trend, остальное в statistics."""
-tests/test_context_switching.py:95:        topic = detect_topic("", last_topic="outflow")
-tests/test_context_switching.py:100:        topic = detect_topic("за последнюю неделю", last_topic="outflow")
-tests/test_context_switching.py:103:    def test_invalid_last_topic_ignored(self):
-tests/test_context_switching.py:104:        # invalid last_topic не попадает в _TOPICS_BY_ID, поэтому контекст не используется.
-tests/test_context_switching.py:106:        topic = detect_topic("привет", last_topic="nonexistent_topic")
-tests/test_context_switching.py:111:        topic = detect_topic("тренд выручки", last_topic="outflow")
-tests/integration/test_real_e2e.py:90:        _question("а за февраль?", last_topic=topic),
-tests/test_e2e_pipeline.py:114:            UserQuestion(user_id="1", text="подробнее по неделям", last_topic="outflow"),
-src/swarm_powerbi_bot/telegram_bot.py:227:        # last_topic для контекста разговора (follow-up вопросы)
-src/swarm_powerbi_bot/telegram_bot.py:228:        last_topic = ""
-src/swarm_powerbi_bot/telegram_bot.py:230:            last_topic = user_data.get("last_topic", "")
-src/swarm_powerbi_bot/telegram_bot.py:234:                         last_topic=last_topic),
-src/swarm_powerbi_bot/telegram_bot.py:239:            user_data["last_topic"] = response.topic
-src/swarm_powerbi_bot/agents/planner.py:212:           и вызываем LLMClient.plan_aggregates()
-src/swarm_powerbi_bot/agents/planner.py:250:        raw_dict = await self.llm_client.plan_aggregates(  # type: ignore[union-attr]
-src/swarm_powerbi_bot/agents/planner.py:254:            last_topic=question.last_topic,
-src/swarm_powerbi_bot/agents/planner.py:359:        2 запроса с разными периодами при наличии контекста (last_topic).
-src/swarm_powerbi_bot/agents/planner.py:361:        topic = detect_topic(question.text, last_topic=question.last_topic)
-src/swarm_powerbi_bot/agents/planner.py:366:        if is_comparison and question.last_topic:
-src/swarm_powerbi_bot/agents/planner.py:367:            agg_id = question.last_topic
-src/swarm_powerbi_bot/agents/planner.py:404:                notes=["planner_v2:keyword", "comparison:fallback"],
-src/swarm_powerbi_bot/agents/planner.py:438:            topic = detect_topic(question.text, last_topic=question.last_topic)
-src/swarm_powerbi_bot/agents/planner.py:527:            last_topic=question.last_topic,
-src/swarm_powerbi_bot/agents/planner.py:584:            raw, detect_topic(question.text, last_topic=question.last_topic)
-
-codex
-The risky part now is whether the new fallback uses the same topic namespace as the rest of the app. I’m tracing `last_topic` from Telegram response storage through planner, SQL execution, and rendering to see whether `clients_outflow` is even a valid runtime topic outside the LLM path.
-exec
-/bin/zsh -lc "sed -n '1,320p' src/swarm_powerbi_bot/services/chart_renderer.py" in /Users/zerocold/Downloads/git/kpi/tg_bot/swarm_powerbi_bot
-exec
-/bin/zsh -lc "sed -n '1,320p' src/swarm_powerbi_bot/orchestrator.py" in /Users/zerocold/Downloads/git/kpi/tg_bot/swarm_powerbi_bot
-exec
-/bin/zsh -lc "sed -n '1,360p' src/swarm_powerbi_bot/agents/sql.py" in /Users/zerocold/Downloads/git/kpi/tg_bot/swarm_powerbi_bot
- succeeded in 0ms:
-from __future__ import annotations
-
-import asyncio
-import logging
-from typing import TYPE_CHECKING
-
-from .agents import AnalystAgent, PlannerAgent, PowerBIModelAgent, RenderAgent, SQLAgent
-from .models import (
-    AggregateResult,
-    ModelInsight,
-    MultiPlan,
-    SQLInsight,
-    SwarmResponse,
-    UserQuestion,
-)
-from .services.chart_renderer import render_chart, render_comparison
-
-if TYPE_CHECKING:
-    from .services.aggregate_registry import AggregateRegistry
-    from .services.query_logger import QueryLogger
-
-logger = logging.getLogger(__name__)
-
-
-class SwarmOrchestrator:
-    def __init__(
-        self,
-        planner: PlannerAgent,
-        sql_agent: SQLAgent,
-        powerbi_agent: PowerBIModelAgent,
-        render_agent: RenderAgent,
-        analyst_agent: AnalystAgent,
-        aggregate_registry: "AggregateRegistry | None" = None,
-        query_logger: "QueryLogger | None" = None,
-    ):
-        self.planner = planner
-        self.sql_agent = sql_agent
-        self.powerbi_agent = powerbi_agent
-        self.render_agent = render_agent
-        self.analyst_agent = analyst_agent
-        self.aggregate_registry = aggregate_registry
-        self.query_logger = query_logger
-
-    async def handle_question(self, question: UserQuestion) -> SwarmResponse:
-        diagnostics: dict[str, str] = {}
-
-        # T026: Пробуем LLM-планирование с каталогом агрегатов (MultiPlan)
-        multi_plan: MultiPlan | None = None
-        if getattr(self.planner, "aggregate_registry", None) is not None:
-            try:
-                multi_plan = await self.planner.run_multi(question)
-                planner_v2_mode = (
-                    "llm" if "planner_v2:llm" in multi_plan.notes else "keyword"
-                )
-                logger.info(
-                    "[PLAN_V2] %s | intent=%s | topic=%s | queries=%d",
-                    planner_v2_mode,
-                    multi_plan.intent,
-                    multi_plan.topic,
-                    len(multi_plan.queries),
-                )
-                diagnostics["planner_v2"] = planner_v2_mode
-            except Exception as exc:
-                logger.error("[PLAN_V2] ERROR: %s", exc)
-                diagnostics["planner_v2_error"] = str(exc)
-                multi_plan = None
-
-        # I1: Пропускаем legacy planner.run() если multi_plan с запросами уже получен —
-        # иначе два LLM-вызова на каждый вопрос (двойной cost/latency)
-        if multi_plan and multi_plan.queries:
-            plan = self.planner.multi_plan_to_plan(multi_plan, question)
-        else:
-            try:
-                plan = await self.planner.run(question)
-            except Exception as exc:
-                logger.error("[PLAN] ERROR: %s", exc)
-                diagnostics["plan_error"] = str(exc)
-                plan = self.planner.empty_plan(question.text)
-
-        # T031: Если есть MultiPlan и aggregate_registry — выполняем все запросы через SQLAgent.run_multi()
-        # Пропускаем run_multi() для keyword-fallback планов: их aggregate_id — topic-идентификаторы,
-        # не валидные catalog aggregate_ids, и они провалят registry.validate().
-        multi_results: list[AggregateResult] = []
-        if (
-            multi_plan
-            and multi_plan.queries
-            and self.aggregate_registry is not None
-            and "planner_v2:keyword" not in (multi_plan.notes or [])
-        ):
-            diagnostics["multi_plan_intent"] = multi_plan.intent
-            diagnostics["multi_plan_queries"] = str(len(multi_plan.queries))
-            try:
-                multi_results = await self.sql_agent.run_multi(
-                    multi_plan,
-                    self.aggregate_registry,
-                    logger_=self.query_logger,
-                )
-                ok_count = sum(1 for r in multi_results if r.status == "ok")
-                diagnostics["multi_plan_ok"] = str(ok_count)
-                logger.info(
-                    "[MULTI_SQL] queries=%d ok=%d",
-                    len(multi_results),
-                    ok_count,
-                )
-            except Exception as exc:
-                logger.error("[MULTI_SQL] ERROR: %s", exc)
-                diagnostics["multi_sql_error"] = str(exc)
-        elif multi_plan and multi_plan.queries:
-            # Degradation: LLM спланировал запросы, но registry не инициализирован
-            # (нет каталога агрегатов) — запросы не могут быть валидированы и выполнены.
-            # Логируем для диагностики, fallback на legacy plan.
-            first_query = multi_plan.queries[0]
-            diagnostics["multi_plan_aggregate"] = first_query.aggregate_id
-            diagnostics["multi_plan_intent"] = multi_plan.intent
-
-        # Диагностика планировщика
-        planner_mode = "llm" if "planner:llm" in plan.notes else "keyword"
-        qp = plan.query_params
-        if qp:
-            logger.info(
-                "[PLAN] %s | topic=%s | proc=%s group_by=%s filter=%s reason=%s | %s..%s",
-                planner_mode,
-                plan.topic,
-                qp.procedure,
-                qp.group_by,
-                qp.filter,
-                qp.reason,
-                qp.date_from,
-                qp.date_to,
-            )
-        else:
-            logger.info(
-                "[PLAN] %s | topic=%s | no query_params", planner_mode, plan.topic
-            )
-
-        # Пропускаем legacy SQL если run_multi() уже получил данные — иначе дублируем запрос
-        has_multi_ok = any(r.status == "ok" for r in multi_results) if multi_results else False
-        if has_multi_ok:
-            sql_insight = SQLInsight(rows=[], summary="skipped: multi_results available")
-            pbi_insight = await self._run_pbi(question, plan, diagnostics)
-        else:
-            sql_task = asyncio.create_task(self._run_sql(question, plan, diagnostics))
-            pbi_task = asyncio.create_task(self._run_pbi(question, plan, diagnostics))
-            sql_insight, pbi_insight = await asyncio.gather(sql_task, pbi_task)
-
-        # Генерируем график
-        image = None
-        mime_type = None
-        has_chart = False
-
-        # Comparison chart из multi_results (два периода → grouped bar)
-        if (
-            multi_results
-            and multi_plan
-            and multi_plan.intent == "comparison"
-            and len(multi_results) >= 2
-        ):
-            ok_results = [r for r in multi_results if r.status == "ok" and r.rows]
-            if len(ok_results) >= 2:
-                try:
-                    chart_bytes = await asyncio.to_thread(
-                        render_comparison,
-                        multi_plan.topic,
-                        ok_results[0].rows,
-                        ok_results[1].rows,
-                        ok_results[0].label or ok_results[0].aggregate_id,
-                        ok_results[1].label or ok_results[1].aggregate_id,
-                    )
-                    if chart_bytes:
-                        image = chart_bytes
-                        mime_type = "image/png"
-                        has_chart = True
-                        diagnostics["chart_type"] = "matplotlib_comparison"
-                except Exception as exc:
-                    diagnostics["chart_error"] = str(exc)
-
-        # Обычный график из legacy SQL-данных (single query)
-        if image is None and sql_insight.rows:
-            try:
-                chart_params = dict(sql_insight.params)
-                chart_params["topic"] = plan.topic
-                chart_bytes = await asyncio.to_thread(
-                    render_chart,
-                    plan.topic,
-                    sql_insight.rows,
-                    chart_params,
-                )
-                if chart_bytes:
-                    image = chart_bytes
-                    mime_type = "image/png"
-                    has_chart = True
-                    diagnostics["chart_type"] = "matplotlib"
-            except Exception as exc:
-                diagnostics["chart_error"] = str(exc)
-
-        # Если matplotlib-график не получился и нужен Power BI рендер
-        if image is None and plan.render_needed:
-            try:
-                artifact = await self.render_agent.run(question, plan)
-                if artifact is not None:
-                    image = artifact.image_bytes
-                    mime_type = artifact.mime_type
-                    if artifact.source_url:
-                        diagnostics["render_source"] = artifact.source_url
-            except Exception as exc:
-                diagnostics["render_error"] = str(exc)
-
-        # Если есть УСПЕШНЫЕ multi_results — используем run_multi для синтеза нескольких агрегатов,
-        # иначе — legacy run() с одним SQL-результатом.
-        # has_multi_ok уже вычислен выше; если все multi-queries failed, используем legacy analyst.
-        if multi_results and multi_plan and has_multi_ok:
-            analysis = await self.analyst_agent.run_multi(
-                question=question.text,
-                results=multi_results,
-                plan=multi_plan,
-            )
-        else:
-            analysis = await self.analyst_agent.run(
-                question=question,
-                plan=plan,
-                sql_insight=sql_insight,
-                model_insight=pbi_insight,
-                diagnostics=diagnostics,
-                has_chart=has_chart,
-            )
-
-        merged_diagnostics = dict(diagnostics)
-        merged_diagnostics.update(analysis.diagnostics)
-
-        return SwarmResponse(
-            answer=analysis.answer,
-            image=image,
-            mime_type=mime_type,
-            confidence=analysis.confidence,
-            topic=plan.topic,
-            follow_ups=analysis.follow_ups,
-            diagnostics=merged_diagnostics,
-        )
-
-    async def _run_sql(self, question, plan, diagnostics: dict[str, str]) -> SQLInsight:
-        try:
-            result = await self.sql_agent.run(question, plan)
-            logger.info("[SQL] topic=%s rows=%d", plan.topic, len(result.rows))
-            return result
-        except Exception as exc:
-            logger.error("[SQL] ERROR: %s", exc)
-            diagnostics["sql_error"] = str(exc)
-            return SQLInsight(rows=[], summary="SQL step failed")
-
-    async def _run_pbi(
-        self, question, plan, diagnostics: dict[str, str]
-    ) -> ModelInsight:
-        try:
-            return await self.powerbi_agent.run(question, plan)
-        except Exception as exc:
-            logger.error("[PBI] ERROR: %s", exc)
-            diagnostics["powerbi_model_error"] = str(exc)
-            return ModelInsight(metrics={}, summary="Power BI model step failed")
-
- succeeded in 0ms:
-from __future__ import annotations
-
-import asyncio
-import logging
-
-from typing import TYPE_CHECKING
-
-from .base import Agent
-from ..config import Settings
-from ..models import AggregateQuery, AggregateResult, MultiPlan, Plan, SQLInsight, UserQuestion
-from ..services.sql_client import SQLClient
-
-logger = logging.getLogger(__name__)
-
-if TYPE_CHECKING:
-    from ..services.aggregate_registry import AggregateRegistry
-    from ..services.query_logger import QueryLogger
-
-
-class SQLAgent(Agent):
-    name = "sql"
-
-    def __init__(self, client: SQLClient, settings: Settings | None = None):
-        self.client = client
-        self.settings = settings
-
-    async def run(self, question: UserQuestion, plan: Plan) -> SQLInsight:
-        if not plan.sql_needed:
-            return SQLInsight(rows=[], summary="SQL step skipped by planner")
-
-        # Если есть LLM-параметры — используем их напрямую
-        if plan.query_params and plan.query_params.procedure:
-            rows, topic_id, params = await self.client.fetch_rows_with_params(
-                plan.query_params,
-            )
-        else:
-            # Fallback: старый путь через keyword-детекцию
-            rows, topic_id, params = await self.client.fetch_rows(
-                question.text, topic=plan.topic, object_id=question.object_id,
-            )
-
-        effective_topic = topic_id or plan.topic
-        status = "ok" if rows else "empty"
-        logger.info(
-            "sql.run user=%s topic=%s rows=%d status=%s",
-            question.user_id,
-            effective_topic,
-            len(rows),
-            status,
-        )
-
-        if not rows:
-            return SQLInsight(
-                rows=[],
-                summary="SQL вернул 0 строк или соединение не настроено",
-                topic=effective_topic,
-                params=params,
-            )
-
-        return SQLInsight(
-            rows=rows,
-            summary=f"SQL вернул {len(rows)} строк(и) по теме «{effective_topic}»",
-            topic=effective_topic,
-            params=params,
-        )
-
-    async def run_multi(
-        self,
-        plan: MultiPlan,
-        registry: "AggregateRegistry",
-        sql_client: SQLClient | None = None,
-        logger_: "QueryLogger | None" = None,
-        user_id: str = "system",
-    ) -> list[AggregateResult]:
-        """T029/T032: Выполняет несколько агрегатных запросов параллельно.
-
-        - Ограничивает количество запросов до settings.sql_max_queries
-        - Использует asyncio.Semaphore(settings.sql_max_concurrency) для ограничения параллельности
-        - При timeout/error возвращает AggregateResult с соответствующим статусом
-        - Логирует каждый вызов через QueryLogger если передан
-        """
-        client = sql_client or self.client
-
-        # Определяем лимиты из settings или используем дефолты
-        max_queries = 10
-        max_concurrency = 5
-        query_timeout = 10
-        if self.settings is not None:
-            max_queries = self.settings.sql_max_queries
-            max_concurrency = self.settings.sql_max_concurrency
-            query_timeout = self.settings.sql_query_timeout
-
-        queries = plan.queries[:max_queries]
-        semaphore = asyncio.Semaphore(max_concurrency)
-
-        async def _run_one(query: AggregateQuery) -> AggregateResult:
-            async with semaphore:
-                try:
-                    result = await asyncio.wait_for(
-                        client.execute_aggregate(query.aggregate_id, query.params, registry),
-                        timeout=query_timeout,
-                    )
-                    # Подставляем label из запроса (приоритет над label из результата)
-                    effective_label = query.label or result.label
-                    if effective_label != result.label:
-                        result = AggregateResult(
-                            aggregate_id=result.aggregate_id,
-                            label=effective_label,
-                            rows=result.rows,
-                            row_count=result.row_count,
-                            duration_ms=result.duration_ms,
-                            status=result.status,
-                            error=result.error,
-                        )
-                except asyncio.TimeoutError:
-                    result = AggregateResult(
-                        aggregate_id=query.aggregate_id,
-                        label=query.label,
-                        status="timeout",
-                        error="SQL query timed out",
-                    )
-                except Exception as exc:
-                    logger.error("run_multi error for %r: %s", query.aggregate_id, exc)
-                    result = AggregateResult(
-                        aggregate_id=query.aggregate_id,
-                        label=query.label,
-                        status="error",
-                        error=str(exc),
-                    )
-
-                # T032: логируем каждый вызов
-                if logger_ is not None:
-                    try:
-                        logger_.log(
-                            user_id=user_id,
-                            aggregate_id=result.aggregate_id,
-                            params=query.params,
-                            duration_ms=result.duration_ms,
-                            row_count=result.row_count,
-                            status=result.status,
-                            error=result.error,
-                        )
-                    except Exception as log_exc:
-                        logger.warning("QueryLogger.log failed: %s", log_exc)
-
-                return result
-
-        return list(await asyncio.gather(*[_run_one(q) for q in queries]))
-
- succeeded in 0ms:
-"""Рендеринг графиков из SQL-данных для отправки в Telegram.
-
-Поддерживает: bar, horizontal bar, line, pie, table.
-Автоматически выбирает тип графика по теме и данным.
-"""
-from __future__ import annotations
-
-import io
-import logging
-from typing import Any
-
-logger = logging.getLogger(__name__)
-
-try:
-    import matplotlib
-    matplotlib.use("Agg")
-    import matplotlib.pyplot as plt
-    import matplotlib.ticker as ticker
-
-    HAS_MPL = True
-except ImportError:  # pragma: no cover
-    HAS_MPL = False
-
-# Русские шрифты: пробуем DejaVu Sans (есть в Docker)
-if HAS_MPL:
-    plt.rcParams["font.family"] = "DejaVu Sans"
-    plt.rcParams["axes.unicode_minus"] = False
-
-# ── Маппинг тем → предпочтительный тип графика ──────────────
-
-_TOPIC_CHART: dict[str, str] = {
-    "statistics": "bar",
-    "trend": "line",
-    "forecast": "hbar",
-    "outflow": "hbar",
-    "leaving": "hbar",
-    "communications": "bar",
-    "referrals": "pie",
-    "quality": "bar",
-    "masters": "hbar",
-    "services": "hbar",
-    "noshow": "hbar",
-    "opz": "bar",
-    "attachments": "bar",
-    "training": "hbar",
-    "all_clients": "bar",
-    "birthday": "table_only",
-    "waitlist": "table_only",
-}
-
-
-def choose_chart_type(topic: str, rows: list[dict[str, Any]]) -> str:
-    """Выбирает тип графика по теме и данным."""
-    return _TOPIC_CHART.get(topic, "bar")
-
-
-def render_chart(
-    topic: str,
-    rows: list[dict[str, Any]],
-    params: dict[str, Any],
-    *,
-    title: str = "",
-) -> bytes | None:
-    """Рендерит PNG-график из SQL-результата. Возвращает bytes или None."""
-    if not HAS_MPL or not rows:
-        return None
-
-    chart_type = choose_chart_type(topic, rows)
-
-    try:
-        if chart_type == "table_only":
-            return _render_table(rows, params, title)
-        elif chart_type == "line":
-            return _render_line(rows, params, title)
-        elif chart_type == "pie":
-            return _render_pie(rows, params, title)
-        elif chart_type == "hbar":
-            return _render_hbar(rows, params, title)
-        else:
-            return _render_bar(rows, params, title)
-    except Exception:
-        logger.exception("Chart render failed for topic=%s", topic)
-        return None
-
-
-def _period_label(params: dict[str, Any]) -> str:
-    """Формирует подпись периода."""
-    d_from = params.get("DateFrom")
-    d_to = params.get("DateTo")
-    if d_from and d_to:
-        return f"{d_from} — {d_to}"
-    return ""
-
-
-def _auto_title(topic: str, params: dict[str, Any], override: str) -> str:
-    if override:
-        return override
-    from .topic_registry import get_description
-    desc = get_description(topic)
-    period = _period_label(params)
-    if period:
-        return f"{desc}\n{period}"
-    return desc
-
-
-# Предпочтительная value-колонка по теме (что осмысленнее показывать)
-_PREFERRED_VALUE: dict[str, str] = {
-    "outflow": "TotalSpent",
-    "leaving": "TotalSpent",
-    "forecast": "TotalSpent",
-    "noshow": "TotalVisits",
-    "masters": "Revenue",
-    "services": "Revenue",
-    "all_clients": "TotalVisits",
-    "quality": "TotalVisits",
-}
-
-
-def _pick_label_value(
-    rows: list[dict[str, Any]], topic: str = "",
-) -> tuple[str, str]:
-    """Автоматически выбирает колонку для подписей и значений."""
-    if not rows:
-        return "", ""
-    keys = list(rows[0].keys())
-
-    # Для подписей: первая текстовая колонка
-    label_col = ""
-    for k in keys:
-        val = rows[0].get(k)
-        if isinstance(val, str) and k not in ("SalonName", "Phone"):
-            label_col = k
-            break
-
-    # Для значений: предпочтительная колонка по теме, иначе первая числовая
-    value_col = ""
-    preferred = _PREFERRED_VALUE.get(topic, "")
-    if preferred and preferred in keys:
-        val = rows[0].get(preferred)
-        if isinstance(val, (int, float)):
-            value_col = preferred
-
-    if not value_col:
-        skip = {"ObjectId", "MasterId", "ClientId", "Id", "CRMId", "Top",
-                "DaysSinceLastVisit", "DaysOverdue", "ServicePeriodDays"}
-        for k in keys:
-            val = rows[0].get(k)
-            if isinstance(val, (int, float)) and k not in skip:
-                value_col = k
-                break
-
-    return label_col, value_col
-
-
-def _pick_multi_values(rows: list[dict[str, Any]]) -> list[str]:
-    """Для bar-графиков со статистикой: все числовые колонки."""
-    if not rows:
-        return []
-    skip = {"ObjectId", "MasterId", "ClientId", "Id", "CRMId", "Top"}
-    return [
-        k for k in rows[0].keys()
-        if isinstance(rows[0].get(k), (int, float)) and k not in skip
-    ]
-
-
-def _format_number(n: float) -> str:
-    """Форматирует числа для подписей: 1234567 → 1.2M, 12345 → 12.3K."""
-    if abs(n) >= 1_000_000:
-        return f"{n / 1_000_000:.1f}M"
-    if abs(n) >= 10_000:
-        return f"{n / 1_000:.1f}K"
-    if isinstance(n, float) and n != int(n):
-        return f"{n:.1f}"
-    return str(int(n))
-
-
-# ── Рендереры ────────────────────────────────────────────────
-
-def _render_bar(rows: list[dict[str, Any]], params: dict[str, Any], title: str) -> bytes:
-    """Вертикальная столбчатая диаграмма."""
-    # Для Statistics: несколько метрик в одной строке
-    if len(rows) == 1:
-        return _render_single_row_bar(rows[0], params, title)
-
-    label_col, value_col = _pick_label_value(rows, params.get("topic", ""))
-    if not label_col or not value_col:
-        return _render_single_row_bar(rows[0], params, title)
-
-    labels = [str(r.get(label_col, ""))[:20] for r in rows[:15]]
-    values = [float(r.get(value_col, 0) or 0) for r in rows[:15]]
-
-    fig, ax = plt.subplots(figsize=(10, 5))
-    bars = ax.bar(range(len(labels)), values, color="#4472C4")
-
-    for bar, v in zip(bars, values):
-        ax.text(bar.get_x() + bar.get_width() / 2, bar.get_height(),
-                _format_number(v), ha="center", va="bottom", fontsize=8)
-
-    ax.set_xticks(range(len(labels)))
-    ax.set_xticklabels(labels, rotation=45, ha="right", fontsize=8)
-    ax.set_ylabel(value_col)
-    ax.set_title(_auto_title(params.get("topic", ""), params, title), fontsize=11)
-    ax.yaxis.set_major_formatter(ticker.FuncFormatter(lambda x, _: _format_number(x)))
-
-    fig.tight_layout()
-    return _fig_to_bytes(fig)
-
-
-def _render_single_row_bar(row: dict[str, Any], params: dict[str, Any], title: str) -> bytes:
-    """Одна строка с несколькими метриками → группа столбцов."""
-    skip = {"SalonName", "ObjectId", "MasterId", "ClientId", "Top"}
-    metrics = {k: float(v) for k, v in row.items()
-               if isinstance(v, (int, float)) and k not in skip and v}
-    if not metrics:
-        metrics = {"Нет данных": 0}
-
-    labels = list(metrics.keys())[:10]
-    values = list(metrics.values())[:10]
-
-    fig, ax = plt.subplots(figsize=(10, 5))
-    bars = ax.bar(range(len(labels)), values, color="#4472C4")
-
-    for bar, v in zip(bars, values):
-        ax.text(bar.get_x() + bar.get_width() / 2, bar.get_height(),
-                _format_number(v), ha="center", va="bottom", fontsize=9)
-
-    ax.set_xticks(range(len(labels)))
-    ax.set_xticklabels(labels, rotation=30, ha="right", fontsize=9)
-    ax.set_title(_auto_title(params.get("topic", ""), params, title), fontsize=11)
-    ax.yaxis.set_major_formatter(ticker.FuncFormatter(lambda x, _: _format_number(x)))
-
-    fig.tight_layout()
-    return _fig_to_bytes(fig)
-
-
-def _render_hbar(rows: list[dict[str, Any]], params: dict[str, Any], title: str) -> bytes:
-    """Горизонтальная столбчатая диаграмма (для рейтингов/списков)."""
-    label_col, value_col = _pick_label_value(rows, params.get("topic", ""))
-    if not label_col or not value_col:
-        if rows:
-            return _render_single_row_bar(rows[0], params, title)
-        return _empty_chart(params, title)
-
-    labels = [str(r.get(label_col, ""))[:25] for r in rows[:15]]
-    values = [float(r.get(value_col, 0) or 0) for r in rows[:15]]
-
-    # Обратный порядок: самый большой сверху
-    labels.reverse()
-    values.reverse()
-
-    fig, ax = plt.subplots(figsize=(10, max(4, len(labels) * 0.4)))
-    bars = ax.barh(range(len(labels)), values, color="#4472C4")
-
-    for bar, v in zip(bars, values):
-        ax.text(bar.get_width(), bar.get_y() + bar.get_height() / 2,
-                f" {_format_number(v)}", ha="left", va="center", fontsize=9)
-
-    ax.set_yticks(range(len(labels)))
-    ax.set_yticklabels(labels, fontsize=9)
-    ax.set_xlabel(value_col)
-    ax.set_title(_auto_title(params.get("topic", ""), params, title), fontsize=11)
-
-    fig.tight_layout()
-    return _fig_to_bytes(fig)
-
-
-def _render_line(rows: list[dict[str, Any]], params: dict[str, Any], title: str) -> bytes:
-    """Линейный график (тренды)."""
-    # Ищем временную колонку
-    time_col = ""
-    for k in ("WeekEnd", "MonthEnd", "DateFrom", "Date"):
-        if k in rows[0]:
-            time_col = k
-            break
-
-    value_cols = _pick_multi_values(rows)
-    if not time_col or not value_cols:
-        return _render_bar(rows, params, title)
-
-    x_labels = [str(r.get(time_col, ""))[:10] for r in rows]
-
-    fig, ax = plt.subplots(figsize=(10, 5))
-    colors = ["#4472C4", "#ED7D31", "#A5A5A5", "#FFC000", "#5B9BD5"]
-
-    for i, vc in enumerate(value_cols[:3]):
-        values = [float(r.get(vc, 0) or 0) for r in rows]
-        ax.plot(range(len(x_labels)), values, marker="o", markersize=4,
-                label=vc, color=colors[i % len(colors)])
-
-    ax.set_xticks(range(len(x_labels)))
-    ax.set_xticklabels(x_labels, rotation=45, ha="right", fontsize=8)
-    ax.legend(fontsize=9)
-    ax.set_title(_auto_title("trend", params, title), fontsize=11)
-    ax.yaxis.set_major_formatter(ticker.FuncFormatter(lambda x, _: _format_number(x)))
-    ax.grid(True, alpha=0.3)
-
-    fig.tight_layout()
-    return _fig_to_bytes(fig)
-
-
-def _render_pie(rows: list[dict[str, Any]], params: dict[str, Any], title: str) -> bytes:
-    """Круговая диаграмма (рефережи, каналы)."""
-    label_col, value_col = _pick_label_value(rows, params.get("topic", ""))
-    if not label_col or not value_col:
-        return _render_bar(rows, params, title)
-
-    data = [(str(r.get(label_col, ""))[:20], float(r.get(value_col, 0) or 0))
-            for r in rows[:8]]
-    data = [(lbl, val) for lbl, val in data if val > 0]
-
-    if not data:
-        return _empty_chart(params, title)
-
-    labels, values = zip(*data)
-
-    fig, ax = plt.subplots(figsize=(8, 8))
-    colors = plt.cm.Set3.colors[:len(labels)]
-    wedges, texts, autotexts = ax.pie(
-        values, labels=labels, colors=colors, autopct="%1.1f%%",
-        startangle=140, textprops={"fontsize": 9},
-
-exec
-/bin/zsh -lc "rg -n \"response\\.topic|last_topic|aggregate_id|MultiPlan|comparison\" src/swarm_powerbi_bot tests | sed -n '1,260p'" in /Users/zerocold/Downloads/git/kpi/tg_bot/swarm_powerbi_bot
- succeeded in 0ms:
-tests/test_security.py:1:"""T023: Security тесты — SQL-инъекции, whitelist aggregate_id, валидация параметров.
-tests/test_security.py:5:- aggregate_id not in whitelist → rejected
-tests/test_security.py:76:    def test_sql_injection_in_aggregate_id_rejected(self, registry):
-tests/test_security.py:77:        """aggregate_id с SQL-инъекцией отклоняется whitelist-ом."""
-tests/test_security.py:81:            assert "unknown aggregate_id" in msg
-tests/test_security.py:108:# ── aggregate_id whitelist ────────────────────────────────────────────────────
-tests/test_security.py:111:    """aggregate_id не из whitelist → rejected."""
-tests/test_security.py:120:        assert "unknown aggregate_id" in msg
-tests/test_security.py:135:        """dbo.spKDO_Aggregate не в whitelist — только aggregate_id из каталога."""
-tests/test_security.py:140:        """Все aggregate_id из каталога должны проходить whitelist."""
-src/swarm_powerbi_bot/services/aggregate_registry.py:44:    """Загружает YAML-каталог, возвращает {aggregate_id: entry}.
-src/swarm_powerbi_bot/services/aggregate_registry.py:76:    aggregate_id: str,
-src/swarm_powerbi_bot/services/aggregate_registry.py:90:                    f"required param {param_name!r} missing for aggregate {aggregate_id!r}"
-src/swarm_powerbi_bot/services/aggregate_registry.py:112:                    f"group_by {value!r} not allowed for {aggregate_id!r}; "
-src/swarm_powerbi_bot/services/aggregate_registry.py:149:def validate_aggregate_id(aggregate_id: str) -> bool:
-src/swarm_powerbi_bot/services/aggregate_registry.py:150:    """True, если aggregate_id есть в загруженном каталоге."""
-src/swarm_powerbi_bot/services/aggregate_registry.py:151:    return aggregate_id in _catalog
-src/swarm_powerbi_bot/services/aggregate_registry.py:154:def validate_params(aggregate_id: str, params: dict) -> tuple[bool, str]:
-src/swarm_powerbi_bot/services/aggregate_registry.py:159:    entry = _catalog.get(aggregate_id)
-src/swarm_powerbi_bot/services/aggregate_registry.py:161:        return False, f"unknown aggregate_id: {aggregate_id!r}"
-src/swarm_powerbi_bot/services/aggregate_registry.py:162:    return _validate_entry_params(aggregate_id, entry, params)
-src/swarm_powerbi_bot/services/aggregate_registry.py:172:    def get_aggregate(self, aggregate_id: str) -> dict | None:
-src/swarm_powerbi_bot/services/aggregate_registry.py:173:        return self._catalog.get(aggregate_id)
-src/swarm_powerbi_bot/services/aggregate_registry.py:175:    def validate(self, aggregate_id: str, params: dict) -> tuple[bool, str]:
-src/swarm_powerbi_bot/services/aggregate_registry.py:177:        entry = self._catalog.get(aggregate_id)
-src/swarm_powerbi_bot/services/aggregate_registry.py:179:            return False, f"unknown aggregate_id: {aggregate_id!r}"
-src/swarm_powerbi_bot/services/aggregate_registry.py:180:        return _validate_entry_params(aggregate_id, entry, params)
-src/swarm_powerbi_bot/services/llm_client.py:19:    """Валидирует last_topic: только a-z, 0-9, _ (до 64 символов)."""
-src/swarm_powerbi_bot/services/llm_client.py:123:        self, question: str, today: str, last_topic: str = ""
-src/swarm_powerbi_bot/services/llm_client.py:134:        if last_topic:
-src/swarm_powerbi_bot/services/llm_client.py:136:                f"Предыдущая тема диалога: {last_topic}. "
-src/swarm_powerbi_bot/services/llm_client.py:155:        last_topic: str = "",
-src/swarm_powerbi_bot/services/llm_client.py:183:            '{"intent": "single|comparison|decomposition|trend|ranking", '
 src/swarm_powerbi_bot/services/llm_client.py:184:            '"queries": [{"aggregate_id": "...", "params": {...}, "label": "..."}], '
-src/swarm_powerbi_bot/services/llm_client.py:199:            "Если указан last_topic — пользователь продолжает предыдущий разговор. "
-src/swarm_powerbi_bot/services/llm_client.py:200:            "Используй last_topic как основу для выбора агрегата.\n"
-src/swarm_powerbi_bot/services/llm_client.py:201:            "Пример: last_topic=clients_outflow, вопрос=«сравни по месяцам» "
 src/swarm_powerbi_bot/services/llm_client.py:202:            "→ intent=comparison, aggregate_id=clients_outflow для обоих периодов.\n"
-src/swarm_powerbi_bot/services/llm_client.py:203:            "Для comparison клиентских агрегатов (clients_*) используй group_by=status "
 src/swarm_powerbi_bot/services/llm_client.py:205:            "ВАЖНО: используй только aggregate_id из каталога выше. "
-src/swarm_powerbi_bot/services/llm_client.py:220:                    f"{question}\nКонтекст: last_topic={_sanitize_topic(last_topic)}"
-src/swarm_powerbi_bot/services/llm_client.py:221:                    if last_topic else question
-src/swarm_powerbi_bot/services/llm_client.py:270:        """Извлекает JSON MultiPlan из ответа LLM (поддерживает вложенные объекты)."""
-tests/test_composition.py:19:from swarm_powerbi_bot.models import AggregateQuery, AggregateResult, MultiPlan, UserQuestion
-tests/test_composition.py:89:def _make_decomposition_plan(queries: list[AggregateQuery]) -> MultiPlan:
-tests/test_composition.py:90:    return MultiPlan(
-tests/test_composition.py:110:                {"aggregate_id": "revenue_summary", "params": {"period_hint": "текущий месяц"}, "label": "Выручка (апрель)"},
-tests/test_composition.py:111:                {"aggregate_id": "revenue_summary", "params": {"period_hint": "прошлый месяц"}, "label": "Выручка (март)"},
-tests/test_composition.py:112:                {"aggregate_id": "client_count", "params": {"period_hint": "текущий месяц"}, "label": "Клиенты (апрель)"},
-tests/test_composition.py:113:                {"aggregate_id": "client_count", "params": {"period_hint": "прошлый месяц"}, "label": "Клиенты (март)"},
-tests/test_composition.py:122:        assert isinstance(plan, MultiPlan)
-tests/test_composition.py:132:                {"aggregate_id": "revenue_summary", "params": {}, "label": "Выручка (апрель)"},
-tests/test_composition.py:133:                {"aggregate_id": "revenue_summary", "params": {}, "label": "Выручка (март)"},
-tests/test_composition.py:134:                {"aggregate_id": "client_count", "params": {}, "label": "Клиенты (апрель)"},
-tests/test_composition.py:135:                {"aggregate_id": "client_count", "params": {}, "label": "Клиенты (март)"},
-tests/test_composition.py:136:                {"aggregate_id": "avg_check", "params": {}, "label": "Средний чек"},
-tests/test_composition.py:147:        agg_ids = [aq.aggregate_id for aq in plan.queries]
-tests/test_composition.py:157:                {"aggregate_id": "revenue_summary", "params": {}, "label": "Выручка (апрель)"},
-tests/test_composition.py:158:                {"aggregate_id": "revenue_summary", "params": {}, "label": "Выручка (март)"},
-tests/test_composition.py:182:                {"aggregate_id": "revenue_summary", "params": {}, "label": f"q{i}"}
-tests/test_composition.py:195:        """Для intent=comparison/ranking LLM может вернуть до 10 запросов."""
-tests/test_composition.py:197:            "intent": "comparison",
-tests/test_composition.py:199:                {"aggregate_id": "revenue_summary", "params": {}, "label": f"q{i}"}
-tests/test_composition.py:216:                {"aggregate_id": "revenue_summary", "params": {}, "label": f"q{i}"}
-tests/test_composition.py:236:        aggregate_id: str,
-tests/test_composition.py:241:            aggregate_id=aggregate_id,
-tests/test_composition.py:261:            AggregateQuery(aggregate_id=r.aggregate_id, label=r.label) for r in results
-tests/test_composition.py:283:            AggregateQuery(aggregate_id=r.aggregate_id, label=r.label) for r in results
-tests/test_composition.py:306:            AggregateQuery(aggregate_id=r.aggregate_id, label=r.label) for r in results
-tests/test_composition.py:323:            AggregateQuery(aggregate_id=r.aggregate_id, label=r.label) for r in results
-tests/test_composition.py:371:                aggregate_id="revenue_summary",
-tests/test_composition.py:379:                aggregate_id="client_count",
-tests/test_composition.py:388:            AggregateQuery(aggregate_id=r.aggregate_id, label=r.label) for r in results
-tests/test_composition.py:402:                aggregate_id="revenue_summary",
-tests/test_composition.py:409:                aggregate_id="client_count",
-tests/test_composition.py:418:            AggregateQuery(aggregate_id=r.aggregate_id, label=r.label) for r in results
-tests/test_composition.py:432:                aggregate_id="revenue_summary",
-tests/test_composition.py:439:                aggregate_id="revenue_summary",
-tests/test_composition.py:447:            AggregateQuery(aggregate_id=r.aggregate_id, label=r.label) for r in results
-src/swarm_powerbi_bot/services/query_logger.py:52:        aggregate_id: str,
-src/swarm_powerbi_bot/services/query_logger.py:62:            "aggregate_id": aggregate_id,
-src/swarm_powerbi_bot/services/chart_renderer.py:407:def render_comparison(
+src/swarm_powerbi_bot/agents/sql.py:67:    async def run_multi(
+src/swarm_powerbi_bot/agents/sql.py:93:        queries = plan.queries[:max_queries]
+src/swarm_powerbi_bot/agents/sql.py:100:                        client.execute_aggregate(query.aggregate_id, query.params, registry),
+src/swarm_powerbi_bot/agents/sql.py:108:                            aggregate_id=result.aggregate_id,
+src/swarm_powerbi_bot/agents/sql.py:119:                        aggregate_id=query.aggregate_id,
+src/swarm_powerbi_bot/agents/sql.py:125:                    logger.error("run_multi error for %r: %s", query.aggregate_id, exc)
+src/swarm_powerbi_bot/agents/sql.py:127:                        aggregate_id=query.aggregate_id,
+src/swarm_powerbi_bot/agents/sql.py:138:                            aggregate_id=result.aggregate_id,
 src/swarm_powerbi_bot/services/sql_client.py:211:        aggregate_id: str,
 src/swarm_powerbi_bot/services/sql_client.py:215:        """T027: Выполняет агрегатный запрос по aggregate_id из каталога.
 src/swarm_powerbi_bot/services/sql_client.py:218:        2. Маппит aggregate_id на процедуру через каталог.
@@ -3449,2865 +5037,70 @@ src/swarm_powerbi_bot/services/sql_client.py:319:            return [], aggregat
 src/swarm_powerbi_bot/services/sql_client.py:328:                "execute_aggregate: no ObjectId for %s — returning empty", aggregate_id
 src/swarm_powerbi_bot/services/sql_client.py:330:            return [], aggregate_id, {"DateFrom": d_from, "DateTo": d_to}
 src/swarm_powerbi_bot/services/sql_client.py:381:        return rows, aggregate_id, {"DateFrom": d_from, "DateTo": d_to}
-src/swarm_powerbi_bot/services/sql_client.py:439:            # salon допускает без ObjectId (cross-salon comparison)
-tests/test_e2e_pipeline.py:114:            UserQuestion(user_id="1", text="подробнее по неделям", last_topic="outflow"),
-tests/test_e2e_pipeline.py:155:    def test_comparison_note(self):
-tests/test_e2e_pipeline.py:160:        assert "comparison_requested" in plan.notes
-tests/test_llm_planner.py:106:            UserQuestion(user_id="1", text="сравни по неделям", last_topic="outflow"),
-tests/test_llm_planner.py:222:            UserQuestion(user_id="1", text="подробнее", last_topic="outflow"),
-tests/test_llm_planner.py:226:    def test_no_llm_comparison_switches_to_trend(self):
-tests/test_llm_planner.py:232:        assert "comparison_requested" in plan.notes
-src/swarm_powerbi_bot/services/topic_registry.py:141:def detect_topic(question: str, last_topic: str = "") -> str:
-src/swarm_powerbi_bot/services/topic_registry.py:145:    без явной темы — используем last_topic как контекст разговора.
-src/swarm_powerbi_bot/services/topic_registry.py:158:    if last_topic and last_topic in _TOPICS_BY_ID:
-src/swarm_powerbi_bot/services/topic_registry.py:161:            return last_topic
-src/swarm_powerbi_bot/services/topic_registry.py:170:                return last_topic
-tests/test_planner.py:17:    assert "comparison_requested" in plan.notes
-tests/test_data_accuracy.py:173:        result = AggregateResult(aggregate_id="test", status="ok", error="stale")
-tests/test_data_accuracy.py:180:        result = AggregateResult(aggregate_id="test", status="error", error="timeout")
-tests/test_data_accuracy.py:188:        result = AggregateResult(aggregate_id="test", rows=rows)
-tests/test_query_logger.py:40:            aggregate_id="revenue_by_master",
-tests/test_query_logger.py:60:        required = {"timestamp", "user_id", "aggregate_id", "params", "duration_ms", "row_count", "status"}
-tests/test_query_logger.py:76:    def test_aggregate_id_recorded(self, logger, log_file):
-tests/test_query_logger.py:79:        assert entry["aggregate_id"] == "revenue_by_master"
-tests/test_query_logger.py:115:            aggregate_id="revenue_by_master",
-tests/test_comparison.py:25:    MultiPlan,
-tests/test_comparison.py:29:from swarm_powerbi_bot.services.chart_renderer import HAS_MPL, render_comparison
-tests/test_comparison.py:104:    def test_comparison_intent_produces_two_queries(self, registry):
-tests/test_comparison.py:106:            "intent": "comparison",
-tests/test_comparison.py:108:                {"aggregate_id": "revenue_total",
-tests/test_comparison.py:111:                {"aggregate_id": "revenue_total",
-tests/test_comparison.py:122:        assert isinstance(plan, MultiPlan)
-tests/test_comparison.py:123:        assert plan.intent == "comparison"
-tests/test_comparison.py:126:        assert plan.queries[0].aggregate_id == "revenue_total"
-tests/test_comparison.py:127:        assert plan.queries[1].aggregate_id == "revenue_total"
-tests/test_comparison.py:129:    def test_comparison_queries_have_different_date_ranges(self, registry):
-tests/test_comparison.py:131:            "intent": "comparison",
-tests/test_comparison.py:133:                {"aggregate_id": "revenue_total",
-tests/test_comparison.py:136:                {"aggregate_id": "revenue_total",
-tests/test_comparison.py:152:    def test_comparison_with_single_query_falls_back(self, registry):
-tests/test_comparison.py:153:        """Если comparison intent но только 1 запрос → fallback на keyword."""
-tests/test_comparison.py:155:            "intent": "comparison",
-tests/test_comparison.py:157:                {"aggregate_id": "revenue_total", "params": {}, "label": "Один"}
-tests/test_comparison.py:237:    def test_period_hint_resolved_in_comparison_plan(self, registry):
-tests/test_comparison.py:238:        """period_hint в params → разрешается в date_from/date_to при comparison."""
-tests/test_comparison.py:240:            "intent": "comparison",
-tests/test_comparison.py:242:                {"aggregate_id": "revenue_total",
-tests/test_comparison.py:245:                {"aggregate_id": "revenue_total",
-tests/test_comparison.py:256:        assert plan.intent == "comparison"
-tests/test_comparison.py:269:    def test_master_comparison_two_queries(self, registry):
-tests/test_comparison.py:271:            "intent": "comparison",
-tests/test_comparison.py:273:                {"aggregate_id": "revenue_total",
-tests/test_comparison.py:276:                {"aggregate_id": "revenue_total",
-tests/test_comparison.py:287:        assert plan.intent == "comparison"
-tests/test_comparison.py:292:    def test_master_comparison_labels_preserved(self, registry):
-tests/test_comparison.py:294:            "intent": "comparison",
-tests/test_comparison.py:296:                {"aggregate_id": "revenue_total",
-tests/test_comparison.py:299:                {"aggregate_id": "revenue_total",
-tests/test_comparison.py:318:    """render_comparison: grouped bar chart с mock-данными, без исключений."""
-tests/test_comparison.py:321:    def test_render_comparison_returns_png_bytes(self):
-tests/test_comparison.py:325:        png = render_comparison(
-tests/test_comparison.py:337:    def test_render_comparison_with_empty_b_no_exception(self):
-tests/test_comparison.py:342:        png = render_comparison(
-tests/test_comparison.py:353:    def test_render_comparison_with_both_empty_no_exception(self):
-tests/test_comparison.py:355:        png = render_comparison(
-tests/test_comparison.py:366:    def test_render_comparison_multiple_rows(self):
-tests/test_comparison.py:377:        png = render_comparison(
-tests/test_comparison.py:388:    def test_render_comparison_masters_no_exception(self):
-tests/test_comparison.py:393:        png = render_comparison(
-tests/test_comparison.py:430:    def test_format_comparison_marks_incomplete_period_a(self):
-tests/test_comparison.py:434:            aggregate_id="revenue_total",
-tests/test_comparison.py:440:            aggregate_id="revenue_total",
-tests/test_comparison.py:445:        comparison = ComparisonResult(
-tests/test_comparison.py:451:        text = analyst.format_comparison(comparison, incomplete_period_a=True)
-tests/test_comparison.py:454:    def test_format_comparison_no_incomplete_marker_when_full(self):
-tests/test_comparison.py:458:            aggregate_id="revenue_total",
-tests/test_comparison.py:464:            aggregate_id="revenue_total",
-tests/test_comparison.py:469:        comparison = ComparisonResult(
-tests/test_comparison.py:475:        text = analyst.format_comparison(comparison)
-tests/test_comparison.py:478:    def test_format_comparison_includes_delta(self):
-tests/test_comparison.py:482:            aggregate_id="revenue_total",
-tests/test_comparison.py:488:            aggregate_id="revenue_total",
-tests/test_comparison.py:493:        comparison = ComparisonResult(
-tests/test_comparison.py:499:        text = analyst.format_comparison(comparison)
-tests/test_comparison.py:503:    def test_format_comparison_negative_delta(self):
-tests/test_comparison.py:507:            aggregate_id="revenue_total",
-tests/test_comparison.py:513:            aggregate_id="revenue_total",
-tests/test_comparison.py:518:        comparison = ComparisonResult(
-tests/test_comparison.py:524:        text = analyst.format_comparison(comparison)
-tests/test_comparison.py:530:    def test_format_comparison_empty_data(self):
-tests/test_comparison.py:533:        result_a = AggregateResult(aggregate_id="revenue_total", rows=[], row_count=0)
-tests/test_comparison.py:534:        result_b = AggregateResult(aggregate_id="revenue_total", rows=[], row_count=0)
-tests/test_comparison.py:535:        comparison = ComparisonResult(
-tests/test_comparison.py:541:        text = analyst.format_comparison(comparison)
-src/swarm_powerbi_bot/orchestrator.py:11:    MultiPlan,
-src/swarm_powerbi_bot/orchestrator.py:16:from .services.chart_renderer import render_chart, render_comparison
-src/swarm_powerbi_bot/orchestrator.py:47:        # T026: Пробуем LLM-планирование с каталогом агрегатов (MultiPlan)
-src/swarm_powerbi_bot/orchestrator.py:48:        multi_plan: MultiPlan | None = None
-src/swarm_powerbi_bot/orchestrator.py:80:        # T031: Если есть MultiPlan и aggregate_registry — выполняем все запросы через SQLAgent.run_multi()
-src/swarm_powerbi_bot/orchestrator.py:81:        # Пропускаем run_multi() для keyword-fallback планов: их aggregate_id — topic-идентификаторы,
-src/swarm_powerbi_bot/orchestrator.py:82:        # не валидные catalog aggregate_ids, и они провалят registry.validate().
-src/swarm_powerbi_bot/orchestrator.py:113:            diagnostics["multi_plan_aggregate"] = first_query.aggregate_id
-src/swarm_powerbi_bot/orchestrator.py:155:            and multi_plan.intent == "comparison"
-src/swarm_powerbi_bot/orchestrator.py:162:                        render_comparison,
-src/swarm_powerbi_bot/orchestrator.py:166:                        ok_results[0].label or ok_results[0].aggregate_id,
-src/swarm_powerbi_bot/orchestrator.py:167:                        ok_results[1].label or ok_results[1].aggregate_id,
-src/swarm_powerbi_bot/orchestrator.py:173:                        diagnostics["chart_type"] = "matplotlib_comparison"
-tests/test_planner_v2.py:4:- Mock LLM returns valid JSON → parses into MultiPlan correctly
-tests/test_planner_v2.py:6:- aggregate_id not in catalog whitelist → falls back to TopicRegistry
-tests/test_planner_v2.py:17:from swarm_powerbi_bot.models import MultiPlan, UserQuestion
-tests/test_planner_v2.py:98:# ── T022-1: Valid JSON → MultiPlan ───────────────────────────────────────────
-tests/test_planner_v2.py:100:class TestValidJsonToMultiPlan:
-tests/test_planner_v2.py:101:    """Mock LLM returns valid JSON → parses into MultiPlan correctly."""
-tests/test_planner_v2.py:107:                {"aggregate_id": "revenue_total", "params": {"date_from": "2026-04-01", "date_to": "2026-04-15", "group_by": "total"}, "label": "Выручка за период"}
-tests/test_planner_v2.py:117:        assert isinstance(plan, MultiPlan)
-tests/test_planner_v2.py:120:        assert plan.queries[0].aggregate_id == "revenue_total"
-tests/test_planner_v2.py:126:            "queries": [{"aggregate_id": "revenue_total", "params": {}, "label": "Revenue"}],
-tests/test_planner_v2.py:139:            "queries": [{"aggregate_id": "outflow_clients", "params": {}, "label": "Outflow"}],
-tests/test_planner_v2.py:152:            "queries": [{"aggregate_id": "outflow_clients", "params": {}, "label": "Отток"}],
-tests/test_planner_v2.py:165:            "queries": [{"aggregate_id": "revenue_total", "params": {}, "label": "X"}],
-tests/test_planner_v2.py:186:        assert isinstance(plan, MultiPlan)
-tests/test_planner_v2.py:194:        assert isinstance(plan, MultiPlan)
-tests/test_planner_v2.py:202:        assert isinstance(plan, MultiPlan)
-tests/test_planner_v2.py:210:        assert isinstance(plan, MultiPlan)
-tests/test_planner_v2.py:217:        assert isinstance(plan, MultiPlan)
-tests/test_planner_v2.py:220:# ── T022-3: aggregate_id not in whitelist → TopicRegistry fallback ────────────
-tests/test_planner_v2.py:223:    """Если LLM вернул aggregate_id не из каталога → fallback на TopicRegistry."""
-tests/test_planner_v2.py:225:    def test_unknown_aggregate_id_triggers_fallback(self, registry):
-tests/test_planner_v2.py:228:            "queries": [{"aggregate_id": "not_in_catalog", "params": {}, "label": "X"}],
-tests/test_planner_v2.py:238:    def test_any_invalid_aggregate_id_triggers_fallback(self, registry):
-tests/test_planner_v2.py:239:        """Если ЛЮБОЙ aggregate_id неверный — весь план → fallback."""
-tests/test_planner_v2.py:241:            "intent": "comparison",
-tests/test_planner_v2.py:243:                {"aggregate_id": "revenue_total", "params": {}, "label": "OK"},
-tests/test_planner_v2.py:244:                {"aggregate_id": "sql_injection_here", "params": {}, "label": "Bad"}
-tests/test_planner_v2.py:270:            "intent": "comparison",
-tests/test_planner_v2.py:272:                {"aggregate_id": "revenue_total", "params": {"date_from": "2026-04-01", "date_to": "2026-04-15"}, "label": "Выручка"},
-tests/test_planner_v2.py:273:                {"aggregate_id": "outflow_clients", "params": {"date_from": "2026-04-01", "date_to": "2026-04-15"}, "label": "Отток"}
-tests/test_planner_v2.py:282:        assert isinstance(plan, MultiPlan)
-tests/test_planner_v2.py:283:        assert plan.intent == "comparison"
-tests/test_planner_v2.py:285:        ids = {aq.aggregate_id for aq in plan.queries}
-tests/test_planner_v2.py:293:                {"aggregate_id": "revenue_total", "params": {}, "label": "Выручка"},
-tests/test_planner_v2.py:294:                {"aggregate_id": "outflow_clients", "params": {}, "label": "Отток"},
-tests/test_planner_v2.py:295:                {"aggregate_id": "communications_all", "params": {}, "label": "Коммуникации"}
-tests/test_planner_v2.py:308:# ── Issue #2: Follow-up comparison intent ────────────────────────────────────
-tests/test_planner_v2.py:311:    """Fix #2: follow-up «сравни по месяцам» должен возвращать comparison."""
-tests/test_planner_v2.py:313:    def test_followup_comparison_llm(self, registry):
-tests/test_planner_v2.py:314:        """LLM получает last_topic и возвращает comparison plan."""
-tests/test_planner_v2.py:315:        comparison_json = """{
-tests/test_planner_v2.py:316:            "intent": "comparison",
-tests/test_planner_v2.py:318:                {"aggregate_id": "clients_outflow", "params": {"date_from": "2026-03-01", "date_to": "2026-03-31", "group_by": "status"}, "label": "Март"},
-tests/test_planner_v2.py:319:                {"aggregate_id": "clients_outflow", "params": {"date_from": "2026-02-01", "date_to": "2026-02-28", "group_by": "status"}, "label": "Февраль"}
-tests/test_planner_v2.py:324:        planner = _make_planner(comparison_json, registry)
-tests/test_planner_v2.py:328:            last_topic="clients_outflow",
-tests/test_planner_v2.py:333:        assert plan.intent == "comparison"
-tests/test_planner_v2.py:335:        assert all(aq.aggregate_id == "clients_outflow" for aq in plan.queries)
-
-exec
-/bin/zsh -lc "sed -n '200,420p' src/swarm_powerbi_bot/services/sql_client.py" in /Users/zerocold/Downloads/git/kpi/tg_bot/swarm_powerbi_bot
-exec
-/bin/zsh -lc "sed -n '1,220p' tests/test_context_switching.py" in /Users/zerocold/Downloads/git/kpi/tg_bot/swarm_powerbi_bot
- succeeded in 0ms:
-                rows = []
-                for row in cursor.fetchall():
-                    rows.append(dict(zip(columns, row)))
-                return rows
-            finally:
-                conn.close()
-
-        return await asyncio.to_thread(_sync)
-
-    async def execute_aggregate(
-        self,
-        aggregate_id: str,
-        params: dict[str, Any],
-        registry: "AggregateRegistry",  # type: ignore[name-defined]
-    ) -> AggregateResult:
-        """T027: Выполняет агрегатный запрос по aggregate_id из каталога.
-
-        1. Валидирует через registry.validate() — возвращает AggregateResult(status=error) если невалиден.
-        2. Маппит aggregate_id на процедуру через каталог.
-        3. Выполняет SQL и возвращает AggregateResult(status=ok|error|timeout).
-        """
-        # Валидация
-        ok, msg = registry.validate(aggregate_id, params)
-        if not ok:
-            logger.warning(
-                "execute_aggregate: validation failed for %r: %s", aggregate_id, msg
-            )
-            return AggregateResult(
-                aggregate_id=aggregate_id,
-                label=params.get("label", ""),
-                status="error",
-                error=f"validation failed: {msg}",
-            )
-
-        agg_entry = registry.get_aggregate(aggregate_id)
-        if not agg_entry:
-            return AggregateResult(
-                aggregate_id=aggregate_id,
-                status="error",
-                error=f"aggregate_id not found in catalog: {aggregate_id!r}",
-            )
-
-        procedure = agg_entry.get("procedure", "")
-        if not procedure:
-            return AggregateResult(
-                aggregate_id=aggregate_id,
-                status="error",
-                error=f"no procedure mapped for aggregate_id: {aggregate_id!r}",
-            )
-
-        start_ms = int(time.monotonic() * 1000)
-
-        try:
-            rows, _topic, _p = await asyncio.to_thread(
-                self._execute_aggregate_sync, aggregate_id, procedure, params
-            )
-        except asyncio.TimeoutError:
-            duration_ms = int(time.monotonic() * 1000) - start_ms
-            return AggregateResult(
-                aggregate_id=aggregate_id,
-                status="timeout",
-                error="SQL query timed out",
-                duration_ms=duration_ms,
-            )
-        except Exception as exc:
-            duration_ms = int(time.monotonic() * 1000) - start_ms
-            logger.error("execute_aggregate error for %r: %s", aggregate_id, exc)
-            return AggregateResult(
-                aggregate_id=aggregate_id,
-                status="error",
-                error=str(exc),
-                duration_ms=duration_ms,
-            )
-
-        duration_ms = int(time.monotonic() * 1000) - start_ms
-        return AggregateResult(
-            aggregate_id=aggregate_id,
-            label=params.get("label", aggregate_id),
-            rows=rows,
-            row_count=len(rows),
-            duration_ms=duration_ms,
-            status="ok",
-        )
-
-    def _execute_aggregate_sync(
-        self,
-        aggregate_id: str,
-        procedure: str,
-        params: dict[str, Any],
-        max_rows: int = 20,
-    ) -> tuple[list[dict[str, Any]], str, dict[str, Any]]:
-        """Синхронное выполнение агрегатного запроса."""
-        # Защита от SQL injection: только alphanumeric + underscore + точка
-        bare = procedure.replace("dbo.", "", 1) if procedure.startswith("dbo.") else procedure
-        if not re.fullmatch(r"[a-zA-Z0-9_.]+", bare):
-            logger.error("Invalid procedure name rejected: %r", procedure)
-            return [], aggregate_id, {}
-        if not procedure.startswith("dbo."):
-            procedure = f"dbo.{procedure}"
-
-        d_from_raw = params.get("date_from")
-        d_to_raw = params.get("date_to")
-        try:
-            d_from = date.fromisoformat(d_from_raw) if d_from_raw else date.today() - timedelta(days=30)
-        except (ValueError, TypeError):
-            logger.warning("Invalid date_from %r for %s, using default", d_from_raw, aggregate_id)
-            d_from = date.today() - timedelta(days=30)
-        try:
-            d_to = date.fromisoformat(d_to_raw) if d_to_raw else date.today()
-        except (ValueError, TypeError):
-            logger.warning("Invalid date_to %r for %s, using default", d_to_raw, aggregate_id)
-            d_to = date.today()
-
-        conn_str = self.settings.sql_connection_string()
-        if not conn_str or pyodbc is None:
-            logger.warning(
-                "_execute_aggregate_sync: no connection string or pyodbc unavailable for %s",
-                aggregate_id,
-            )
-            return [], aggregate_id, {"DateFrom": d_from, "DateTo": d_to}
-
-        obj_id = params.get("object_id")
-        if obj_id is None and self.settings.default_object_id:
-            obj_id = self.settings.default_object_id
-
-        group_by = params.get("group_by", "")
-        if obj_id is None and group_by != "salon":
-            logger.warning(
-                "execute_aggregate: no ObjectId for %s — returning empty", aggregate_id
-            )
-            return [], aggregate_id, {"DateFrom": d_from, "DateTo": d_to}
-
-        # Каталог использует "top", LLM может передать "top_n" — принимаем оба
-        top_n = params.get("top", params.get("top_n", max_rows))
-
-        sql_parts = [f"EXEC {procedure} @DateFrom=?, @DateTo=?"]
-        sql_args: list[Any] = [d_from, d_to]
-
-        if obj_id is not None:
-            sql_parts.append("@ObjectId=?")
-            sql_args.append(obj_id)
-
-        master_id = params.get("master_id")
-        if master_id is not None:
-            sql_parts.append("@MasterId=?")
-            sql_args.append(master_id)
-
-        if group_by:
-            sql_parts.append("@GroupBy=?")
-            sql_args.append(group_by)
-
-        filter_val = params.get("filter", "")
-        if filter_val:
-            sql_parts.append("@Filter=?")
-            sql_args.append(filter_val)
-
-        reason = params.get("reason", "")
-        if reason:
-            sql_parts.append("@Reason=?")
-            sql_args.append(reason)
-
-        sql_parts.append("@Top=?")
-        sql_args.append(top_n)
-
-        sql = ", ".join(sql_parts) + ";"
-        logger.debug("execute_aggregate SQL: %s | args: %s", sql, sql_args)
-
-        rows: list[dict[str, Any]] = []
-        with pyodbc.connect(conn_str, timeout=10) as conn:
-            cur = conn.cursor()
-            cur.execute(sql, sql_args)
-            cols = [desc[0] for desc in (cur.description or [])]
-            for idx, row in enumerate(cur.fetchall()):
-                if idx >= max_rows:
-                    break
-                item = {}
-                for cidx, col in enumerate(cols):
-                    val = row[cidx]
-                    item[col] = val.isoformat() if hasattr(val, "isoformat") else val
-                rows.append(item)
-
-        return rows, aggregate_id, {"DateFrom": d_from, "DateTo": d_to}
-
-    async def fetch_rows_with_params(
-        self,
-        qp: QueryParams,
-        *,
-        max_rows: int = 20,
-    ) -> tuple[list[dict[str, Any]], str, dict[str, Any]]:
-        """Выполняет запрос с LLM-определёнными параметрами."""
-        return await asyncio.to_thread(
-            self._fetch_with_query_params,
-            qp,
-            max_rows,
-        )
-
-    def _fetch_with_query_params(
-        self,
-        qp: QueryParams,
-        max_rows: int,
-    ) -> tuple[list[dict[str, Any]], str, dict[str, Any]]:
-        """Вызывает процедуру с параметрами из QueryParams."""
-        procedure = qp.procedure or "spKDO_Aggregate"
-        # Защита от SQL injection: только alphanumeric + underscore + точка
-        if not re.fullmatch(r"[a-zA-Z0-9_.]+", procedure):
-            logger.error("Invalid procedure name rejected: %r", procedure)
-            return [], "", {}
-        # Добавляем dbo. если не указано
-        if not procedure.startswith("dbo."):
-            procedure = f"dbo.{procedure}"
-        topic_id = procedure.replace("dbo.spKDO_", "").lower()
-
-        # Парсим даты (LLM может вернуть невалидную строку)
-        try:
-            d_from = date.fromisoformat(qp.date_from) if qp.date_from else date.today() - timedelta(days=30)
-        except (ValueError, TypeError):
-            logger.warning("Invalid date_from %r, using default", qp.date_from)
-            d_from = date.today() - timedelta(days=30)
-        try:
-            d_to = date.fromisoformat(qp.date_to) if qp.date_to else date.today()
-        except (ValueError, TypeError):
-
- succeeded in 0ms:
-"""Тесты переключения и сохранения контекста разговора.
-
-Проверяет что бот:
-- Сохраняет тему после вопроса
-- Использует last_topic для follow-up вопросов
-- Переключает тему при явном указании
-- Не путает модификаторы (сравни, по неделям) с темой
-"""
-from swarm_powerbi_bot.services.topic_registry import detect_topic
-
-
-# ── Follow-up: тема сохраняется ──────────────────────────────
-
-class TestContextRetention:
-    """Если новый вопрос — модификатор (сравни, подробнее),
-    тема должна остаться от предыдущего вопроса."""
-
-    def test_comparison_keeps_outflow(self):
-        topic = detect_topic("сравни месяц к месяцу", last_topic="outflow")
-        assert topic == "outflow"
-
-    def test_weekly_keeps_outflow(self):
-        topic = detect_topic("покажи по неделям", last_topic="outflow")
-        assert topic == "outflow"
-
-    def test_details_keeps_masters(self):
-        topic = detect_topic("подробнее", last_topic="masters")
-        assert topic == "masters"
-
-    def test_monthly_keeps_services(self):
-        topic = detect_topic("по месяцам за квартал", last_topic="services")
-        assert topic == "services"
-
-    def test_dynamics_keeps_leaving(self):
-        topic = detect_topic("покажи динамику", last_topic="leaving")
-        assert topic == "leaving"
-
-    def test_breakdown_keeps_quality(self):
-        """'разбивка по категориям' — нет явной темы, follow-up."""
-        topic = detect_topic("разбивка по категориям", last_topic="quality")
-        assert topic == "quality"
-
-
-# ── Явное переключение темы ──────────────────────────────────
-
-class TestContextSwitch:
-    """При явных ключевых словах другой темы — переключаемся."""
-
-    def test_switch_from_outflow_to_masters(self):
-        topic = detect_topic("покажи мастеров за неделю", last_topic="outflow")
-        assert topic == "masters"
-
-    def test_switch_from_outflow_to_services(self):
-        topic = detect_topic("какая выручка за месяц?", last_topic="outflow")
-        assert topic == "services"
-
-    def test_switch_from_masters_to_outflow(self):
-        topic = detect_topic("покажи отток", last_topic="masters")
-        assert topic == "outflow"
-
-    def test_switch_from_statistics_to_quality(self):
-        topic = detect_topic("контроль качества за неделю", last_topic="statistics")
-        assert topic == "quality"
-
-    def test_switch_from_outflow_to_noshow(self):
-        topic = detect_topic("кто не дошёл?", last_topic="outflow")
-        assert topic == "noshow"
-
-
-# ── Без контекста — fallback ─────────────────────────────────
-
-class TestNoContext:
-    """Без last_topic модификаторы идут в trend, остальное в statistics."""
-
-    def test_comparison_without_context_goes_trend(self):
-        topic = detect_topic("сравни по неделям")
-        assert topic == "trend"
-
-    def test_gibberish_returns_unknown(self):
-        # score=0, нет контекста — возвращаем sentinel "unknown" вместо дефолта
-        topic = detect_topic("привет как дела")
-        assert topic == "unknown"
-
-    def test_clear_topic_without_context(self):
-        topic = detect_topic("отток за месяц")
-        assert topic == "outflow"
-
-
-# ── Пограничные случаи ──────────────────────────────────────
-
-class TestEdgeCases:
-    """Вопросы с неочевидным поведением."""
-
-    def test_empty_question_with_context(self):
-        topic = detect_topic("", last_topic="outflow")
-        assert topic == "outflow"
-
-    def test_period_only_keeps_context(self):
-        """'за последнюю неделю' без темы — follow-up."""
-        topic = detect_topic("за последнюю неделю", last_topic="outflow")
-        assert topic == "outflow"
-
-    def test_invalid_last_topic_ignored(self):
-        # invalid last_topic не попадает в _TOPICS_BY_ID, поэтому контекст не используется.
-        # score=0 → возвращаем "unknown"
-        topic = detect_topic("привет", last_topic="nonexistent_topic")
-        assert topic == "unknown"
-
-    def test_trend_with_explicit_revenue_switches(self):
-        """'тренд выручки' — явно про тренд, не follow-up."""
-        topic = detect_topic("тренд выручки", last_topic="outflow")
-        # "выручк" matches services, "тренд" matches trend
-        assert topic in ("trend", "services")
-
-exec
-/bin/zsh -lc "sed -n '1,260p' tests/test_llm_planner.py" in /Users/zerocold/Downloads/git/kpi/tg_bot/swarm_powerbi_bot
- succeeded in 0ms:
-"""Тесты LLM-планировщика запросов (v2 — универсальные процедуры).
-
-Проверяет:
-- Парсинг JSON из ответа LLM
-- plan_query() с мок-LLM
-- PlannerAgent с LLM vs fallback
-- Маппинг (procedure, group_by/filter) → topic
-- Передачу QueryParams в SQLAgent
-"""
-import asyncio
-from unittest.mock import AsyncMock
-
-
-from swarm_powerbi_bot.agents.planner import PlannerAgent
-from swarm_powerbi_bot.models import QueryParams, UserQuestion
-from swarm_powerbi_bot.services.llm_client import LLMClient, _PLANNER_SYSTEM_PROMPT
-
-
-# ── Парсинг JSON из LLM-ответа ─────────────────────────────────
-
-class TestPlanJsonParsing:
-    """LLM может вернуть JSON в разных обёртках."""
-
-    def setup_method(self):
-        from swarm_powerbi_bot.config import Settings
-        self.client = LLMClient(Settings())
-
-    def test_clean_json(self):
-        raw = '{"procedure": "spKDO_Aggregate", "group_by": "total", "filter": "", "reason": "", "date_from": "2026-03-15", "date_to": "2026-04-14", "top": 20, "master_name": ""}'
-        result = self.client._parse_plan_json(raw)
-        assert result is not None
-        assert result["procedure"] == "spKDO_Aggregate"
-        assert result["group_by"] == "total"
-
-    def test_json_in_markdown(self):
-        raw = '```json\n{"procedure": "spKDO_Aggregate", "group_by": "week", "filter": "", "reason": "", "date_from": "2026-01-01", "date_to": "2026-04-14", "top": 20, "master_name": ""}\n```'
-        result = self.client._parse_plan_json(raw)
-        assert result is not None
-        assert result["procedure"] == "spKDO_Aggregate"
-        assert result["group_by"] == "week"
-
-    def test_json_with_prefix_text(self):
-        raw = 'Вот параметры: {"procedure": "spKDO_Aggregate", "group_by": "master", "filter": "", "reason": "", "date_from": "2026-03-15", "date_to": "2026-04-14", "top": 10, "master_name": "Анна"}'
-        result = self.client._parse_plan_json(raw)
-        assert result is not None
-        assert result["master_name"] == "Анна"
-
-    def test_no_json(self):
-        result = self.client._parse_plan_json("Я не понимаю вопрос")
-        assert result is None
-
-    def test_invalid_json(self):
-        result = self.client._parse_plan_json("{broken json here}")
-        assert result is None
-
-    def test_json_without_procedure(self):
-        result = self.client._parse_plan_json('{"group_by": "week", "date_from": "2026-01-01"}')
-        assert result is None
-
-
-# ── PlannerAgent с LLM (v2 — универсальные процедуры) ──────────
-
-class TestPlannerWithLLM:
-    """PlannerAgent использует LLM для сборки запроса из компонентов."""
-
-    def _make_planner(self, llm_response: dict | None):
-        from swarm_powerbi_bot.config import Settings
-        llm = LLMClient(Settings())
-        llm.plan_query = AsyncMock(return_value=llm_response)
-        return PlannerAgent(llm_client=llm)
-
-    def test_llm_outflow_topic(self):
-        """LLM определяет тему outflow, процедура зависит от USE_V2."""
-        planner = self._make_planner({
-            "procedure": "spKDO_ClientList",
-            "group_by": "list",
-            "filter": "outflow",
-            "reason": "",
-            "date_from": "2026-03-15",
-            "date_to": "2026-04-14",
-            "top": 20,
-            "master_name": "",
-        })
-        plan = asyncio.run(planner.run(
-            UserQuestion(user_id="1", text="покажи отток за месяц"),
-        ))
-        assert plan.topic == "outflow"
-        assert plan.query_params is not None
-        assert "planner:llm" in plan.notes
-        # Процедура: v2=ClientList, v1=Outflow — главное topic верный
-        assert "Outflow" in plan.query_params.procedure or "ClientList" in plan.query_params.procedure
-
-    def test_llm_trend_topic(self):
-        """LLM определяет тренд по неделям."""
-        planner = self._make_planner({
-            "procedure": "spKDO_Aggregate",
-            "group_by": "week",
-            "filter": "",
-            "reason": "",
-            "date_from": "2026-01-14",
-            "date_to": "2026-04-14",
-            "top": 20,
-            "master_name": "",
-        })
-        plan = asyncio.run(planner.run(
-            UserQuestion(user_id="1", text="сравни по неделям", last_topic="outflow"),
-        ))
-        assert plan.topic == "trend"
-        assert "Trend" in plan.query_params.procedure or "Aggregate" in plan.query_params.procedure
-
-    def test_llm_masters_with_name(self):
-        planner = self._make_planner({
-            "procedure": "spKDO_Aggregate",
-            "group_by": "master",
-            "filter": "",
-            "reason": "",
-            "date_from": "2026-03-15",
-            "date_to": "2026-04-14",
-            "top": 10,
-            "master_name": "Анна",
-        })
-        plan = asyncio.run(planner.run(
-            UserQuestion(user_id="1", text="покажи загрузку мастера Анна"),
-        ))
-        assert plan.topic == "masters"
-        assert plan.query_params.master_name == "Анна"
-
-    def test_llm_communications_topic(self):
-        planner = self._make_planner({
-            "procedure": "spKDO_CommAgg",
-            "group_by": "reason",
-            "filter": "",
-            "reason": "all",
-            "date_from": "2026-04-07",
-            "date_to": "2026-04-14",
-            "top": 20,
-            "master_name": "",
-        })
-        plan = asyncio.run(planner.run(
-            UserQuestion(user_id="1", text="коммуникации за неделю"),
-        ))
-        assert plan.topic == "communications"
-
-    def test_llm_outflow_by_master_topic(self):
-        """LLM: отток по мастерам → topic=outflow."""
-        planner = self._make_planner({
-            "procedure": "spKDO_ClientList",
-            "group_by": "master",
-            "filter": "outflow",
-            "reason": "",
-            "date_from": "2026-03-15",
-            "date_to": "2026-04-14",
-            "top": 20,
-            "master_name": "",
-        })
-        plan = asyncio.run(planner.run(
-            UserQuestion(user_id="1", text="отток по мастерам"),
-        ))
-        assert plan.topic == "outflow"
-
-    def test_llm_fallback_on_none(self):
-        """Если LLM недоступен — fallback на keyword-matching."""
-        planner = self._make_planner(None)
-        plan = asyncio.run(planner.run(
-            UserQuestion(user_id="1", text="отток за месяц"),
-        ))
-        assert plan.topic == "outflow"
-        assert plan.query_params is not None
-        assert "planner:keyword" in plan.notes
-
-    def test_llm_preserves_object_id(self):
-        planner = self._make_planner({
-            "procedure": "spKDO_Aggregate",
-            "group_by": "total",
-            "filter": "",
-            "reason": "",
-            "date_from": "2026-03-15",
-            "date_to": "2026-04-14",
-            "top": 20,
-            "master_name": "",
-        })
-        plan = asyncio.run(planner.run(
-            UserQuestion(user_id="1", text="статистика", object_id=12345),
-        ))
-        assert plan.query_params.object_id == 12345
-
-    def test_llm_invalid_procedure_fallback(self):
-        """Если LLM вернул невалидную процедуру — fallback."""
-        planner = self._make_planner({
-            "procedure": "spKDO_Hacked; DROP TABLE",
-            "group_by": "total",
-            "date_from": "2026-03-15",
-            "date_to": "2026-04-14",
-        })
-        plan = asyncio.run(planner.run(
-            UserQuestion(user_id="1", text="статистика за неделю"),
-        ))
-        assert "planner:keyword" in plan.notes  # fallback
-
-
-# ── PlannerAgent без LLM (fallback) ────────────────────────────
-
-class TestPlannerFallback:
-    def test_no_llm_outflow(self):
-        planner = PlannerAgent()
-        plan = asyncio.run(planner.run(
-            UserQuestion(user_id="1", text="отток за месяц"),
-        ))
-        assert plan.topic == "outflow"
-        assert "planner:keyword" in plan.notes
-
-    def test_no_llm_statistics(self):
-        planner = PlannerAgent()
-        plan = asyncio.run(planner.run(
-            UserQuestion(user_id="1", text="покажи статистику за неделю"),
-        ))
-        assert plan.topic == "statistics"
-
-    def test_no_llm_with_context_retention(self):
-        planner = PlannerAgent()
-        plan = asyncio.run(planner.run(
-            UserQuestion(user_id="1", text="подробнее", last_topic="outflow"),
-        ))
-        assert plan.topic == "outflow"
-
-    def test_no_llm_comparison_switches_to_trend(self):
-        planner = PlannerAgent()
-        plan = asyncio.run(planner.run(
-            UserQuestion(user_id="1", text="сравни отток по неделям"),
-        ))
-        assert plan.topic == "trend"
-        assert "comparison_requested" in plan.notes
-
-
-# ── Маппинг topic ───────────────────────────────────────────────
-
-class TestTopicMapping:
-    """_derive_topic корректно маппит (procedure, params) → topic."""
-
-    def setup_method(self):
-        self.planner = PlannerAgent()
-        self.q = UserQuestion(user_id="1", text="test")
-
-    def test_aggregate_mappings(self):
-        cases = {
-            "total": "statistics",
-            "week": "trend",
-            "month": "trend",
-            "master": "masters",
-            "service": "services",
-            "channel": "referrals",
-        }
-        for group_by, expected_topic in cases.items():
-            qp = QueryParams(procedure="spKDO_Aggregate", group_by=group_by)
-            topic = self.planner._derive_topic(qp, self.q)
-            assert topic == expected_topic, f"group_by={group_by}"
-
-    def test_clientlist_mappings(self):
-        cases = {
-            "outflow": "outflow",
-
-codex
-I’ve got enough code context to start falsifying the new behavior with tests and contract checks. The main suspicion is that the fallback comparison path ignores the actual question semantics and may generate invalid aggregate ids for the executor.
-exec
-/bin/zsh -lc "nl -ba src/swarm_powerbi_bot/agents/planner.py | sed -n '330,420p'" in /Users/zerocold/Downloads/git/kpi/tg_bot/swarm_powerbi_bot
-exec
-/bin/zsh -lc "nl -ba src/swarm_powerbi_bot/services/llm_client.py | sed -n '145,235p'" in /Users/zerocold/Downloads/git/kpi/tg_bot/swarm_powerbi_bot
- succeeded in 0ms:
-   145	            logger.warning("plan_query: LLM returned empty response")
-   146	            return None
-   147	
-   148	        return self._parse_plan_json(raw)
-   149	
-   150	    async def plan_aggregates(
-   151	        self,
-   152	        question: str,
-   153	        catalog_prompt: str,
-   154	        semantic_prompt: str,
-   155	        last_topic: str = "",
-   156	    ) -> dict | None:
-   157	        """T025: Одношаговое LLM-планирование с каталогом агрегатов.
-   158	
-   159	        Возвращает распарсенный JSON-dict или None при ошибке/circuit breaker.
-   160	        Timeout: settings.llm_plan_timeout (5s).
-   161	        Circuit breaker: после threshold подряд неудач → None на cooldown секунд.
-   162	        """
-   163	        if not self.settings.ollama_api_key:
-   164	            return None
-   165	
-   166	        # Проверяем circuit breaker (под локом — потокобезопасно)
-   167	        async with self._cb_lock:
-   168	            now = time.monotonic()
-   169	            if self._cb_open_until > now:
-   170	                logger.warning(
-   171	                    "LLM circuit breaker open: %.0fs remaining",
-   172	                    self._cb_open_until - now,
-   173	                )
-   174	                return None
-   175	
-   176	        system_prompt = (
-   177	            "Ты — планировщик аналитических запросов. "
-   178	            "Ниже — каталог доступных агрегатов и семантический каталог.\n\n"
-   179	            f"КАТАЛОГ АГРЕГАТОВ:\n{catalog_prompt}\n\n"
-   180	            f"СЕМАНТИЧЕСКИЙ КАТАЛОГ:\n{semantic_prompt}\n\n"
-   181	            "Пользователь задаёт вопрос на русском. "
-   182	            "Выбери подходящие агрегаты из каталога и верни JSON:\n"
-   183	            '{"intent": "single|comparison|decomposition|trend|ranking", '
-   184	            '"queries": [{"aggregate_id": "...", "params": {...}, "label": "..."}], '
-   185	            '"topic": "statistics", "render_needed": true}\n\n'
-   186	            "ПРАВИЛА DECOMPOSITION:\n"
-   187	            "Если вопрос содержит «почему», «из-за чего», «что повлияло», «причина» "
-   188	            "или аналогичные запросы на факторный анализ — используй intent=decomposition.\n"
-   189	            "При decomposition запроси ВСЕ связанные метрики за ДВА периода:\n"
-   190	            "Пример: «почему упала выручка?» → 5 запросов:\n"
-   191	            "  1. revenue_summary за текущий период\n"
-   192	            "  2. revenue_summary за предыдущий период\n"
-   193	            "  3. client_count за текущий период\n"
-   194	            "  4. client_count за предыдущий период\n"
-   195	            "  5. avg_check (один период достаточно)\n"
-   196	            "Максимум 5 запросов при decomposition. "
-   197	            "Ставь понятный label: «Выручка (апрель)», «Клиенты (март)» и т.д.\n\n"
-   198	            "ПРАВИЛА FOLLOW-UP:\n"
-   199	            "Если указан last_topic — пользователь продолжает предыдущий разговор. "
-   200	            "Используй last_topic как основу для выбора агрегата.\n"
-   201	            "Пример: last_topic=clients_outflow, вопрос=«сравни по месяцам» "
-   202	            "→ intent=comparison, aggregate_id=clients_outflow для обоих периодов.\n"
-   203	            "Для comparison клиентских агрегатов (clients_*) используй group_by=status "
-   204	            "(агрегированные цифры), НЕ group_by=list (сырой список).\n\n"
-   205	            "ВАЖНО: используй только aggregate_id из каталога выше. "
-   206	            "Ответь ТОЛЬКО JSON, без пояснений."
-   207	        )
-   208	
-   209	        base = self.settings.ollama_base_url.rstrip("/")
-   210	        url = f"{base}/chat"
-   211	        headers = {
-   212	            "Authorization": f"Bearer {self.settings.ollama_api_key}",
-   213	            "Content-Type": "application/json",
-   214	        }
-   215	        payload: dict[str, Any] = {
-   216	            "model": self.settings.ollama_model,
-   217	            "messages": [
-   218	                {"role": "system", "content": system_prompt},
-   219	                {"role": "user", "content": (
-   220	                    f"{question}\nКонтекст: last_topic={_sanitize_topic(last_topic)}"
-   221	                    if last_topic else question
-   222	                )},
-   223	            ],
-   224	            "stream": False,
-   225	            "options": {"temperature": 0.1},
-   226	        }
-   227	
-   228	        try:
-   229	            timeout = float(self.settings.llm_plan_timeout)
-   230	            async with httpx.AsyncClient(timeout=timeout) as client:
-   231	                resp = await client.post(url, headers=headers, json=payload)
-   232	                resp.raise_for_status()
-   233	                data = resp.json()
-   234	        except Exception as exc:
-   235	            logger.error("plan_aggregates request failed: %s", exc)
-
- succeeded in 0ms:
-   330	        if intent == "comparison":
-   331	            if len(queries) < 2:
-   332	                logger.warning(
-   333	                    "plan_aggregates: comparison intent but only %d queries — falling back",
-   334	                    len(queries),
-   335	                )
-   336	                return None
-   337	
-   338	        return MultiPlan(
-   339	            objective=question.text,
-   340	            intent=intent,
-   341	            queries=queries,
-   342	            topic=topic,
-   343	            render_needed=render_needed,
-   344	            notes=["planner_v2:llm"],
-   345	        )
-   346	
-   347	    _COMPARISON_KEYWORDS = {"сравни", "сравнен", "сравнить", "сравнение", "compare", "сопостав", "vs"}
-   348	    _CLIENT_AGGREGATES = {
-   349	        "clients_outflow", "clients_leaving", "clients_forecast",
-   350	        "clients_noshow", "clients_quality", "clients_birthday", "clients_all",
-   351	    }
-   352	
-   353	    def _fallback_multi_plan(
-   354	        self, question: UserQuestion, render_needed: bool
-   355	    ) -> MultiPlan:
-   356	        """Fallback: keyword-based TopicRegistry → AggregateQuery(s).
-   357	
-   358	        Определяет intent=comparison по ключевым словам и генерирует
-   359	        2 запроса с разными периодами при наличии контекста (last_topic).
-   360	        """
-   361	        topic = detect_topic(question.text, last_topic=question.last_topic)
-   362	        text_lower = question.text.lower()
-   363	
-   364	        is_comparison = any(kw in text_lower for kw in self._COMPARISON_KEYWORDS)
-   365	
-   366	        if is_comparison and question.last_topic:
-   367	            agg_id = question.last_topic
-   368	            # Для клиентских агрегатов — group_by=status (агрегированные цифры)
-   369	            group_by = "status" if agg_id in self._CLIENT_AGGREGATES else ""
-   370	            today = date.today()
-   371	            first_of_current = today.replace(day=1)
-   372	            last_of_prev = first_of_current - timedelta(days=1)
-   373	            first_of_prev = last_of_prev.replace(day=1)
-   374	
-   375	            params_prev: dict = {
-   376	                "date_from": first_of_prev.isoformat(),
-   377	                "date_to": last_of_prev.isoformat(),
-   378	            }
-   379	            params_curr: dict = {
-   380	                "date_from": first_of_current.isoformat(),
-   381	                "date_to": today.isoformat(),
-   382	            }
-   383	            if group_by:
-   384	                params_prev["group_by"] = group_by
-   385	                params_curr["group_by"] = group_by
-   386	
-   387	            _RU_MONTHS = [
-   388	                "", "Январь", "Февраль", "Март", "Апрель", "Май", "Июнь",
-   389	                "Июль", "Август", "Сентябрь", "Октябрь", "Ноябрь", "Декабрь",
-   390	            ]
-   391	            prev_label = f"{_RU_MONTHS[first_of_prev.month]} {first_of_prev.year}"
-   392	            curr_label = f"{_RU_MONTHS[first_of_current.month]} {first_of_current.year}"
-   393	
-   394	            queries = [
-   395	                AggregateQuery(aggregate_id=agg_id, params=AggregateParams(params_prev), label=prev_label),
-   396	                AggregateQuery(aggregate_id=agg_id, params=AggregateParams(params_curr), label=curr_label),
-   397	            ]
-   398	            return MultiPlan(
-   399	                objective=question.text,
-   400	                intent="comparison",
-   401	                queries=queries,
-   402	                topic=agg_id,
-   403	                render_needed=render_needed,
-   404	                notes=["planner_v2:keyword", "comparison:fallback"],
-   405	            )
-   406	
-   407	        agg_query = AggregateQuery(
-   408	            aggregate_id=topic,
-   409	            params={},
-   410	            label=topic,
-   411	        )
-   412	
-   413	        return MultiPlan(
-   414	            objective=question.text,
-   415	            intent="single",
-   416	            queries=[agg_query],
-   417	            topic=topic,
-   418	            render_needed=render_needed,
-   419	            notes=["planner_v2:keyword"],
-   420	        )
-
-exec
-/bin/zsh -lc 'PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 pytest -q -p no:cacheprovider tests/test_planner_v2.py tests/test_context_switching.py tests/test_comparison.py' in /Users/zerocold/Downloads/git/kpi/tg_bot/swarm_powerbi_bot
- exited 1 in 153ms:
-Traceback (most recent call last):
-  File "/Users/zerocold/Downloads/git/kpi/tg_bot/.venv/bin/pytest", line 10, in <module>
-    sys.exit(console_main())
-             ^^^^^^^^^^^^^^
-  File "/Users/zerocold/Downloads/git/kpi/tg_bot/.venv/lib/python3.12/site-packages/_pytest/config/__init__.py", line 223, in console_main
-    code = main()
-           ^^^^^^
-  File "/Users/zerocold/Downloads/git/kpi/tg_bot/.venv/lib/python3.12/site-packages/_pytest/config/__init__.py", line 193, in main
-    config = _prepareconfig(new_args, plugins)
-             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/Users/zerocold/Downloads/git/kpi/tg_bot/.venv/lib/python3.12/site-packages/_pytest/config/__init__.py", line 361, in _prepareconfig
-    config: Config = pluginmanager.hook.pytest_cmdline_parse(
-                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/Users/zerocold/Downloads/git/kpi/tg_bot/.venv/lib/python3.12/site-packages/pluggy/_hooks.py", line 512, in __call__
-    return self._hookexec(self.name, self._hookimpls.copy(), kwargs, firstresult)
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/Users/zerocold/Downloads/git/kpi/tg_bot/.venv/lib/python3.12/site-packages/pluggy/_manager.py", line 120, in _hookexec
-    return self._inner_hookexec(hook_name, methods, kwargs, firstresult)
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/Users/zerocold/Downloads/git/kpi/tg_bot/.venv/lib/python3.12/site-packages/pluggy/_callers.py", line 167, in _multicall
-    raise exception
-  File "/Users/zerocold/Downloads/git/kpi/tg_bot/.venv/lib/python3.12/site-packages/pluggy/_callers.py", line 139, in _multicall
-    teardown.throw(exception)
-  File "/Users/zerocold/Downloads/git/kpi/tg_bot/.venv/lib/python3.12/site-packages/_pytest/helpconfig.py", line 124, in pytest_cmdline_parse
-    config = yield
-             ^^^^^
-  File "/Users/zerocold/Downloads/git/kpi/tg_bot/.venv/lib/python3.12/site-packages/pluggy/_callers.py", line 121, in _multicall
-    res = hook_impl.function(*args)
-          ^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/Users/zerocold/Downloads/git/kpi/tg_bot/.venv/lib/python3.12/site-packages/_pytest/config/__init__.py", line 1192, in pytest_cmdline_parse
-    self.parse(args)
-  File "/Users/zerocold/Downloads/git/kpi/tg_bot/.venv/lib/python3.12/site-packages/_pytest/config/__init__.py", line 1562, in parse
-    self.hook.pytest_load_initial_conftests(
-  File "/Users/zerocold/Downloads/git/kpi/tg_bot/.venv/lib/python3.12/site-packages/pluggy/_hooks.py", line 512, in __call__
-    return self._hookexec(self.name, self._hookimpls.copy(), kwargs, firstresult)
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/Users/zerocold/Downloads/git/kpi/tg_bot/.venv/lib/python3.12/site-packages/pluggy/_manager.py", line 120, in _hookexec
-    return self._inner_hookexec(hook_name, methods, kwargs, firstresult)
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/Users/zerocold/Downloads/git/kpi/tg_bot/.venv/lib/python3.12/site-packages/pluggy/_callers.py", line 167, in _multicall
-    raise exception
-  File "/Users/zerocold/Downloads/git/kpi/tg_bot/.venv/lib/python3.12/site-packages/pluggy/_callers.py", line 139, in _multicall
-    teardown.throw(exception)
-  File "/Users/zerocold/Downloads/git/kpi/tg_bot/.venv/lib/python3.12/site-packages/_pytest/warnings.py", line 128, in pytest_load_initial_conftests
-    return (yield)
-            ^^^^^
-  File "/Users/zerocold/Downloads/git/kpi/tg_bot/.venv/lib/python3.12/site-packages/pluggy/_callers.py", line 116, in _multicall
-    next(function_gen)  # first yield
-    ^^^^^^^^^^^^^^^^^^
-  File "/Users/zerocold/Downloads/git/kpi/tg_bot/.venv/lib/python3.12/site-packages/_pytest/capture.py", line 170, in pytest_load_initial_conftests
-    capman.start_global_capturing()
-  File "/Users/zerocold/Downloads/git/kpi/tg_bot/.venv/lib/python3.12/site-packages/_pytest/capture.py", line 773, in start_global_capturing
-    self._global_capturing = _get_multicapture(self._method)
-                             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/Users/zerocold/Downloads/git/kpi/tg_bot/.venv/lib/python3.12/site-packages/_pytest/capture.py", line 714, in _get_multicapture
-    return MultiCapture(in_=FDCapture(0), out=FDCapture(1), err=FDCapture(2))
-                                              ^^^^^^^^^^^^
-  File "/Users/zerocold/Downloads/git/kpi/tg_bot/.venv/lib/python3.12/site-packages/_pytest/capture.py", line 493, in __init__
-    TemporaryFile(buffering=0),
-    ^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/opt/homebrew/Caskroom/miniconda/base/lib/python3.12/tempfile.py", line 631, in TemporaryFile
-    prefix, suffix, dir, output_type = _sanitize_params(prefix, suffix, dir)
-                                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/opt/homebrew/Caskroom/miniconda/base/lib/python3.12/tempfile.py", line 126, in _sanitize_params
-    dir = gettempdir()
-          ^^^^^^^^^^^^
-  File "/opt/homebrew/Caskroom/miniconda/base/lib/python3.12/tempfile.py", line 315, in gettempdir
-    return _os.fsdecode(_gettempdir())
-                        ^^^^^^^^^^^^^
-  File "/opt/homebrew/Caskroom/miniconda/base/lib/python3.12/tempfile.py", line 308, in _gettempdir
-    tempdir = _get_default_tempdir()
-              ^^^^^^^^^^^^^^^^^^^^^^
-  File "/opt/homebrew/Caskroom/miniconda/base/lib/python3.12/tempfile.py", line 223, in _get_default_tempdir
-    raise FileNotFoundError(_errno.ENOENT,
-FileNotFoundError: [Errno 2] No usable temporary directory found in ['/var/folders/xc/29fk4qln2lx__qzv0wlwvnph0000gn/T/', '/tmp', '/var/tmp', '/usr/tmp', '/Users/zerocold/Downloads/git/kpi/tg_bot/swarm_powerbi_bot']
-
-exec
-/bin/zsh -lc "find catalogs -maxdepth 2 -type f | sort | sed -n '1,120p'" in /Users/zerocold/Downloads/git/kpi/tg_bot/swarm_powerbi_bot
- succeeded in 0ms:
-catalogs/aggregate-catalog.yaml
-catalogs/bootstrap/gaps.md
-catalogs/bootstrap/pbix-to-sql-mapping.yaml
-catalogs/bootstrap/semantic-model.yaml
-catalogs/category-index.yaml
-catalogs/semantic-catalog.yaml
-
-exec
-/bin/zsh -lc "sed -n '1,260p' src/swarm_powerbi_bot/telegram_bot.py" in /Users/zerocold/Downloads/git/kpi/tg_bot/swarm_powerbi_bot
- succeeded in 0ms:
-from __future__ import annotations
-
-from telegram import InlineKeyboardButton, InlineKeyboardMarkup, Update
-from telegram.constants import ChatAction
-from telegram.ext import (
-    ApplicationBuilder,
-    CallbackQueryHandler,
-    CommandHandler,
-    ContextTypes,
-    MessageHandler,
-    filters,
-)
-
-from .config import Settings
-from .models import UserQuestion
-from .orchestrator import SwarmOrchestrator
-from .services.registration import get_user_object_id, is_subscribed, parse_start_arg, subscribe
-# TODO: раскомментировать когда Ollama поддержит аудио-тракт
-# from .services.stt_client import STTClient
-from .services.sql_client import has_period_hint
-
-# ── Inline-кнопки выбора периода ─────────────────────────────
-
-PERIOD_BUTTONS = [
-    [
-        InlineKeyboardButton("Вчера", callback_data="period:вчера"),
-        InlineKeyboardButton("Неделя", callback_data="period:за неделю"),
-        InlineKeyboardButton("Месяц", callback_data="period:за месяц"),
-    ],
-    [
-        InlineKeyboardButton("Квартал", callback_data="period:за квартал"),
-        InlineKeyboardButton("Полгода", callback_data="period:за полгода"),
-        InlineKeyboardButton("Год", callback_data="period:за год"),
-    ],
-]
-
-PERIOD_KEYBOARD = InlineKeyboardMarkup(PERIOD_BUTTONS)
-
-
-class TelegramSwarmBot:
-    def __init__(self, token: str, orchestrator: SwarmOrchestrator, settings: Settings):
-        self.token = token
-        self.orchestrator = orchestrator
-        self.settings = settings
-        # TODO: раскомментировать когда Ollama поддержит аудио-тракт
-        # self.stt = STTClient(settings)
-
-    # ── /start [activation_link] ──────────────────────────────
-
-    async def start(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-        if not update.message or not update.effective_user:
-            return
-
-        account_id = str(update.effective_user.id)
-        first_arg = context.args[0] if context.args else ""
-
-        # Активация по ссылке: /start <customer_id>-<dataset_id>
-        if first_arg and first_arg.strip():
-            try:
-                customer_id, dataset_id = parse_start_arg(first_arg)
-                code, msg = await subscribe(customer_id, dataset_id, account_id, self.settings)
-                await update.message.reply_text(msg)
-            except ValueError as ve:
-                await update.message.reply_text(f"⚠️ {ve}")
-            except Exception:
-                await update.message.reply_text("Техническая ошибка. Попробуйте позже.")
-            return
-
-        # Без аргумента — проверяем подписку и приветствуем
-        try:
-            already = await is_subscribed(account_id, self.settings)
-        except Exception:
-            already = False
-
-        # TODO: раскомментировать когда Ollama поддержит аудио-тракт
-        # voice_hint = ""
-        # if self.stt.available:
-        #     voice_hint = "\n\nМожно отправить голосовое сообщение — я пойму!"
-        voice_hint = ""
-
-        if already:
-            await update.message.reply_text(
-                "Вы подписаны! Просто напишите вопрос, например:\n"
-                "• Покажи отток клиентов\n"
-                "• Какая выручка за неделю?\n"
-                "• Топ мастеров по загрузке"
-                + voice_hint
-            )
-        else:
-            await update.message.reply_text(
-                "Привет! Я аналитический бот КДО.\n\n"
-                "Просто напишите вопрос, например:\n"
-                "• Покажи отток клиентов\n"
-                "• Какая выручка за неделю?\n"
-                "• Топ мастеров по загрузке\n\n"
-                "Я определю тему и спрошу за какой период, "
-                "если вы не указали его в вопросе."
-                + voice_hint
-            )
-
-    # ── /ask <вопрос> ─────────────────────────────────────────
-
-    async def ask(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-        if not update.message:
-            return
-        text = " ".join(context.args).strip()
-        if not text:
-            await update.message.reply_text("Пример: /ask Покажи тренд выручки за неделю")
-            return
-        await self._handle_user_text(update, context, text)
-
-    # ── Обычное текстовое сообщение ───────────────────────────
-
-    async def text_message(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-        if not update.message or not update.message.text:
-            return
-        await self._handle_user_text(update, context, update.message.text.strip())
-
-    # ── Голосовое сообщение (отключено — Ollama не поддерживает аудио-тракт) ──
-    #
-    # async def voice_message(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    #     if not update.message or not update.message.voice:
-    #         return
-    #     if not self.stt.available:
-    #         await update.message.reply_text(
-    #             "Голосовые сообщения пока не поддерживаются — напишите текстом."
-    #         )
-    #         return
-    #     await update.message.chat.send_action(action=ChatAction.TYPING)
-    #     voice = update.message.voice
-    #     file = await voice.get_file()
-    #     audio_bytes = await file.download_as_bytearray()
-    #     text = await self.stt.transcribe(bytes(audio_bytes), filename="voice.ogg")
-    #     if not text:
-    #         await update.message.reply_text(
-    #             "Не удалось распознать. Попробуйте ещё раз или напишите текстом."
-    #         )
-    #         return
-    #     await update.message.reply_text(f"🎤 _{text}_", parse_mode="Markdown")
-    #     await self._handle_user_text(update, context, text)
-
-    # ── Callback от inline-кнопки периода ─────────────────────
-
-    async def period_callback(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-        query = update.callback_query
-        if not query or not query.data:
-            return
-
-        await query.answer()
-
-        # Достаём сохранённый вопрос
-        pending = (context.user_data or {}).get("pending_question", "")
-        if not pending:
-            await query.edit_message_text("Сессия истекла, задайте вопрос заново.")
-            return
-
-        # Извлекаем период из callback_data ("period:за неделю" → "за неделю")
-        period_text = query.data.split(":", 1)[1]
-
-        # Дополняем вопрос периодом
-        full_question = f"{pending} {period_text}"
-
-        # Убираем кнопки, показываем что выбрал пользователь
-        await query.edit_message_text(f"📊 {pending} — *{period_text}*", parse_mode="Markdown")
-
-        # Выполняем запрос — используем query.message для отправки ответа,
-        # но user_id берём из callback_query.from_user (пользователь, не бот)
-        if query.from_user:
-            context.user_data["_callback_user_id"] = str(query.from_user.id)
-        await self._process_question(query.message, full_question, context=context)
-
-        # Очищаем pending
-        context.user_data.pop("pending_question", None)
-
-    # ── Внутренняя логика ─────────────────────────────────────
-
-    async def _handle_user_text(
-        self, update: Update, context: ContextTypes.DEFAULT_TYPE, text: str,
-    ) -> None:
-        """Проверяет наличие периода. Если нет — показывает визард."""
-        if not update.message:
-            return
-
-        if has_period_hint(text):
-            # Период указан — выполняем сразу
-            await self._process_question(update.message, text, context=context)
-        else:
-            # Период не указан — спрашиваем через кнопки
-            context.user_data["pending_question"] = text
-            await update.message.reply_text(
-                f"📋 *{text}*\n\nЗа какой период?",
-                reply_markup=PERIOD_KEYBOARD,
-                parse_mode="Markdown",
-            )
-
-    async def _process_question(self, message, text: str, context: ContextTypes.DEFAULT_TYPE | None = None) -> None:
-        await message.chat.send_action(action=ChatAction.TYPING)
-
-        user_id = "unknown"
-        # Для callback-запросов (period_callback) user_id сохранён из callback_query.from_user,
-        # т.к. query.message.from_user — это бот, а не пользователь.
-        user_data_raw = context.user_data if context else {}
-        callback_uid = (user_data_raw or {}).pop("_callback_user_id", None)
-        if callback_uid:
-            user_id = callback_uid
-        elif hasattr(message, "from_user") and message.from_user:
-            user_id = str(message.from_user.id)
-        elif hasattr(message, "chat") and message.chat:
-            user_id = str(message.chat.id)
-
-        # Получаем ObjectId (SalonId) из подписки — кэшируем в user_data
-        object_id: int | None = None
-        user_data = context.user_data if context else {}
-        if user_data is not None:
-            object_id = user_data.get("object_id")
-            if object_id is None and user_id != "unknown":
-                try:
-                    object_id = await get_user_object_id(user_id, self.settings)
-                    if object_id:
-                        user_data["object_id"] = object_id
-                except Exception:
-                    pass
-        # Fallback на default_object_id из конфига
-        if object_id is None and self.settings.default_object_id:
-            object_id = self.settings.default_object_id
-
-        # last_topic для контекста разговора (follow-up вопросы)
-        last_topic = ""
-        if user_data is not None:
-            last_topic = user_data.get("last_topic", "")
-
-        response = await self.orchestrator.handle_question(
-            UserQuestion(user_id=user_id, text=text, object_id=object_id,
-                         last_topic=last_topic),
-        )
-
-        # Сохраняем тему для следующего вопроса
-        if user_data is not None and response.topic:
-            user_data["last_topic"] = response.topic
-
-        if response.image:
-            # Описание — caption к картинке (до 1024 символов)
-            caption = self._fit_caption(response.answer)
-            try:
-                await message.reply_photo(
-                    response.image, caption=caption, parse_mode="Markdown",
-                )
-            except Exception:
-                # Markdown может сломаться — шлём без разметки
-                await message.reply_photo(response.image, caption=caption)
-
-            # Если ответ длиннее caption — шлём полный текст отдельно
-            if len(response.answer) > 1024:
-                try:
-                    await message.reply_text(response.answer, parse_mode="Markdown")
-                except Exception:
-                    await message.reply_text(response.answer)
-        else:
-            try:
-                await message.reply_text(response.answer, parse_mode="Markdown")
-
-exec
-/bin/zsh -lc "rg -n \"clients_outflow|outflow_clients|clients_all|revenue_total|aggregate-catalog|aggregates:\" catalogs src tests -g '"'!**/.venv/**'"'" in /Users/zerocold/Downloads/git/kpi/tg_bot/swarm_powerbi_bot
- succeeded in 0ms:
-src/swarm_powerbi_bot/services/llm_client.py:201:            "Пример: last_topic=clients_outflow, вопрос=«сравни по месяцам» "
-src/swarm_powerbi_bot/services/llm_client.py:202:            "→ intent=comparison, aggregate_id=clients_outflow для обоих периодов.\n"
-src/swarm_powerbi_bot/services/llm_client.py:241:            logger.warning("plan_aggregates: LLM returned empty content")
-tests/test_aggregate_registry.py:19:    aggregates:
-catalogs/aggregate-catalog.yaml:9:aggregates:
-catalogs/aggregate-catalog.yaml:15:  - id: revenue_total
-catalogs/aggregate-catalog.yaml:220:  - id: clients_outflow
-catalogs/aggregate-catalog.yaml:445:  - id: clients_all
-tests/test_multi_query.py:20:    aggregates:
-tests/test_planner_v2.py:25:    aggregates:
-tests/test_planner_v2.py:26:      - id: revenue_total
-tests/test_planner_v2.py:34:      - id: outflow_clients
-tests/test_planner_v2.py:41:      - id: clients_outflow
-tests/test_planner_v2.py:62:    p = tmp_path / "aggregate-catalog.yaml"
-tests/test_planner_v2.py:107:                {"aggregate_id": "revenue_total", "params": {"date_from": "2026-04-01", "date_to": "2026-04-15", "group_by": "total"}, "label": "Выручка за период"}
-tests/test_planner_v2.py:120:        assert plan.queries[0].aggregate_id == "revenue_total"
-tests/test_planner_v2.py:126:            "queries": [{"aggregate_id": "revenue_total", "params": {}, "label": "Revenue"}],
-tests/test_planner_v2.py:139:            "queries": [{"aggregate_id": "outflow_clients", "params": {}, "label": "Outflow"}],
-tests/test_planner_v2.py:152:            "queries": [{"aggregate_id": "outflow_clients", "params": {}, "label": "Отток"}],
-tests/test_planner_v2.py:165:            "queries": [{"aggregate_id": "revenue_total", "params": {}, "label": "X"}],
-tests/test_planner_v2.py:243:                {"aggregate_id": "revenue_total", "params": {}, "label": "OK"},
-tests/test_planner_v2.py:272:                {"aggregate_id": "revenue_total", "params": {"date_from": "2026-04-01", "date_to": "2026-04-15"}, "label": "Выручка"},
-tests/test_planner_v2.py:273:                {"aggregate_id": "outflow_clients", "params": {"date_from": "2026-04-01", "date_to": "2026-04-15"}, "label": "Отток"}
-tests/test_planner_v2.py:286:        assert ids == {"revenue_total", "outflow_clients"}
-tests/test_planner_v2.py:293:                {"aggregate_id": "revenue_total", "params": {}, "label": "Выручка"},
-tests/test_planner_v2.py:294:                {"aggregate_id": "outflow_clients", "params": {}, "label": "Отток"},
-tests/test_planner_v2.py:318:                {"aggregate_id": "clients_outflow", "params": {"date_from": "2026-03-01", "date_to": "2026-03-31", "group_by": "status"}, "label": "Март"},
-tests/test_planner_v2.py:319:                {"aggregate_id": "clients_outflow", "params": {"date_from": "2026-02-01", "date_to": "2026-02-28", "group_by": "status"}, "label": "Февраль"}
-tests/test_planner_v2.py:321:            "topic": "clients_outflow",
-tests/test_planner_v2.py:328:            last_topic="clients_outflow",
-tests/test_planner_v2.py:335:        assert all(aq.aggregate_id == "clients_outflow" for aq in plan.queries)
-tests/test_planner_v2.py:339:        assert call_kwargs.kwargs.get("last_topic") == "clients_outflow"
-tests/test_planner_v2.py:347:            last_topic="clients_outflow",
-tests/test_planner_v2.py:354:        assert all(aq.aggregate_id == "clients_outflow" for aq in plan.queries)
-tests/test_comparison.py:36:    aggregates:
-tests/test_comparison.py:37:      - id: revenue_total
-tests/test_comparison.py:46:      - id: outflow_clients
-tests/test_comparison.py:58:    p = tmp_path / "aggregate-catalog.yaml"
-tests/test_comparison.py:108:                {"aggregate_id": "revenue_total",
-tests/test_comparison.py:111:                {"aggregate_id": "revenue_total",
-tests/test_comparison.py:126:        assert plan.queries[0].aggregate_id == "revenue_total"
-tests/test_comparison.py:127:        assert plan.queries[1].aggregate_id == "revenue_total"
-tests/test_comparison.py:133:                {"aggregate_id": "revenue_total",
-tests/test_comparison.py:136:                {"aggregate_id": "revenue_total",
-tests/test_comparison.py:157:                {"aggregate_id": "revenue_total", "params": {}, "label": "Один"}
-tests/test_comparison.py:242:                {"aggregate_id": "revenue_total",
-tests/test_comparison.py:245:                {"aggregate_id": "revenue_total",
-tests/test_comparison.py:273:                {"aggregate_id": "revenue_total",
-tests/test_comparison.py:276:                {"aggregate_id": "revenue_total",
-tests/test_comparison.py:296:                {"aggregate_id": "revenue_total",
-tests/test_comparison.py:299:                {"aggregate_id": "revenue_total",
-tests/test_comparison.py:434:            aggregate_id="revenue_total",
-tests/test_comparison.py:440:            aggregate_id="revenue_total",
-tests/test_comparison.py:458:            aggregate_id="revenue_total",
-tests/test_comparison.py:464:            aggregate_id="revenue_total",
-tests/test_comparison.py:482:            aggregate_id="revenue_total",
-tests/test_comparison.py:488:            aggregate_id="revenue_total",
-tests/test_comparison.py:507:            aggregate_id="revenue_total",
-tests/test_comparison.py:513:            aggregate_id="revenue_total",
-tests/test_comparison.py:533:        result_a = AggregateResult(aggregate_id="revenue_total", rows=[], row_count=0)
-tests/test_comparison.py:534:        result_b = AggregateResult(aggregate_id="revenue_total", rows=[], row_count=0)
-src/swarm_powerbi_bot/agents/planner.py:261:            logger.warning("plan_aggregates: 'queries' is missing or empty")
-src/swarm_powerbi_bot/agents/planner.py:269:                "plan_aggregates: unknown intent %r from LLM, falling back to 'single'",
-src/swarm_powerbi_bot/agents/planner.py:289:                    "plan_aggregates: aggregate_id %r not in catalog — falling back",
-src/swarm_powerbi_bot/agents/planner.py:333:                    "plan_aggregates: comparison intent but only %d queries — falling back",
-src/swarm_powerbi_bot/agents/planner.py:349:        "clients_outflow", "clients_leaving", "clients_forecast",
-src/swarm_powerbi_bot/agents/planner.py:350:        "clients_noshow", "clients_quality", "clients_birthday", "clients_all",
-tests/test_security.py:21:    aggregates:
-tests/test_security.py:22:      - id: revenue_total
-tests/test_security.py:31:      - id: outflow_clients
-tests/test_security.py:50:    p = tmp_path / "aggregate-catalog.yaml"
-tests/test_security.py:85:        ok, msg = registry.validate("revenue_total", {"group_by": "'; DROP TABLE; --"})
-tests/test_security.py:91:        ok, msg = registry.validate("revenue_total", {"date_from": "'; DROP TABLE--"})
-tests/test_security.py:97:        ok, msg = registry.validate("outflow_clients", {"filter": "'; DROP TABLE--"})
-tests/test_security.py:103:        ok, msg = registry.validate("revenue_total", {"date_from": "2026-04-01", "date_to": "2026-04-15"})
-tests/test_security.py:114:        ok, _ = registry.validate("revenue_total", {})
-tests/test_security.py:131:        ok, msg = registry.validate("revenue_total; DROP TABLE", {})
-tests/test_security.py:165:            ok, msg = registry.validate("revenue_total", {"date_from": bad_date})
-tests/test_security.py:171:            ok, msg = registry.validate("revenue_total", {"date_to": bad_date})
-tests/test_security.py:176:        ok, msg = registry.validate("revenue_total", {
-tests/test_security.py:184:        ok, msg = registry.validate("revenue_total", {"date_from": 20260101})
-tests/test_security.py:194:        # revenue_total allows: total, week, month, master
-tests/test_security.py:197:            ok, msg = registry.validate("revenue_total", {"group_by": val})
-tests/test_security.py:198:            assert ok is False, f"Expected rejection for group_by={val!r} on revenue_total"
-tests/test_security.py:203:            ok, msg = registry.validate("revenue_total", {"group_by": val})
-tests/test_security.py:204:            assert ok is True, f"Expected OK for group_by={val!r} on revenue_total, got: {msg}"
-tests/test_security.py:208:        # "salon" доступен для visits_by_salon, но не для outflow_clients
-tests/test_security.py:210:        ok_outflow, msg = registry.validate("outflow_clients", {"group_by": "salon"})
-tests/test_security.py:217:        ok, _ = registry.validate("revenue_total", {})
-tests/test_security.py:221:        ok, msg = registry.validate("revenue_total", {"group_by": "total; DROP TABLE"})
-tests/test_security.py:229:        ok, msg = registry.validate("revenue_total", {"top_n": 0})
-tests/test_security.py:234:        ok, msg = registry.validate("revenue_total", {"top_n": 51})
-tests/test_security.py:239:        ok, msg = registry.validate("revenue_total", {"top_n": "20"})
-tests/test_security.py:244:            ok, _ = registry.validate("revenue_total", {"top_n": n})
-tests/test_security.py:252:        ok, msg = registry.validate("revenue_total", {"object_id": "12345"})
-tests/test_security.py:257:        ok, _ = registry.validate("revenue_total", {"object_id": 12345})
-tests/test_security.py:261:        ok, msg = registry.validate("revenue_total", {"master_id": "42"})
-tests/test_security.py:266:        ok, _ = registry.validate("revenue_total", {"master_id": None})
-src/swarm_powerbi_bot/config.py:130:    aggregate_catalog_path: str = "catalogs/aggregate-catalog.yaml"
-src/swarm_powerbi_bot/config.py:176:            aggregate_catalog_path=os.getenv("AGGREGATE_CATALOG_PATH", "catalogs/aggregate-catalog.yaml").strip(),
-tests/integration/test_real_llm.py:152:            aggregate_id="revenue_total",
-tests/integration/test_real_sql.py:49:# ── 3. revenue_total ─────────────────────────────────────────────────────────
-tests/integration/test_real_sql.py:51:async def test_aggregate_revenue_total(
-tests/integration/test_real_sql.py:57:        "revenue_total",
-tests/integration/test_real_sql.py:66:# ── 4. clients_outflow ───────────────────────────────────────────────────────
-tests/integration/test_real_sql.py:68:async def test_aggregate_clients_outflow(
-tests/integration/test_real_sql.py:73:        "clients_outflow",
-tests/integration/test_real_sql.py:110:    for entry in aggregates:
-tests/integration/test_real_sql.py:141:        "revenue_total",
-tests/integration/test_real_sql.py:185:    agg_ids = ["revenue_total", "revenue_by_week", "revenue_by_master",
-tests/integration/test_real_sql.py:186:               "clients_outflow", "comm_all_by_reason"]
-tests/test_composition.py:27:    aggregates:
-tests/test_composition.py:51:      - id: outflow_clients
-tests/test_composition.py:63:    p = tmp_path / "aggregate-catalog.yaml"
-
-exec
-/bin/zsh -lc "nl -ba catalogs/aggregate-catalog.yaml | sed -n '210,280p'" in /Users/zerocold/Downloads/git/kpi/tg_bot/swarm_powerbi_bot
-exec
-/bin/zsh -lc "nl -ba src/swarm_powerbi_bot/orchestrator.py | sed -n '40,120p'" in /Users/zerocold/Downloads/git/kpi/tg_bot/swarm_powerbi_bot
- succeeded in 0ms:
-    40	        self.analyst_agent = analyst_agent
-    41	        self.aggregate_registry = aggregate_registry
-    42	        self.query_logger = query_logger
-    43	
-    44	    async def handle_question(self, question: UserQuestion) -> SwarmResponse:
-    45	        diagnostics: dict[str, str] = {}
-    46	
-    47	        # T026: Пробуем LLM-планирование с каталогом агрегатов (MultiPlan)
-    48	        multi_plan: MultiPlan | None = None
-    49	        if getattr(self.planner, "aggregate_registry", None) is not None:
-    50	            try:
-    51	                multi_plan = await self.planner.run_multi(question)
-    52	                planner_v2_mode = (
-    53	                    "llm" if "planner_v2:llm" in multi_plan.notes else "keyword"
-    54	                )
-    55	                logger.info(
-    56	                    "[PLAN_V2] %s | intent=%s | topic=%s | queries=%d",
-    57	                    planner_v2_mode,
-    58	                    multi_plan.intent,
-    59	                    multi_plan.topic,
-    60	                    len(multi_plan.queries),
-    61	                )
-    62	                diagnostics["planner_v2"] = planner_v2_mode
-    63	            except Exception as exc:
-    64	                logger.error("[PLAN_V2] ERROR: %s", exc)
-    65	                diagnostics["planner_v2_error"] = str(exc)
-    66	                multi_plan = None
-    67	
-    68	        # I1: Пропускаем legacy planner.run() если multi_plan с запросами уже получен —
-    69	        # иначе два LLM-вызова на каждый вопрос (двойной cost/latency)
-    70	        if multi_plan and multi_plan.queries:
-    71	            plan = self.planner.multi_plan_to_plan(multi_plan, question)
-    72	        else:
-    73	            try:
-    74	                plan = await self.planner.run(question)
-    75	            except Exception as exc:
-    76	                logger.error("[PLAN] ERROR: %s", exc)
-    77	                diagnostics["plan_error"] = str(exc)
-    78	                plan = self.planner.empty_plan(question.text)
-    79	
-    80	        # T031: Если есть MultiPlan и aggregate_registry — выполняем все запросы через SQLAgent.run_multi()
-    81	        # Пропускаем run_multi() для keyword-fallback планов: их aggregate_id — topic-идентификаторы,
-    82	        # не валидные catalog aggregate_ids, и они провалят registry.validate().
-    83	        multi_results: list[AggregateResult] = []
-    84	        if (
-    85	            multi_plan
-    86	            and multi_plan.queries
-    87	            and self.aggregate_registry is not None
-    88	            and "planner_v2:keyword" not in (multi_plan.notes or [])
-    89	        ):
-    90	            diagnostics["multi_plan_intent"] = multi_plan.intent
-    91	            diagnostics["multi_plan_queries"] = str(len(multi_plan.queries))
-    92	            try:
-    93	                multi_results = await self.sql_agent.run_multi(
-    94	                    multi_plan,
-    95	                    self.aggregate_registry,
-    96	                    logger_=self.query_logger,
-    97	                )
-    98	                ok_count = sum(1 for r in multi_results if r.status == "ok")
-    99	                diagnostics["multi_plan_ok"] = str(ok_count)
-   100	                logger.info(
-   101	                    "[MULTI_SQL] queries=%d ok=%d",
-   102	                    len(multi_results),
-   103	                    ok_count,
-   104	                )
-   105	            except Exception as exc:
-   106	                logger.error("[MULTI_SQL] ERROR: %s", exc)
-   107	                diagnostics["multi_sql_error"] = str(exc)
-   108	        elif multi_plan and multi_plan.queries:
-   109	            # Degradation: LLM спланировал запросы, но registry не инициализирован
-   110	            # (нет каталога агрегатов) — запросы не могут быть валидированы и выполнены.
-   111	            # Логируем для диагностики, fallback на legacy plan.
-   112	            first_query = multi_plan.queries[0]
-   113	            diagnostics["multi_plan_aggregate"] = first_query.aggregate_id
-   114	            diagnostics["multi_plan_intent"] = multi_plan.intent
-   115	
-   116	        # Диагностика планировщика
-   117	        planner_mode = "llm" if "planner:llm" in plan.notes else "keyword"
-   118	        qp = plan.query_params
-   119	        if qp:
-   120	            logger.info(
-
- succeeded in 0ms:
-   210	    returns: [Channel, ClientCount, Visits, Revenue, AvgCheck, SalonName]
-   211	    examples:
-   212	      - question: "откуда приходят клиенты"
-   213	      - question: "каналы привлечения"
-   214	      - question: "эффективность каналов маркетинга"
-   215	
-   216	  # ══════════════════════════════════════════════════════
-   217	  # spKDO_ClientList — списки клиентов по статусу КДО
-   218	  # ══════════════════════════════════════════════════════
-   219	
-   220	  - id: clients_outflow
-   221	    name: "Отток клиентов"
-   222	    category: clients
-   223	    procedure: spKDO_ClientList
-   224	    description: "Клиенты без визита 31-240 дней сверх ожидаемой даты (DaysToAwaiting от -240 до -31). Соответствует DAX-мере «Статус клиента для обработки = Отток»."
-   225	    allowed_group_by: [list, status, master]
-   226	    parameters:
-   227	      - name: date_from
-   228	        type: date
-   229	        required: false
-   230	      - name: date_to
-   231	        type: date
-   232	        required: false
-   233	      - name: object_id
-   234	        type: int
-   235	        required: true
-   236	      - name: master_id
-   237	        type: int
-   238	        required: false
-   239	      - name: filter
-   240	        type: string
-   241	        required: false
-   242	        allowed_values: [all, birthday, forecast, leaving, noshow, outflow, quality]
-   243	        default: outflow
-   244	      - name: group_by
-   245	        type: string
-   246	        required: false
-   247	        default: list
-   248	      - name: top
-   249	        type: int
-   250	        required: false
-   251	        default: 20
-   252	    returns: [ClientName, Phone, Category, ClientStatus, LastVisit, FirstVisit, ExpectedNextVisit, DaysSinceLastVisit, DaysOverdue, ServicePeriodDays, TotalVisits, TotalSpent, LastCommResult, SalonName]
-   253	    examples:
-   254	      - question: "покажи отток клиентов"
-   255	      - question: "кто из клиентов уходит в отток"
-   256	      - question: "список оттока"
-   257	
-   258	  - id: clients_leaving
-   259	    name: "Уходящие клиенты"
-   260	    category: clients
-   261	    procedure: spKDO_ClientList
-   262	    description: "Клиенты без визита 1-30 дней сверх ожидаемой даты (DaysToAwaiting от -30 до -1). Соответствует DAX-мере «Уходящие»."
-   263	    allowed_group_by: [list, status, master]
-   264	    parameters:
-   265	      - name: date_from
-   266	        type: date
-   267	        required: false
-   268	      - name: date_to
-   269	        type: date
-   270	        required: false
-   271	      - name: object_id
-   272	        type: int
-   273	        required: true
-   274	      - name: master_id
-   275	        type: int
-   276	        required: false
-   277	      - name: filter
-   278	        type: string
-   279	        required: false
-   280	        allowed_values: [all, birthday, forecast, leaving, noshow, outflow, quality]
-
-exec
-/bin/zsh -lc "nl -ba src/swarm_powerbi_bot/services/topic_registry.py | sed -n '141,176p'" in /Users/zerocold/Downloads/git/kpi/tg_bot/swarm_powerbi_bot
-exec
-/bin/zsh -lc "nl -ba src/swarm_powerbi_bot/telegram_bot.py | sed -n '220,250p'" in /Users/zerocold/Downloads/git/kpi/tg_bot/swarm_powerbi_bot
- succeeded in 0ms:
-   141	def detect_topic(question: str, last_topic: str = "") -> str:
-   142	    """Определяет тему вопроса по ключевым словам (скоринг).
-   143	
-   144	    Если вопрос содержит только модификаторы (сравни, по неделям)
-   145	    без явной темы — используем last_topic как контекст разговора.
-   146	    """
-   147	    text = question.lower()
-   148	    best_id = DEFAULT_TOPIC
-   149	    best_score = 0
-   150	
-   151	    for entry in TOPICS:
-   152	        score = sum(1 for kw in entry.keywords if kw in text)
-   153	        if score > best_score:
-   154	            best_score = score
-   155	            best_id = entry.topic_id
-   156	
-   157	    # Follow-up: вопрос без явной темы + есть предыдущий контекст
-   158	    if last_topic and last_topic in _TOPICS_BY_ID:
-   159	        # Если тема не найдена (score=0) — берём контекст
-   160	        if best_score == 0:
-   161	            return last_topic
-   162	        # Если совпал только trend по модификаторам — это follow-up
-   163	        if best_id == "trend" and best_score <= 2:
-   164	            has_real_topic = any(
-   165	                kw in text for entry in TOPICS
-   166	                if entry.topic_id != "trend"
-   167	                for kw in entry.keywords
-   168	            )
-   169	            if not has_real_topic:
-   170	                return last_topic
-   171	
-   172	    # Тема не определена и нет контекста разговора — не выполняем SQL
-   173	    if best_score == 0:
-   174	        return "unknown"
-   175	
-   176	    return best_id
-
- succeeded in 0ms:
-   220	                        user_data["object_id"] = object_id
-   221	                except Exception:
-   222	                    pass
-   223	        # Fallback на default_object_id из конфига
-   224	        if object_id is None and self.settings.default_object_id:
-   225	            object_id = self.settings.default_object_id
-   226	
-   227	        # last_topic для контекста разговора (follow-up вопросы)
-   228	        last_topic = ""
-   229	        if user_data is not None:
-   230	            last_topic = user_data.get("last_topic", "")
-   231	
-   232	        response = await self.orchestrator.handle_question(
-   233	            UserQuestion(user_id=user_id, text=text, object_id=object_id,
-   234	                         last_topic=last_topic),
-   235	        )
-   236	
-   237	        # Сохраняем тему для следующего вопроса
-   238	        if user_data is not None and response.topic:
-   239	            user_data["last_topic"] = response.topic
-   240	
-   241	        if response.image:
-   242	            # Описание — caption к картинке (до 1024 символов)
-   243	            caption = self._fit_caption(response.answer)
-   244	            try:
-   245	                await message.reply_photo(
-   246	                    response.image, caption=caption, parse_mode="Markdown",
-   247	                )
-   248	            except Exception:
-   249	                # Markdown может сломаться — шлём без разметки
-   250	                await message.reply_photo(response.image, caption=caption)
-
-exec
-/bin/zsh -lc "sed -n '240,420p' .specify/specs/001-semantic-aggregate-layer/spec.md" in /Users/zerocold/Downloads/git/kpi/tg_bot/swarm_powerbi_bot
- succeeded in 0ms:
-  Then числовые результаты совпадают с допуском ≤1%
-  And порядок строк совпадает
-  And все колонки присутствуют
-
-Scenario: Человек утверждает SQL
-  Given сгенерированный и верифицированный SQL-агрегат
-  Then агрегат НЕ выполняется на продуктивной БД
-  Until человек явно утвердил SQL-код
-```
-
-**Edge Cases**:
-- DAX-мера использует CALCULATE с context transition — может требовать CTE в SQL
-- DAX-мера ссылается на другую меру — нужен рекурсивный анализ зависимостей
-- Некоторые DAX-меры принципиально не реализуемы в SQL (row-level security) — помечаются как excluded
-
----
-
-### P1 — US-006: Каталог агрегатов
-
-**Как** LLM-агент,
-**я хочу** видеть каталог доступных агрегатов с описаниями и параметрами,
-**чтобы** выбирать правильный агрегат для каждого вопроса пользователя.
-
-**Почему P1**: без каталога LLM не знает какие запросы доступны.
-
-**Independent Test**: aggregate-catalog.yaml содержит все агрегаты → LLM по каталогу корректно выбирает агрегат для типовых вопросов.
-
-**Acceptance Scenarios**:
-
-```gherkin
-Scenario: Формат каталога
-  Given aggregate-catalog.yaml
-  Then каждый агрегат содержит:
-    | Поле | Описание |
-    | id | Уникальный идентификатор (snake_case) |
-    | name | Название на русском |
-    | description | Описание на русском: что возвращает, для каких вопросов |
-    | parameters | Список параметров с типами и ограничениями |
-    | returns | Описание колонок результата |
-    | related_dax | Связанная DAX-мера (ссылка на semantic-model) |
-    | examples | 2-3 примера вопросов пользователя → параметры вызова |
-
-Scenario: LLM не видит SQL
-  Given aggregate-catalog.yaml
-  Then каталог НЕ содержит: SQL-код, имена stored procedures, connection strings
-
-Scenario: Параметры строго типизированы
-  Given aggregate-catalog.yaml
-  Then каждый параметр имеет:
-    - type: date | int | enum
-    - Для enum: список допустимых значений
-    - Для int: min/max ограничения
-    - required/optional флаг
-    - default значение (если optional)
-```
-
----
-
-## Phase 1: Каталог базовых агрегатов в БД
-
-### P1 — US-007: SQL view/TVF для базовых агрегатов
-
-**Как** разработчик,
-**я хочу** обернуть существующие 17 v1 + 3 v2 stored procedures и gap-агрегаты в единообразные view/TVF, с предрассчитанными (materialized) агрегатами где overhead хранения ≤3x,
-**чтобы** SQLAgent мог вызывать их через стандартный интерфейс каталога с минимальной латентностью.
-
-**Почему P1**: без SQL-слоя нечего вызывать из PlannerAgent. Materialized агрегаты обеспечивают скорость при параллельных запросах.
-
-**Independent Test**: вызвать агрегат `revenue_by_master` с параметрами `{date_from, date_to, object_id}` → получить ожидаемый результат из MSSQL.
-
-**Acceptance Scenarios**:
-
-```gherkin
-Scenario: Единый интерфейс агрегатов
-  Given набор агрегатов покрывающий 17 тем topic_registry
-  When SQLAgent получает запрос из PlannerAgent
-  Then SQLAgent вызывает агрегат по id из aggregate-catalog.yaml
-  And передаёт типизированные параметры
-  And получает результат в предсказуемом формате
-
-Scenario: Backward compatibility
-  Given существующие 77 тестов
-  When новый SQLAgent вызывает агрегаты вместо прямых SP
-  Then все 77 тестов продолжают проходить
-  And результаты численно совпадают с прежними
-```
-
----
-
-## Phase 2: LLM выбирает агрегаты
-
-### P1 — US-008: PlannerAgent с каталогом
-
-**Как** пользователь,
-**я хочу** задавать произвольные вопросы, а бот сам определяет какие данные запросить,
-**чтобы** не ограничиваться 17 жёсткими темами.
-
-**Почему P1**: главная бизнес-ценность — переход от keyword-matching к semantic planning.
-
-**Independent Test**: вопрос "покажи средний чек по мастерам за март" → PlannerAgent выбирает агрегат `revenue_by_master` с параметрами `{group_by: master, date_from: 2026-03-01, date_to: 2026-03-31}`.
-
-**Acceptance Scenarios**:
-
-```gherkin
-Scenario: LLM планирует в два шага
-  Given пользователь спрашивает "какой отток за месяц?"
-  When PlannerAgent выполняет шаг 1 (category selection)
-  Then LLM получает компактный индекс категорий (клиенты, выручка, мастера, коммуникации...)
-  And LLM выбирает категорию "клиенты" → подкатегория "отток"
-  When PlannerAgent выполняет шаг 2 (aggregate selection)
-  Then LLM получает детальные агрегаты только категории "клиенты"
-  And план содержит: aggregate_id = "client_list_outflow", параметры = {filter: outflow, date_from, date_to, object_id}
-  And план НЕ содержит SQL-код
-
-Scenario: Кросс-доменный запрос (несколько категорий)
-  Given пользователь спрашивает "сравни отток и оборот за две недели"
-  When PlannerAgent выполняет шаг 1
-  Then LLM выбирает две категории: "клиенты" + "выручка"
-  When PlannerAgent выполняет шаг 2
-  Then LLM получает агрегаты обеих категорий
-  And план содержит агрегаты из разных доменов
-
-Scenario: Fallback на keyword при недоступности LLM
-  Given LLM недоступен (таймаут, ошибка)
-  When пользователь задаёт вопрос
-  Then PlannerAgent переключается на topic_registry (keyword-scoring)
-  And пользователь получает ответ (пусть менее точный)
-
-Scenario: Невозможный вопрос
-  Given пользователь спрашивает "какая погода сегодня?"
-  When PlannerAgent ищет подходящий агрегат в каталоге
-  Then агрегат не найден
-  And бот отвечает "Извините, у меня нет данных для ответа на этот вопрос"
-  And бот НЕ пытается изобрести SQL-запрос
-```
-
-**Edge Cases**:
-- Вопрос содержит имя мастера с опечаткой — SQLAgent делает запрос к tbMasters (per-request, всегда актуально), fuzzy-match по LIKE/SOUNDEX
-- Вопрос без периода — используется период по умолчанию (последние 30 дней) или запрашивается через inline-кнопки (существующая механика)
-- Follow-up вопрос ("а по неделям?") — LLM переиспользует контекст предыдущего запроса
-
----
-
-### P1 — US-009: Multi-query SQLAgent
-
-**Как** система,
-**я хочу** выполнять несколько агрегатных запросов за один вопрос пользователя,
-**чтобы** отвечать на сложные вопросы, требующие комбинации данных.
-
-**Почему P1**: без multi-query невозможны фазы 3 (сравнения) и 4 (композиция).
-
-**Independent Test**: PlannerAgent возвращает план с 2 запросами → SQLAgent выполняет оба → результаты передаются AnalystAgent.
-
-**Acceptance Scenarios**:
-
-```gherkin
-Scenario: Выполнение нескольких запросов
-  Given план содержит 2 агрегата: revenue_summary + client_outflow
-  When SQLAgent обрабатывает план
-  Then оба запроса выполняются
-  And каждый запрос имеет таймаут 10 секунд
-  And результаты возвращаются как список SQLInsight
-
-Scenario: Ограничение количества запросов
-  Given план содержит 12 агрегатов
-  When SQLAgent проверяет план
-  Then выполняются только первые 10
-  And в diagnostics добавляется предупреждение "превышен лимит запросов"
-
-Scenario: Частичный отказ
-  Given план содержит 3 агрегата
-  And второй агрегат возвращает ошибку (таймаут)
-  When SQLAgent обрабатывает план
-  Then первый и третий результаты возвращаются успешно
-  And для второго — пустой результат с ошибкой в diagnostics
-  And AnalystAgent работает с тем что получил
-```
-
----
-
-## Phase 3: Сравнения
-
-exec
-/bin/zsh -lc "sed -n '420,620p' .specify/specs/001-semantic-aggregate-layer/spec.md" in /Users/zerocold/Downloads/git/kpi/tg_bot/swarm_powerbi_bot
-exec
-/bin/zsh -lc 'rg -n "comparison|fallback|TopicRegistry|last_topic|group_by=status|keyword" .specify/specs/001-semantic-aggregate-layer/spec.md' in /Users/zerocold/Downloads/git/kpi/tg_bot/swarm_powerbi_bot
- succeeded in 0ms:
-6:**Input**: Переход от жёстко привязанных stored procedures к семантическому слою агрегатов: LLM выбирает агрегаты из каталога вместо keyword-matching по topic_registry.
-15:1. **PlannerAgent** определяет план: LLM-путь (`LLMClient.plan_query()`) или keyword-fallback (`topic_registry.detect_topic()`)
-45:| TopicRegistry | `services/topic_registry.py` | Сохраняется как fallback |
-337:**Почему P1**: главная бизнес-ценность — переход от keyword-matching к semantic planning.
-362:Scenario: Fallback на keyword при недоступности LLM
-365:  Then PlannerAgent переключается на topic_registry (keyword-scoring)
-597:- **FR-018**: TopicRegistry сохраняется как fallback при недоступности LLM
-620:- **SC-005**: При недоступности LLM бот продолжает работать через keyword-fallback (17 тем)
-629:- Q: Multi-query execution model (parallel/sequential, лимит запросов)? → A: Параллельно (asyncio.gather), до 10 запросов. Агрегаты предрассчитаны (materialized views/indexed views в MSSQL) если overhead хранения ≤3x. Real-time fallback для редких запросов.
-631:- Q: Инструмент извлечения PBIX (Phase 0)? → A: Чистый Python (zipfile + json) как основной путь — нулевые зависимости, можно писать скрипты анализа модели. pbi-tools CLI как fallback если DataModelSchema не парсится стандартно.
-632:- Q: Раскатка по фазам (big-bang vs feature flag vs по салонам)? → A: Big-bang. Клиентов немного, постепенная раскатка не нужна. TopicRegistry остаётся как fallback при отказе LLM, но не как параллельный режим работы.
-
- succeeded in 0ms:
-## Phase 3: Сравнения
-
-### P2 — US-010: Сравнение периодов
-
-**Как** пользователь,
-**я хочу** спросить "сравни выручку за март и апрель",
-**чтобы** видеть динамику и конкретные числа роста/падения.
-
-**Почему P2**: частый запрос владельцев салонов.
-
-**Independent Test**: вопрос "сравни март и апрель" → PlannerAgent создаёт 2 запроса с разными периодами → AnalystAgent формирует сравнительный текст → ChartRenderer строит grouped bar chart.
-
-**Acceptance Scenarios**:
-
-```gherkin
-Scenario: Сравнение двух периодов
-  Given пользователь спрашивает "сравни выручку за март и апрель"
-  When PlannerAgent составляет план
-  Then план содержит 2 вызова одного агрегата с разными date_from/date_to
-  And AnalystAgent получает оба результата
-  And AnswerAgent формирует текст: "Выручка за март: X руб., за апрель: Y руб. Изменение: +/-Z%"
-  And ChartRenderer строит grouped bar chart с двумя рядами
-
-Scenario: Автоматическое определение периодов
-  Given пользователь спрашивает "этот месяц vs прошлый"
-  When PlannerAgent разбирает запрос
-  Then "этот месяц" = текущий календарный месяц (с 1-го числа до сегодня)
-  And "прошлый" = предыдущий полный календарный месяц
-
-Scenario: Сравнение по мастерам
-  Given пользователь спрашивает "кто лучше — Анна или Мария?"
-  When PlannerAgent составляет план
-  Then план содержит запросы по двум мастерам (fuzzy-match по имени)
-  And AnalystAgent сравнивает ключевые метрики: выручка, клиенты, средний чек
-```
-
-**Edge Cases**:
-- Сравнение текущего незавершённого месяца с полным прошлым — AnalystAgent отмечает что период неполный
-- Имена мастеров с опечатками — fuzzy-matching по справочнику
-
----
-
-## Phase 4: Композиция агрегатов
-
-### P3 — US-011: Анализ причин
-
-**Как** пользователь,
-**я хочу** спросить "почему упала выручка?",
-**чтобы** получить анализ какой фактор (клиенты, чек, загрузка) повлиял.
-
-**Почему P3**: продвинутая аналитика, требует стабильных фаз 1-3.
-
-**Independent Test**: вопрос "почему упала выручка?" → PlannerAgent запрашивает 4 агрегата (выручка/клиенты/средний чек/загрузка за 2 периода) → AnalystAgent анализирует что просело → ответ с конкретными числами.
-
-**Acceptance Scenarios**:
-
-```gherkin
-Scenario: Декомпозиция вопроса в набор запросов
-  Given пользователь спрашивает "почему упала выручка?"
-  When PlannerAgent декомпозирует вопрос
-  Then план содержит до 5 агрегатов:
-    - revenue_summary за текущий и прошлый период
-    - client_count за текущий и прошлый период
-    - avg_check (средний чек)
-  And AnalystAgent сравнивает метрики и определяет основной фактор
-
-Scenario: Лимит запросов
-  Given PlannerAgent планирует 10 запросов
-  Then все выполняются параллельно (asyncio.gather) с таймаутом 10 секунд каждый
-  And общее время ответа не превышает 15 секунд (параллельно)
-  And пользователь видит typing indicator пока идёт обработка
-```
-
----
-
-## Защита БД (cross-cutting, все фазы)
-
-### P1 — US-012: Защита от произвольного SQL
-
-**Как** система,
-**я хочу** гарантировать что LLM никогда не генерирует и не исполняет произвольный SQL,
-**чтобы** предотвратить SQL-инъекции и несанкционированный доступ к данным.
-
-**Почему P1**: безопасность — NON-NEGOTIABLE.
-
-**Independent Test**: подать в PlannerAgent вопрос с SQL-инъекцией → бот возвращает "не могу ответить" вместо выполнения вредоносного кода.
-
-**Acceptance Scenarios**:
-
-```gherkin
-Scenario: LLM выбирает только из каталога
-  Given PlannerAgent получает вопрос
-  When LLM возвращает plan
-  Then plan.aggregate_id проверяется по whitelist из aggregate-catalog.yaml
-  And если id не в каталоге — план отклоняется
-
-Scenario: Параметры строго типизированы
-  Given plan содержит параметры
-  When SQLAgent валидирует параметры
-  Then date_from/date_to — только формат YYYY-MM-DD
-  And group_by — только из enum {master, service, day, week, month, salon, channel, status, reason, result, manager, list}
-  And top_n — int в диапазоне [1, 50]
-  And master_id, service_id — только int из справочника
-  And любой невалидный параметр отклоняется (а не приводится)
-
-Scenario: Read-only подключение
-  Given SQLClient подключается к MSSQL
-  Then используется SQL-пользователь с правами SELECT-only
-  And попытка INSERT/UPDATE/DELETE/EXEC (кроме разрешённых SP) завершается ошибкой на уровне БД
-
-Scenario: Логирование вызовов
-  Given SQLAgent выполняет агрегатный запрос
-  Then в лог записывается: user_id, timestamp, aggregate_id, параметры, время выполнения, количество строк
-  And лог НЕ содержит: данные ответа, connection strings, токены
-
-Scenario: SQL-инъекция в вопросе
-  Given пользователь отправляет "'; DROP TABLE tbClients; --"
-  When PlannerAgent обрабатывает вопрос
-  Then LLM не находит подходящего агрегата
-  And бот отвечает "не могу ответить на этот вопрос"
-  And ни один SQL-запрос не выполняется
-```
-
----
-
-## Обновление семантики (cross-cutting)
-
-### P3 — US-013: CI-пайплайн обновления PBIX
-
-**Как** разработчик,
-**я хочу** чтобы при изменении PBIX-файла автоматически пересобиралась семантическая модель,
-**чтобы** каталоги и агрегаты всегда были синхронизированы с отчётом.
-
-**Почему P3**: автоматизация, не блокирует основную функциональность.
-
-**Independent Test**: изменить PBIX → запустить CI → проверить что semantic-model.yaml обновился и агрегаты прошли валидацию.
-
-**Acceptance Scenarios**:
-
-```gherkin
-Scenario: PBIX изменился → пересборка
-  Given PBIX-файл обновлён в репозитории
-  When срабатывает CI-задача
-  Then semantic-model.yaml пересобирается
-  And pbix-to-sql-mapping.yaml обновляется
-  And semantic-catalog.yaml обновляется
-  And aggregate-catalog.yaml проверяется на совместимость
-  And если есть новые gaps — создаётся issue
-
-Scenario: Обратная совместимость
-  Given обновлённый semantic-model.yaml
-  When проверяются существующие агрегаты
-  Then если агрегат ссылается на удалённую колонку/таблицу — CI падает с ошибкой
-  And сообщение указывает какой агрегат и какая зависимость нарушена
-```
-
----
-
-## Functional Requirements
-
-- **FR-001**: Система извлекает семантическую модель из PBIX-файла в формат semantic-model.yaml
-- **FR-002**: Система создаёт маппинг PBIX→SQL в формате pbix-to-sql-mapping.yaml
-- **FR-003**: Система генерирует semantic-catalog.yaml с бизнес-сущностями, метриками и правилами на русском языке
-- **FR-004**: Система выполняет gap-анализ и создаёт gaps.md
-- **FR-005**: Для каждого gap система генерирует SQL view/TVF с верификацией против DAX-оригинала
-- **FR-006**: Система формирует aggregate-catalog.yaml с описанием каждого агрегата
-- **FR-007**: PlannerAgent работает в два шага: (1) выбор категорий по компактному индексу, (2) выбор конкретных агрегатов из детального каталога выбранных категорий. Поддерживает кросс-доменные запросы (несколько категорий за раз)
-- **FR-008**: SQLAgent выполняет до 10 агрегатных запросов параллельно (asyncio.gather) за один вопрос пользователя, каждый с таймаутом 10 секунд
-- **FR-009**: AnalystAgent принимает массив результатов от нескольких агрегатов и формирует единый ответ
-- **FR-010**: ChartRenderer поддерживает сравнительные графики (grouped bar, multi-line)
-- **FR-011**: При сравнении периодов PlannerAgent автоматически определяет даты "этот месяц", "прошлый квартал" и т.д.
-- **FR-012**: При вопросе без подходящего агрегата система отвечает "не могу ответить" без выполнения SQL
-- **FR-013**: LLM никогда не генерирует SQL — только выбирает aggregate_id + параметры из каталога
-- **FR-014**: Все параметры агрегатов валидируются по типу и whitelist перед выполнением
-- **FR-015**: SQLClient использует read-only подключение к MSSQL
-- **FR-016**: Все вызовы агрегатов логируются: user_id, timestamp, aggregate_id, параметры, время выполнения
-- **FR-017**: Существующие 77 тестов продолжают проходить (backward compatibility)
-- **FR-018**: TopicRegistry сохраняется как fallback при недоступности LLM
-- **FR-019**: Документация (docs/) обновляется при изменении API, моделей, каталогов
-- **FR-020**: При изменении PBIX — CI пересобирает semantic-model.yaml и проверяет совместимость агрегатов
-
-## Key Entities
-
-| Entity | Описание | Связи |
-|---|---|---|
-| Клиент (Client) | Посетитель салона: имя, телефон, категория, канал привлечения, дата рождения | Записывается к Мастеру на Услугу, совершает Визиты, имеет Статус |
-| Мастер (Master) | Специалист салона: имя, рейтинг, категория, планы обучения | Оказывает Услуги Клиентам в рамках Визитов |
-| Услуга (Service) | Процедура: название, категория, первичная/вторичная, период повторного визита | Оказывается Мастером Клиенту в рамках Визита |
-| Визит (Record) | Факт оказания услуги: дата, статус (1=выполнен, -1=отменён, 0=запланирован), длительность, сумма | Связывает Клиента, Мастера, Услугу, Салон |
-| Салон (Dataset/Object) | Точка оказания услуг: ObjectId, название | Содержит Мастеров, принимает Клиентов |
-| Коммуникация | Контакт с клиентом: дата, причина, тип, результат, менеджер | Связана с Клиентом и Салоном |
-| Абонемент | Пакет услуг: номер, баланс, срок, статус | Принадлежит Клиенту в Салоне |
-| Статус клиента | Рассчитанное состояние: Прогноз / Уходящие / Отток / Контроль качества / Лист ожидания / Недошедшие | Вычисляется из Визитов + ServicePeriod (default 33 дня) |
-
-## Success Criteria
-
-- **SC-001**: Пользователь получает корректный ответ на любой из 17 существующих типов вопросов (регрессия)
-- **SC-002**: Пользователь получает ответ на вопросы, комбинирующие несколько тем ("выручка по мастерам с разбивкой по неделям")
-- **SC-003**: Пользователь может сравнивать два периода или двух мастеров и получает числа изменений
-- **SC-004**: На вопрос "почему упала выручка?" бот декомпозирует вопрос и находит основной фактор
-- **SC-005**: При недоступности LLM бот продолжает работать через keyword-fallback (17 тем)
-
-codex
-I found a branch-level integration risk: the new `comparison:fallback` plan is still tagged as `planner_v2:keyword`, and the orchestrator explicitly refuses to execute any keyword `MultiPlan`. I’m checking the legacy SQL path now to confirm whether that means the new 2-query fallback is effectively dead code at runtime.
-exec
-/bin/zsh -lc "sed -n '1,210p' src/swarm_powerbi_bot/services/sql_client.py" in /Users/zerocold/Downloads/git/kpi/tg_bot/swarm_powerbi_bot
- succeeded in 0ms:
-from __future__ import annotations
-
-import asyncio
-import logging
-import re
-import time
-from datetime import date, timedelta
-from typing import TYPE_CHECKING, Any
-
-from ..config import Settings
-from ..models import AggregateResult, QueryParams
-from .topic_registry import detect_topic, get_procedure
-
-if TYPE_CHECKING:
-    from .aggregate_registry import AggregateRegistry
-
-logger = logging.getLogger(__name__)
-
-try:
-    import pyodbc  # type: ignore
-except Exception:  # pragma: no cover
-    pyodbc = None
-    logger.warning("pyodbc not available — SQL queries will be disabled")
-
-
-# ── Извлечение дат из русского текста ────────────────────────
-
-_MONTH_MAP: dict[str, int] = {
-    "январ": 1,
-    "феврал": 2,
-    "март": 3,
-    "апрел": 4,
-    "мая": 5,
-    "май": 5,
-    "июн": 6,
-    "июл": 7,
-    "август": 8,
-    "сентябр": 9,
-    "октябр": 10,
-    "ноябр": 11,
-    "декабр": 12,
-}
-
-_RE_MONTH = re.compile(
-    r"за\s+(январ\w*|феврал\w*|март\w*|апрел\w*|ма[йя]\w*|"
-    r"июн\w*|июл\w*|август\w*|сентябр\w*|октябр\w*|ноябр\w*|декабр\w*)"
-    r"(?:\s+(\d{4}))?",
-    re.IGNORECASE,
-)
-
-_RE_RANGE = re.compile(
-    r"с\s+(\d{1,2})\s+по\s+(\d{1,2})\s+"
-    r"(январ\w*|феврал\w*|март\w*|апрел\w*|ма[йя]\w*|"
-    r"июн\w*|июл\w*|август\w*|сентябр\w*|октябр\w*|ноябр\w*|декабр\w*)"
-    r"(?:\s+(\d{4}))?",
-    re.IGNORECASE,
-)
-
-
-def _match_month(text: str) -> int:
-    low = text.lower()
-    for stem, num in _MONTH_MAP.items():
-        if low.startswith(stem):
-            return num
-    return 0
-
-
-_PERIOD_HINTS = (
-    "недел",
-    "месяц",
-    "месяч",
-    "меся",
-    "квартал",
-    "год",
-    "вчера",
-    "сегодн",
-    "полугод",
-    "полгод",
-)
-
-
-def has_period_hint(question: str) -> bool:
-    """Проверяет, указан ли в вопросе какой-либо период."""
-    text = question.lower()
-    if _RE_MONTH.search(text) or _RE_RANGE.search(text):
-        return True
-    return any(h in text for h in _PERIOD_HINTS)
-
-
-def extract_date_params(question: str) -> dict[str, date]:
-    """Извлекает @DateFrom / @DateTo из вопроса на русском."""
-    today = date.today()
-    text = question.lower()
-
-    # «за январь 2025»
-    m = _RE_MONTH.search(text)
-    if m:
-        month = _match_month(m.group(1))
-        year = int(m.group(2)) if m.group(2) else today.year
-        if month:
-            first = date(year, month, 1)
-            if month == 12:
-                last = date(year + 1, 1, 1) - timedelta(days=1)
-            else:
-                last = date(year, month + 1, 1) - timedelta(days=1)
-            return {"DateFrom": first, "DateTo": last}
-
-    # «с 1 по 15 марта»
-    m = _RE_RANGE.search(text)
-    if m:
-        day_from, day_to = int(m.group(1)), int(m.group(2))
-        month = _match_month(m.group(3))
-        year = int(m.group(4)) if m.group(4) else today.year
-        if month:
-            return {
-                "DateFrom": date(year, month, day_from),
-                "DateTo": date(year, month, day_to),
-            }
-
-    # «вчера»
-    if "вчера" in text:
-        yesterday = today - timedelta(days=1)
-        return {"DateFrom": yesterday, "DateTo": yesterday}
-
-    # «сегодня»
-    if "сегодн" in text:
-        return {"DateFrom": today, "DateTo": today}
-
-    # «за последнюю неделю» / «за неделю»
-    if "недел" in text:
-        return {"DateFrom": today - timedelta(days=7), "DateTo": today}
-
-    # «за последний месяц» / «за месяц» / «за меся»
-    if "месяц" in text or "меся" in text:
-        return {"DateFrom": today - timedelta(days=30), "DateTo": today}
-
-    # «за квартал»
-    if "квартал" in text:
-        return {"DateFrom": today - timedelta(days=90), "DateTo": today}
-
-    # «за полугодие»
-    if "полугод" in text or "полгод" in text:
-        return {"DateFrom": today - timedelta(days=180), "DateTo": today}
-
-    # «за год»
-    if "год" in text and "новый год" not in text:
-        return {"DateFrom": today - timedelta(days=365), "DateTo": today}
-
-    # По умолчанию — последние 30 дней
-    return {"DateFrom": today - timedelta(days=30), "DateTo": today}
-
-
-_RE_OBJECT_ID = re.compile(r"салон[а-яё]*\s*(?:id\s*)?(\d{4,})", re.IGNORECASE)
-_RE_MASTER_ID = re.compile(r"мастер[а-яё]*\s*(?:id\s*)?(\d{4,})", re.IGNORECASE)
-
-
-def _extract_object_id(question: str) -> int | None:
-    """Извлекает ObjectId (SalonId/YClientsId) из вопроса."""
-    m = _RE_OBJECT_ID.search(question)
-    return int(m.group(1)) if m else None
-
-
-def _extract_master_id(question: str) -> int | None:
-    """Извлекает MasterId из вопроса."""
-    m = _RE_MASTER_ID.search(question)
-    return int(m.group(1)) if m else None
-
-
-class SQLClient:
-    def __init__(self, settings: Settings):
-        self.settings = settings
-
-    async def execute_query(
-        self,
-        sql: str,
-        params: dict[str, Any] | None = None,
-    ) -> list[dict[str, Any]]:
-        """Выполняет произвольный параметризованный SELECT-запрос.
-
-        Используется MasterResolver для поиска мастеров.
-        """
-        conn_str = self.settings.sql_connection_string()
-        if not conn_str or pyodbc is None:
-            logger.warning("execute_query: no connection string or pyodbc unavailable")
-            return []
-
-        def _sync() -> list[dict[str, Any]]:
-            conn = pyodbc.connect(conn_str, timeout=10)
-            try:
-                cursor = conn.cursor()
-                # Извлекаем имена параметров из SQL в порядке появления
-                param_names = re.findall(r"@(\w+)", sql)
-                p = params or {}
-                sql_args = [p[name] for name in param_names if name in p]
-                query = re.sub(r"@\w+", "?", sql)
-                cursor.execute(query, sql_args)
-                columns = (
-                    [col[0] for col in cursor.description] if cursor.description else []
-                )
-                rows = []
-                for row in cursor.fetchall():
-                    rows.append(dict(zip(columns, row)))
-                return rows
-            finally:
-                conn.close()
-
-        return await asyncio.to_thread(_sync)
-
-    async def execute_aggregate(
-        self,
-
-exec
-/bin/zsh -lc "nl -ba src/swarm_powerbi_bot/orchestrator.py | sed -n '80,110p'" in /Users/zerocold/Downloads/git/kpi/tg_bot/swarm_powerbi_bot
- succeeded in 0ms:
-    80	        # T031: Если есть MultiPlan и aggregate_registry — выполняем все запросы через SQLAgent.run_multi()
-    81	        # Пропускаем run_multi() для keyword-fallback планов: их aggregate_id — topic-идентификаторы,
-    82	        # не валидные catalog aggregate_ids, и они провалят registry.validate().
-    83	        multi_results: list[AggregateResult] = []
-    84	        if (
-    85	            multi_plan
-    86	            and multi_plan.queries
-    87	            and self.aggregate_registry is not None
-    88	            and "planner_v2:keyword" not in (multi_plan.notes or [])
-    89	        ):
-    90	            diagnostics["multi_plan_intent"] = multi_plan.intent
-    91	            diagnostics["multi_plan_queries"] = str(len(multi_plan.queries))
-    92	            try:
-    93	                multi_results = await self.sql_agent.run_multi(
-    94	                    multi_plan,
-    95	                    self.aggregate_registry,
-    96	                    logger_=self.query_logger,
-    97	                )
-    98	                ok_count = sum(1 for r in multi_results if r.status == "ok")
-    99	                diagnostics["multi_plan_ok"] = str(ok_count)
-   100	                logger.info(
-   101	                    "[MULTI_SQL] queries=%d ok=%d",
-   102	                    len(multi_results),
-   103	                    ok_count,
-   104	                )
-   105	            except Exception as exc:
-   106	                logger.error("[MULTI_SQL] ERROR: %s", exc)
-   107	                diagnostics["multi_sql_error"] = str(exc)
-   108	        elif multi_plan and multi_plan.queries:
-   109	            # Degradation: LLM спланировал запросы, но registry не инициализирован
-   110	            # (нет каталога агрегатов) — запросы не могут быть валидированы и выполнены.
-
-exec
-/bin/zsh -lc "rg -n \"def fetch_rows\\(|planner_v2:keyword|run_multi\\(\" src/swarm_powerbi_bot/services/sql_client.py src/swarm_powerbi_bot/orchestrator.py src/swarm_powerbi_bot/agents/planner.py" in /Users/zerocold/Downloads/git/kpi/tg_bot/swarm_powerbi_bot
- succeeded in 0ms:
-src/swarm_powerbi_bot/services/sql_client.py:506:    async def fetch_rows(
-src/swarm_powerbi_bot/orchestrator.py:51:                multi_plan = await self.planner.run_multi(question)
-src/swarm_powerbi_bot/orchestrator.py:80:        # T031: Если есть MultiPlan и aggregate_registry — выполняем все запросы через SQLAgent.run_multi()
-src/swarm_powerbi_bot/orchestrator.py:81:        # Пропускаем run_multi() для keyword-fallback планов: их aggregate_id — topic-идентификаторы,
-src/swarm_powerbi_bot/orchestrator.py:88:            and "planner_v2:keyword" not in (multi_plan.notes or [])
-src/swarm_powerbi_bot/orchestrator.py:93:                multi_results = await self.sql_agent.run_multi(
-src/swarm_powerbi_bot/orchestrator.py:136:        # Пропускаем legacy SQL если run_multi() уже получил данные — иначе дублируем запрос
-src/swarm_powerbi_bot/orchestrator.py:212:            analysis = await self.analyst_agent.run_multi(
+src/swarm_powerbi_bot/services/query_logger.py:52:        aggregate_id: str,
+src/swarm_powerbi_bot/services/query_logger.py:62:            "aggregate_id": aggregate_id,
+src/swarm_powerbi_bot/services/aggregate_registry.py:44:    """Загружает YAML-каталог, возвращает {aggregate_id: entry}.
+src/swarm_powerbi_bot/services/aggregate_registry.py:76:    aggregate_id: str,
+src/swarm_powerbi_bot/services/aggregate_registry.py:90:                    f"required param {param_name!r} missing for aggregate {aggregate_id!r}"
+src/swarm_powerbi_bot/services/aggregate_registry.py:112:                    f"group_by {value!r} not allowed for {aggregate_id!r}; "
+src/swarm_powerbi_bot/services/aggregate_registry.py:149:def validate_aggregate_id(aggregate_id: str) -> bool:
+src/swarm_powerbi_bot/services/aggregate_registry.py:150:    """True, если aggregate_id есть в загруженном каталоге."""
+src/swarm_powerbi_bot/services/aggregate_registry.py:151:    return aggregate_id in _catalog
+src/swarm_powerbi_bot/services/aggregate_registry.py:154:def validate_params(aggregate_id: str, params: dict) -> tuple[bool, str]:
+src/swarm_powerbi_bot/services/aggregate_registry.py:159:    entry = _catalog.get(aggregate_id)
+src/swarm_powerbi_bot/services/aggregate_registry.py:161:        return False, f"unknown aggregate_id: {aggregate_id!r}"
+src/swarm_powerbi_bot/services/aggregate_registry.py:162:    return _validate_entry_params(aggregate_id, entry, params)
+src/swarm_powerbi_bot/services/aggregate_registry.py:172:    def get_aggregate(self, aggregate_id: str) -> dict | None:
+src/swarm_powerbi_bot/services/aggregate_registry.py:173:        return self._catalog.get(aggregate_id)
+src/swarm_powerbi_bot/services/aggregate_registry.py:175:    def validate(self, aggregate_id: str, params: dict) -> tuple[bool, str]:
+src/swarm_powerbi_bot/services/aggregate_registry.py:177:        entry = self._catalog.get(aggregate_id)
+src/swarm_powerbi_bot/services/aggregate_registry.py:179:            return False, f"unknown aggregate_id: {aggregate_id!r}"
+src/swarm_powerbi_bot/services/aggregate_registry.py:180:        return _validate_entry_params(aggregate_id, entry, params)
 src/swarm_powerbi_bot/agents/planner.py:207:    async def run_multi(self, question: UserQuestion) -> MultiPlan:
-src/swarm_powerbi_bot/agents/planner.py:404:                notes=["planner_v2:keyword", "comparison:fallback"],
-src/swarm_powerbi_bot/agents/planner.py:419:            notes=["planner_v2:keyword"],
-
-exec
-/bin/zsh -lc "sed -n '1,280p' src/swarm_powerbi_bot/agents/analyst.py" in /Users/zerocold/Downloads/git/kpi/tg_bot/swarm_powerbi_bot
- succeeded in 0ms:
-from __future__ import annotations
-
-import json
-from datetime import date
-from typing import Literal
-
-from .base import Agent
-from ..models import AggregateResult, AnalysisResult, ComparisonResult, ModelInsight, MultiPlan, Plan, SQLInsight, UserQuestion
-from ..services.llm_client import LLMClient
-from ..services.topic_registry import get_description
-
-# ── Подсказки для описания графиков ──────────────────────────
-
-_CHART_HINTS: dict[str, str] = {
-    "statistics": "На графике показаны ключевые KPI: визиты, клиенты, выручка, средний чек.",
-    "trend": "На графике показана динамика по неделям: визиты, клиенты и выручка.",
-    "outflow": "На графике показаны клиенты в оттоке — отсортированы по просроченности.",
-    "leaving": "На графике показаны уходящие клиенты — просрочка 1-30 дней.",
-    "forecast": "На графике показаны клиенты, которых ожидаем в ближайшие 14 дней.",
-    "communications": "На графике показана сводка коммуникаций по типам и результатам.",
-    "referrals": "На диаграмме показано распределение клиентов по каналам привлечения.",
-    "masters": "На графике показаны мастера по выручке/загрузке.",
-    "services": "На графике показаны услуги по выручке.",
-    "quality": "На графике показаны клиенты на контроле качества.",
-    "noshow": "На графике показаны недошедшие клиенты.",
-    "opz": "На графике показаны оперативные записи.",
-    "training": "На графике показано выполнение плана по обучению мастеров.",
-    "attachments": "На графике показаны абонементы по статусам.",
-    "all_clients": "На графике показана клиентская база.",
-}
-
-# Тематические follow-up подсказки
-_TOPIC_FOLLOW_UPS: dict[str, list[str]] = {
-    "all_clients": [
-        "Хотите посмотреть клиентов по конкретному салону?",
-        "Показать динамику клиентской базы по месяцам?",
-    ],
-    "outflow": [
-        "Хотите сравнить отток по салонам?",
-        "Показать причины оттока за другой период?",
-    ],
-    "leaving": [
-        "Показать уходящих по конкретному мастеру?",
-        "Хотите увидеть историю визитов этих клиентов?",
-    ],
-    "statistics": [
-        "Хотите детализацию по конкретному показателю?",
-        "Сравнить KPI за разные периоды?",
-    ],
-    "trend": [
-        "Показать тренд по другому показателю?",
-        "Хотите прогноз на основе текущего тренда?",
-    ],
-    "forecast": [
-        "Хотите прогноз по конкретному мастеру?",
-        "Показать загрузку по салонам?",
-    ],
-    "communications": [
-        "Хотите посмотреть результативность обзвонов?",
-        "Показать коммуникации по конкретному менеджеру?",
-    ],
-    "referrals": [
-        "Показать рефережи по салонам?",
-        "Хотите увидеть конверсию рефералов в постоянных клиентов?",
-    ],
-    "quality": [
-        "Показать оценки по конкретному мастеру?",
-        "Хотите увидеть динамику качества за период?",
-    ],
-    "attachments": [
-        "Показать абонементы с истекающим сроком?",
-        "Хотите увидеть статистику продлений?",
-    ],
-    "birthday": [
-        "Показать именинников на следующую неделю?",
-        "Хотите увидеть кого ещё не поздравили?",
-    ],
-    "waitlist": [
-        "Показать лист ожидания по услугам?",
-        "Хотите увидеть среднее время ожидания?",
-    ],
-    "training": [
-        "Показать кто ещё не прошёл обучение?",
-        "Хотите статистику по завершённости курсов?",
-    ],
-    "masters": [
-        "Сравнить мастеров по загрузке?",
-        "Показать выручку по мастерам за период?",
-    ],
-    "services": [
-        "Показать топ-5 популярных услуг?",
-        "Хотите динамику среднего чека по месяцам?",
-    ],
-    "noshow": [
-        "Показать недошедших за другой период?",
-        "Хотите увидеть результаты обзвона недошедших?",
-    ],
-    "opz": [
-        "Показать ОПЗ по конкретному менеджеру?",
-        "Хотите статистику конверсии ОПЗ?",
-    ],
-}
-
-_DEFAULT_FOLLOW_UPS = [
-    "Уточните период анализа (неделя/месяц/квартал)",
-    "Уточните разрез: салон, мастер, категория",
-]
-
-
-class AnalystAgent(Agent):
-    name = "analyst"
-
-    SYSTEM_PROMPT = (
-        "Ты — дашборд салона красоты (КДО). Озвучиваешь данные из SQL текстом.\n\n"
-        "СЛОВАРЬ ПОЛЕЙ (используй эти названия при описании):\n"
-        "• ClientName — имя клиента\n"
-        "• TotalSpent — сумма трат этого клиента за всю историю (₽)\n"
-        "• TotalVisits — количество визитов этого клиента\n"
-        "• DaysSinceLastVisit — дней с последнего визита\n"
-        "• DaysOverdue — дней просрочки (на сколько опоздал от ожидаемого визита)\n"
-        "• ServicePeriodDays — средний период между визитами клиента (дни)\n"
-        "• LastVisit — дата последнего визита\n"
-        "• ExpectedNextVisit — ожидаемая дата следующего визита\n"
-        "• Category — категория клиента в CRM\n"
-        "• ClientStatus — статус клиента (отток/уходящий/прогноз и т.д.)\n"
-        "• SalonName — название салона\n"
-        "• Revenue / AvgCheck — выручка / средний чек\n\n"
-        "ПРАВИЛА (нарушение = брак):\n"
-        "1. Описывай ТОЛЬКО данные из sql_rows. Ни слова от себя.\n"
-        "2. ЗАПРЕЩЕНО: рекомендации, оценки, прогнозы, "
-        "слова «срочно/критично/тревожно/VIP/топ/рекомендую/необходимо».\n"
-        "3. ЗАПРЕЩЕНО: таблицы (| --- |). Только текст и • списки.\n"
-        "4. ЗАПРЕЩЕНО: выдумывать ранги, категории, причины.\n"
-        "5. Формат: МАКСИМУМ 4 предложения. Тема, период, кол-во записей, "
-        "главные цифры. Если график — одно предложение что на осях. "
-        "Это чат в Telegram — стена текста = плохо.\n"
-        "6. Числа относятся к КОНКРЕТНОМУ клиенту, не ко всем сразу. "
-        "TotalSpent=8000 значит «этот клиент потратил 8000₽», "
-        "а НЕ «общая сумма 8000₽».\n\n"
-        "Пример:\n"
-        "«Отток за 30 дней: 20 клиентов. Просрочка от 31 до 240 дней. "
-        "Клиент с наибольшей историей трат — 57 000 ₽ за 59 визитов. "
-        "На графике — клиенты по убыванию просрочки.»"
-    )
-
-    def __init__(self, llm_client: LLMClient):
-        self.llm_client = llm_client
-
-    async def run(
-        self,
-        question: UserQuestion,
-        plan: Plan,
-        sql_insight: SQLInsight,
-        model_insight: ModelInsight,
-        diagnostics: dict[str, str],
-        *,
-        has_chart: bool = False,
-    ) -> AnalysisResult:
-        fallback = self._fallback_summary(
-            question, plan, sql_insight, model_insight, diagnostics, has_chart=has_chart,
-        )
-
-        user_prompt = self._compose_prompt(
-            question, plan, sql_insight, model_insight, diagnostics, has_chart=has_chart,
-        )
-        answer = await self.llm_client.synthesize(self.SYSTEM_PROMPT, user_prompt, fallback)
-
-        confidence = "low"
-        if sql_insight.rows and model_insight.metrics:
-            confidence = "high"
-        elif sql_insight.rows or model_insight.metrics:
-            confidence = "medium"
-
-        follow_ups = _TOPIC_FOLLOW_UPS.get(plan.topic, _DEFAULT_FOLLOW_UPS)
-
-        return AnalysisResult(
-            answer=answer,
-            confidence=confidence,
-            follow_ups=follow_ups,
-            diagnostics=diagnostics,
-        )
-
-    def _compose_prompt(
-        self,
-        question: UserQuestion,
-        plan: Plan,
-        sql_insight: SQLInsight,
-        model_insight: ModelInsight,
-        diagnostics: dict[str, str],
-        *,
-        has_chart: bool = False,
-    ) -> str:
-        topic_desc = get_description(plan.topic)
-        data: dict = {
-            "question": question.text,
-            "topic": plan.topic,
-            "topic_description": topic_desc,
-            "sql_summary": sql_insight.summary,
-            "row_count": len(sql_insight.rows),
-            "sql_rows": sql_insight.rows[:10],
-            "sql_params": {k: str(v) for k, v in sql_insight.params.items()},
-            "model_summary": model_insight.summary,
-            "model_metrics": model_insight.metrics,
-        }
-        if has_chart:
-            chart_hint = _CHART_HINTS.get(plan.topic, "К ответу прикреплён график.")
-            data["chart_attached"] = True
-            data["chart_description_hint"] = chart_hint
-        return json.dumps(data, ensure_ascii=False)
-
-    def _fallback_summary(
-        self,
-        question: UserQuestion,
-        plan: Plan,
-        sql_insight: SQLInsight,
-        model_insight: ModelInsight,
-        diagnostics: dict[str, str],
-        *,
-        has_chart: bool = False,
-    ) -> str:
-        topic_desc = get_description(plan.topic)
-        lines = []
-
-        if topic_desc:
-            lines.append(f"*{topic_desc}*")
-            lines.append("")
-
-        if sql_insight.rows:
-            lines.append(f"Найдено записей: {len(sql_insight.rows)}")
-            # Показываем ключевые поля первой строки человеко-читаемо
-            row = sql_insight.rows[0]
-            preview_fields = []
-            for key, val in row.items():
-                if key in ("SalonName",) or val is None:
-                    continue
-                preview_fields.append(f"• {key}: {val}")
-                if len(preview_fields) >= 5:
-                    break
-            if preview_fields:
-                lines.append("")
-                lines.append("*Пример:*")
-                lines.extend(preview_fields)
-        else:
-            lines.append("Данных за указанный период не найдено.")
-
-        if has_chart:
-            chart_hint = _CHART_HINTS.get(plan.topic, "")
-            if chart_hint:
-                lines.append("")
-                lines.append(chart_hint)
-
-        follow_ups = _TOPIC_FOLLOW_UPS.get(plan.topic, _DEFAULT_FOLLOW_UPS)
-        if follow_ups:
-            lines.append("")
-            lines.append("_Попробуйте уточнить период или фильтры._")
-
-        return "\n".join(lines)
-
-    async def run_multi(
-        self,
-        question: str,
-        results: list[AggregateResult],
-        plan: MultiPlan,
-    ) -> AnalysisResult:
-        """T030/T039: Синтезирует результаты нескольких агрегатных запросов в один ответ.
-
-        - Пропускает результаты со статусом != "ok"
-        - Использует label из AggregateResult для контекста
-        - При intent="decomposition": сравнивает метрики по периодам и выявляет главный фактор
-        - Возвращает AnalysisResult с ответом на вопрос
-        """
-        ok_results = [r for r in results if r.status == "ok"]
-        skipped = len(results) - len(ok_results)
-
-        # T039: специальная ветка для факторного анализа
-        if plan.intent == "decomposition":
-            return self._synthesize_decomposition(question, ok_results, plan, skipped)
-
-        fallback = self._fallback_multi(question, ok_results, plan, skipped)
-
-
-exec
-/bin/zsh -lc 'rg -n "incomplete_period|format_comparison|ComparisonResult|period_a|period_b" src/swarm_powerbi_bot/agents/analyst.py tests/test_comparison.py' in /Users/zerocold/Downloads/git/kpi/tg_bot/swarm_powerbi_bot
- succeeded in 0ms:
-src/swarm_powerbi_bot/agents/analyst.py:8:from ..models import AggregateResult, AnalysisResult, ComparisonResult, ModelInsight, MultiPlan, Plan, SQLInsight, UserQuestion
-src/swarm_powerbi_bot/agents/analyst.py:493:    def _is_incomplete_period(date_to_str: str) -> bool:
-src/swarm_powerbi_bot/agents/analyst.py:536:    def format_comparison(
-src/swarm_powerbi_bot/agents/analyst.py:538:        comparison: ComparisonResult,
-src/swarm_powerbi_bot/agents/analyst.py:540:        incomplete_period_a: bool = False,
-src/swarm_powerbi_bot/agents/analyst.py:541:        incomplete_period_b: bool = False,
-src/swarm_powerbi_bot/agents/analyst.py:550:        label_a = comparison.period_a or "Период 1"
-src/swarm_powerbi_bot/agents/analyst.py:551:        label_b = comparison.period_b or "Период 2"
-src/swarm_powerbi_bot/agents/analyst.py:553:        if incomplete_period_a:
-src/swarm_powerbi_bot/agents/analyst.py:555:        if incomplete_period_b:
-tests/test_comparison.py:24:    ComparisonResult,
-tests/test_comparison.py:409:    def test_is_incomplete_period_today(self):
-tests/test_comparison.py:412:        assert AnalystAgent._is_incomplete_period(today) is True
-tests/test_comparison.py:414:    def test_is_incomplete_period_future(self):
-tests/test_comparison.py:417:        assert AnalystAgent._is_incomplete_period(future) is True
-tests/test_comparison.py:419:    def test_is_incomplete_period_past(self):
-tests/test_comparison.py:422:        assert AnalystAgent._is_incomplete_period(past) is False
-tests/test_comparison.py:424:    def test_is_incomplete_period_empty_string(self):
-tests/test_comparison.py:425:        assert AnalystAgent._is_incomplete_period("") is False
-tests/test_comparison.py:427:    def test_is_incomplete_period_invalid_string(self):
-tests/test_comparison.py:428:        assert AnalystAgent._is_incomplete_period("not-a-date") is False
-tests/test_comparison.py:430:    def test_format_comparison_marks_incomplete_period_a(self):
-tests/test_comparison.py:431:        """Если period_a неполный → в тексте есть "(неполный период)"."""
-tests/test_comparison.py:445:        comparison = ComparisonResult(
-tests/test_comparison.py:446:            period_a="Этот месяц",
-tests/test_comparison.py:447:            period_b="Прошлый месяц",
-tests/test_comparison.py:451:        text = analyst.format_comparison(comparison, incomplete_period_a=True)
-tests/test_comparison.py:454:    def test_format_comparison_no_incomplete_marker_when_full(self):
-tests/test_comparison.py:469:        comparison = ComparisonResult(
-tests/test_comparison.py:470:            period_a="Прошлый месяц",
-tests/test_comparison.py:471:            period_b="Позапрошлый месяц",
-tests/test_comparison.py:475:        text = analyst.format_comparison(comparison)
-tests/test_comparison.py:478:    def test_format_comparison_includes_delta(self):
-tests/test_comparison.py:493:        comparison = ComparisonResult(
-tests/test_comparison.py:494:            period_a="Апрель",
-tests/test_comparison.py:495:            period_b="Март",
-tests/test_comparison.py:499:        text = analyst.format_comparison(comparison)
-tests/test_comparison.py:503:    def test_format_comparison_negative_delta(self):
-tests/test_comparison.py:518:        comparison = ComparisonResult(
-tests/test_comparison.py:519:            period_a="Апрель",
-tests/test_comparison.py:520:            period_b="Март",
-tests/test_comparison.py:524:        text = analyst.format_comparison(comparison)
-tests/test_comparison.py:530:    def test_format_comparison_empty_data(self):
-tests/test_comparison.py:535:        comparison = ComparisonResult(
-tests/test_comparison.py:536:            period_a="Период 1",
-tests/test_comparison.py:537:            period_b="Период 2",
-tests/test_comparison.py:541:        text = analyst.format_comparison(comparison)
-
-codex
-I have enough static evidence for several failures. I’m validating the most important ones with direct function calls so the findings are grounded in actual runtime behavior, not just code reading.
-2026-04-15T16:00:01.790014Z ERROR codex_core::tools::router: error=exec_command failed for `/bin/zsh -lc "PYTHONPATH=src python - <<'PY'
-from swarm_powerbi_bot.services.topic_registry import detect_topic
-cases = [
-    ('сравни выручку за март и февраль','outflow'),
-    ('сравни выручку за март и февраль',''),
-    ('сравни по салонам','clients_outflow'),
-]
-for text,last in cases:
-    print(text, '| last=', last, '=>', detect_topic(text, last_topic=last))
-PY"`: CreateProcess { message: "Codex(Sandbox(Denied { output: ExecToolCallOutput { exit_code: 1, stdout: StreamOutput { text: \"\", truncated_after_lines: None }, stderr: StreamOutput { text: \"zsh:1: can't create temp file for here document: operation not permitted\\n\", truncated_after_lines: None }, aggregated_output: StreamOutput { text: \"zsh:1: can't create temp file for here document: operation not permitted\\n\", truncated_after_lines: None }, duration: 0ns, timed_out: false }, network_policy_decision: None }))" }
-2026-04-15T16:00:01.790007Z ERROR codex_core::tools::router: error=exec_command failed for `/bin/zsh -lc "PYTHONPATH=src python - <<'PY'
-from swarm_powerbi_bot.agents.planner import PlannerAgent
-from swarm_powerbi_bot.models import UserQuestion
-import asyncio
-
-planner = PlannerAgent()
-for q in [
-    UserQuestion(user_id='1', text='сравни выручку за март и февраль', last_topic='outflow'),
-    UserQuestion(user_id='1', text='сравни выручку за март и февраль'),
-    UserQuestion(user_id='1', text='сравни по салонам', last_topic='clients_outflow', object_id=123),
-    UserQuestion(user_id='1', text='сравни по месяцам за два месяца', last_topic='clients_outflow', object_id=123),
-]:
-    mp = asyncio.run(planner.run_multi(q))
-    print('Q:', q.text, 'last_topic=', q.last_topic)
-    print('intent=', mp.intent, 'topic=', mp.topic)
-    for aq in mp.queries:
-        print('  ', aq.aggregate_id, dict(aq.params), aq.label)
-    print('notes=', mp.notes)
-    print('---')
-PY"`: CreateProcess { message: "Codex(Sandbox(Denied { output: ExecToolCallOutput { exit_code: 1, stdout: StreamOutput { text: \"\", truncated_after_lines: None }, stderr: StreamOutput { text: \"zsh:1: can't create temp file for here document: operation not permitted\\n\", truncated_after_lines: None }, aggregated_output: StreamOutput { text: \"zsh:1: can't create temp file for here document: operation not permitted\\n\", truncated_after_lines: None }, duration: 0ns, timed_out: false }, network_policy_decision: None }))" }
-exec
-/bin/zsh -lc "PYTHONPATH=src python -c \"from swarm_powerbi_bot.agents.planner import PlannerAgent; from swarm_powerbi_bot.models import UserQuestion; import asyncio; planner=PlannerAgent(); cases=[UserQuestion(user_id='1', text='сравни выручку за март и февраль', last_topic='outflow'), UserQuestion(user_id='1', text='сравни выручку за март и февраль'), UserQuestion(user_id='1', text='сравни по салонам', last_topic='clients_outflow', object_id=123), UserQuestion(user_id='1', text='сравни по месяцам за два месяца', last_topic='clients_outflow', object_id=123)];
-for q in cases:
- mp=asyncio.run(planner.run_multi(q)); print('Q:', q.text, '| last=', q.last_topic, '| intent=', mp.intent, '| topic=', mp.topic, '| queries=', [(aq.aggregate_id, dict(aq.params), aq.label) for aq in mp.queries], '| notes=', mp.notes)\"" in /Users/zerocold/Downloads/git/kpi/tg_bot/swarm_powerbi_bot
-exec
-/bin/zsh -lc "PYTHONPATH=src python -c \"from swarm_powerbi_bot.services.topic_registry import detect_topic; cases=[('сравни выручку за март и февраль','outflow'),('сравни выручку за март и февраль',''),('сравни по салонам','clients_outflow')]; [print(text, '| last=', last, '=>', detect_topic(text, last_topic=last)) for text,last in cases]\"" in /Users/zerocold/Downloads/git/kpi/tg_bot/swarm_powerbi_bot
- exited 1 in 259ms:
-/Users/zerocold/.matplotlib is not a writable directory
-Traceback (most recent call last):
-  File "/Users/zerocold/Downloads/git/kpi/tg_bot/.venv/lib/python3.12/site-packages/matplotlib/__init__.py", line 545, in _get_config_or_cache_dir
-    tmpdir = tempfile.mkdtemp(prefix="matplotlib-")
-             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/opt/homebrew/Caskroom/miniconda/base/lib/python3.12/tempfile.py", line 373, in mkdtemp
-    prefix, suffix, dir, output_type = _sanitize_params(prefix, suffix, dir)
-                                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/opt/homebrew/Caskroom/miniconda/base/lib/python3.12/tempfile.py", line 126, in _sanitize_params
-    dir = gettempdir()
-          ^^^^^^^^^^^^
-  File "/opt/homebrew/Caskroom/miniconda/base/lib/python3.12/tempfile.py", line 315, in gettempdir
-    return _os.fsdecode(_gettempdir())
-                        ^^^^^^^^^^^^^
-  File "/opt/homebrew/Caskroom/miniconda/base/lib/python3.12/tempfile.py", line 308, in _gettempdir
-    tempdir = _get_default_tempdir()
-              ^^^^^^^^^^^^^^^^^^^^^^
-  File "/opt/homebrew/Caskroom/miniconda/base/lib/python3.12/tempfile.py", line 223, in _get_default_tempdir
-    raise FileNotFoundError(_errno.ENOENT,
-FileNotFoundError: [Errno 2] No usable temporary directory found in ['/var/folders/xc/29fk4qln2lx__qzv0wlwvnph0000gn/T/', '/tmp', '/var/tmp', '/usr/tmp', '/Users/zerocold/Downloads/git/kpi/tg_bot/swarm_powerbi_bot']
-
-The above exception was the direct cause of the following exception:
-
-Traceback (most recent call last):
-  File "<string>", line 1, in <module>
-  File "/Users/zerocold/Downloads/git/kpi/tg_bot/swarm_powerbi_bot/src/swarm_powerbi_bot/services/__init__.py", line 1, in <module>
-    from .chart_renderer import render_chart
-  File "/Users/zerocold/Downloads/git/kpi/tg_bot/swarm_powerbi_bot/src/swarm_powerbi_bot/services/chart_renderer.py", line 15, in <module>
-    import matplotlib
-  File "/Users/zerocold/Downloads/git/kpi/tg_bot/.venv/lib/python3.12/site-packages/matplotlib/__init__.py", line 1010, in <module>
-    rcParams._update_raw(_rc_params_in_file(matplotlib_fname()))
-                                            ^^^^^^^^^^^^^^^^^^
-  File "/Users/zerocold/Downloads/git/kpi/tg_bot/.venv/lib/python3.12/site-packages/matplotlib/__init__.py", line 636, in matplotlib_fname
-    for fname in gen_candidates():
-                 ^^^^^^^^^^^^^^^^
-  File "/Users/zerocold/Downloads/git/kpi/tg_bot/.venv/lib/python3.12/site-packages/matplotlib/__init__.py", line 633, in gen_candidates
-    yield os.path.join(get_configdir(), 'matplotlibrc')
-                       ^^^^^^^^^^^^^^^
-  File "/Users/zerocold/Downloads/git/kpi/tg_bot/.venv/lib/python3.12/site-packages/matplotlib/__init__.py", line 340, in wrapper
-    ret = func(**kwargs)
-          ^^^^^^^^^^^^^^
-  File "/Users/zerocold/Downloads/git/kpi/tg_bot/.venv/lib/python3.12/site-packages/matplotlib/__init__.py", line 579, in get_configdir
-    return _get_config_or_cache_dir(_get_xdg_config_dir)
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/Users/zerocold/Downloads/git/kpi/tg_bot/.venv/lib/python3.12/site-packages/matplotlib/__init__.py", line 547, in _get_config_or_cache_dir
-    raise OSError(
-OSError: Matplotlib requires access to a writable cache directory, but there was an issue with the default path (/Users/zerocold/.matplotlib), and a temporary directory could not be created; set the MPLCONFIGDIR environment variable to a writable directory
-
- exited 1 in 259ms:
-/Users/zerocold/.matplotlib is not a writable directory
-Traceback (most recent call last):
-  File "/Users/zerocold/Downloads/git/kpi/tg_bot/.venv/lib/python3.12/site-packages/matplotlib/__init__.py", line 545, in _get_config_or_cache_dir
-    tmpdir = tempfile.mkdtemp(prefix="matplotlib-")
-             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/opt/homebrew/Caskroom/miniconda/base/lib/python3.12/tempfile.py", line 373, in mkdtemp
-    prefix, suffix, dir, output_type = _sanitize_params(prefix, suffix, dir)
-                                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/opt/homebrew/Caskroom/miniconda/base/lib/python3.12/tempfile.py", line 126, in _sanitize_params
-    dir = gettempdir()
-          ^^^^^^^^^^^^
-  File "/opt/homebrew/Caskroom/miniconda/base/lib/python3.12/tempfile.py", line 315, in gettempdir
-    return _os.fsdecode(_gettempdir())
-                        ^^^^^^^^^^^^^
-  File "/opt/homebrew/Caskroom/miniconda/base/lib/python3.12/tempfile.py", line 308, in _gettempdir
-    tempdir = _get_default_tempdir()
-              ^^^^^^^^^^^^^^^^^^^^^^
-  File "/opt/homebrew/Caskroom/miniconda/base/lib/python3.12/tempfile.py", line 223, in _get_default_tempdir
-    raise FileNotFoundError(_errno.ENOENT,
-FileNotFoundError: [Errno 2] No usable temporary directory found in ['/var/folders/xc/29fk4qln2lx__qzv0wlwvnph0000gn/T/', '/tmp', '/var/tmp', '/usr/tmp', '/Users/zerocold/Downloads/git/kpi/tg_bot/swarm_powerbi_bot']
-
-The above exception was the direct cause of the following exception:
-
-Traceback (most recent call last):
-  File "<string>", line 1, in <module>
-  File "/Users/zerocold/Downloads/git/kpi/tg_bot/swarm_powerbi_bot/src/swarm_powerbi_bot/agents/__init__.py", line 1, in <module>
-    from .analyst import AnalystAgent
-  File "/Users/zerocold/Downloads/git/kpi/tg_bot/swarm_powerbi_bot/src/swarm_powerbi_bot/agents/analyst.py", line 9, in <module>
-    from ..services.llm_client import LLMClient
-  File "/Users/zerocold/Downloads/git/kpi/tg_bot/swarm_powerbi_bot/src/swarm_powerbi_bot/services/__init__.py", line 1, in <module>
-    from .chart_renderer import render_chart
-  File "/Users/zerocold/Downloads/git/kpi/tg_bot/swarm_powerbi_bot/src/swarm_powerbi_bot/services/chart_renderer.py", line 15, in <module>
-    import matplotlib
-  File "/Users/zerocold/Downloads/git/kpi/tg_bot/.venv/lib/python3.12/site-packages/matplotlib/__init__.py", line 1010, in <module>
-    rcParams._update_raw(_rc_params_in_file(matplotlib_fname()))
-                                            ^^^^^^^^^^^^^^^^^^
-  File "/Users/zerocold/Downloads/git/kpi/tg_bot/.venv/lib/python3.12/site-packages/matplotlib/__init__.py", line 636, in matplotlib_fname
-    for fname in gen_candidates():
-                 ^^^^^^^^^^^^^^^^
-  File "/Users/zerocold/Downloads/git/kpi/tg_bot/.venv/lib/python3.12/site-packages/matplotlib/__init__.py", line 633, in gen_candidates
-    yield os.path.join(get_configdir(), 'matplotlibrc')
-                       ^^^^^^^^^^^^^^^
-  File "/Users/zerocold/Downloads/git/kpi/tg_bot/.venv/lib/python3.12/site-packages/matplotlib/__init__.py", line 340, in wrapper
-    ret = func(**kwargs)
-          ^^^^^^^^^^^^^^
-  File "/Users/zerocold/Downloads/git/kpi/tg_bot/.venv/lib/python3.12/site-packages/matplotlib/__init__.py", line 579, in get_configdir
-    return _get_config_or_cache_dir(_get_xdg_config_dir)
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/Users/zerocold/Downloads/git/kpi/tg_bot/.venv/lib/python3.12/site-packages/matplotlib/__init__.py", line 547, in _get_config_or_cache_dir
-    raise OSError(
-OSError: Matplotlib requires access to a writable cache directory, but there was an issue with the default path (/Users/zerocold/.matplotlib), and a temporary directory could not be created; set the MPLCONFIGDIR environment variable to a writable directory
-
-exec
-/bin/zsh -lc "nl -ba src/swarm_powerbi_bot/agents/planner.py | sed -n '308,345p'" in /Users/zerocold/Downloads/git/kpi/tg_bot/swarm_powerbi_bot
- succeeded in 0ms:
-   308	                AggregateQuery(
-   309	                    aggregate_id=agg_id,
-   310	                    params=AggregateParams(raw_params),
-   311	                    label=q.get("label", ""),
-   312	                )
-   313	            )
-   314	
-   315	        if not queries:
-   316	            return None
-   317	
-   318	        topic = raw_dict.get("topic", "statistics")
-   319	        # intent was already extracted above for query limit calculation
-   320	
-   321	        # Разрешаем period_hint → конкретные даты для ВСЕХ интентов
-   322	        for q_obj in queries:
-   323	            period_hint = q_obj.params.get("period_hint", "")
-   324	            if period_hint and "date_from" not in q_obj.params:
-   325	                resolved_from, resolved_to = _resolve_period(period_hint)
-   326	                q_obj.params["date_from"] = resolved_from
-   327	                q_obj.params["date_to"] = resolved_to
-   328	
-   329	        # T034: для intent="comparison" убеждаемся что есть ровно 2 запроса
-   330	        if intent == "comparison":
-   331	            if len(queries) < 2:
-   332	                logger.warning(
-   333	                    "plan_aggregates: comparison intent but only %d queries — falling back",
-   334	                    len(queries),
-   335	                )
-   336	                return None
-   337	
-   338	        return MultiPlan(
-   339	            objective=question.text,
-   340	            intent=intent,
-   341	            queries=queries,
-   342	            topic=topic,
-   343	            render_needed=render_needed,
-   344	            notes=["planner_v2:llm"],
-   345	        )
+src/swarm_powerbi_bot/agents/planner.py:213:        2. Парсим JSON → проверяем каждый aggregate_id против whitelist
+src/swarm_powerbi_bot/agents/planner.py:214:        3. Если ANY aggregate_id невалиден → fallback на TopicRegistry
+src/swarm_powerbi_bot/agents/planner.py:283:        # Валидируем каждый aggregate_id против whitelist
+src/swarm_powerbi_bot/agents/planner.py:286:            agg_id = q.get("aggregate_id", "")
+src/swarm_powerbi_bot/agents/planner.py:289:                    "plan_aggregates: aggregate_id %r not in catalog — falling back",
+src/swarm_powerbi_bot/agents/planner.py:309:                    aggregate_id=agg_id,
+src/swarm_powerbi_bot/agents/planner.py:352:    # Маппинг legacy TopicRegistry topic_id → catalog aggregate_id
+src/swarm_powerbi_bot/agents/planner.py:381:            # Проверяем что last_topic — валидный catalog aggregate_id
+src/swarm_powerbi_bot/agents/planner.py:385:                # Пробуем маппинг legacy topic → catalog aggregate_id
+src/swarm_powerbi_bot/agents/planner.py:389:                # Нет валидного aggregate_id для comparison → обычный single
+src/swarm_powerbi_bot/agents/planner.py:423:                    AggregateQuery(aggregate_id=agg_id, params=AggregateParams(params_prev), label=prev_label),
+src/swarm_powerbi_bot/agents/planner.py:424:                    AggregateQuery(aggregate_id=agg_id, params=AggregateParams(params_curr), label=curr_label),
+src/swarm_powerbi_bot/agents/planner.py:436:            aggregate_id=topic,
+src/swarm_powerbi_bot/agents/analyst.py:375:    async def run_multi(
+src/swarm_powerbi_bot/agents/analyst.py:406:                    "aggregate_id": r.aggregate_id,
+src/swarm_powerbi_bot/agents/analyst.py:407:                    "label": r.label or r.aggregate_id,
+src/swarm_powerbi_bot/agents/analyst.py:444:        1. Группирует результаты попарно (текущий / предыдущий период) по aggregate_id
+src/swarm_powerbi_bot/agents/analyst.py:465:            lines = [f"• {r.label or r.aggregate_id}: {r.row_count} записей" for r in ok_results]
+src/swarm_powerbi_bot/agents/analyst.py:524:        Пара определяется по одинаковому aggregate_id. Первый встреченный считается
+src/swarm_powerbi_bot/agents/analyst.py:547:        # Группируем по aggregate_id (сохраняем порядок первого вхождения)
+src/swarm_powerbi_bot/agents/analyst.py:552:            agg_id = r.aggregate_id
+src/swarm_powerbi_bot/agents/analyst.py:567:            label = current.label or current.aggregate_id
+src/swarm_powerbi_bot/agents/analyst.py:573:                factors.append({"label": r.label or r.aggregate_id, "rel_change": 0.0})
+src/swarm_powerbi_bot/agents/analyst.py:602:                label = r.label or r.aggregate_id
 
 codex
 FAIL
-[HIGH] src/swarm_powerbi_bot/agents/planner.py:404 — The new fallback comparison plan is still tagged `planner_v2:keyword`; `SwarmOrchestrator` skips `run_multi()` for any keyword `MultiPlan`, so when the LLM is unavailable these two generated queries are never executed and the request silently degrades to a single legacy SQL call instead of a comparison.
-[HIGH] src/swarm_powerbi_bot/agents/planner.py:367 — Comparison fallback blindly reuses `question.last_topic` as the aggregate id and ignores the current question’s explicit topic. After an `outflow` answer, `сравни выручку за март и февраль` will still compare the previous topic, not revenue; if `last_topic` came from the legacy path (`outflow`, `services`, etc.), it is not even a catalog aggregate id.
-[HIGH] src/swarm_powerbi_bot/agents/planner.py:370 — Every fallback comparison is hard-coded to “previous full month vs current month-to-date”. On 2026-04-15, `сравни за март и февраль` becomes `2026-03-01..2026-03-31` vs `2026-04-01..2026-04-15`, and edge cases from the spec such as `сравни по салонам` or `сравни за три месяца` are forced into the wrong query shape.
-[HIGH] src/swarm_powerbi_bot/agents/planner.py:375 — The fallback client-comparison queries never copy `question.object_id` into `params`, even though catalog client aggregates require `object_id`; if this path is executed through the aggregate runner, registry validation rejects the follow-up instead of answering it.
-[MEDIUM] src/swarm_powerbi_bot/agents/planner.py:318 — `_llm_plan_multi()` persists the LLM’s free-form `topic` verbatim, but the new follow-up mechanism assumes `last_topic` is a concrete aggregate id such as `clients_outflow`. If the model returns the schema example `statistics`, the next turn sends `last_topic=statistics`, which is too coarse to recover the correct aggregate and makes the new context handoff nondeterministic.
+[HIGH] tests/test_e2e_pipeline.py:216 — `test_comparison_pipeline` never asserts `result.image` or PNG output even though T004/US-2 require a comparison chart. Because `MockAnalystMulti` hardcodes `+17%`, this still passes if comparison chart generation is broken.
+[HIGH] tests/test_e2e_pipeline.py:362 — the smoke “fallback quality” checks are structurally incapable of validating fallback text: `MockAnalyst` always returns a canned `Тема: ...` string, and the added tests only inspect topic/follow-ups. Leaked raw field names, missing `Период:`, and bad money formatting will all escape the default suite.
+[HIGH] tests/integration/test_real_e2e.py:46 — comparison integration coverage never checks for the required delta text. One test only asserts a non-empty answer, the other only asserts PNG bytes, so a response that omits the `%` comparison still passes.
+[HIGH] tests/integration/test_real_e2e.py:169 — `test_e2e_fallback_has_period` and `test_e2e_statistics_money_rounded` are no-op assertions on `resp.topic`; they do not verify a period label or 2-decimal monetary formatting as required by the spec.
+[MEDIUM] tests/conftest.py:76 — `MockPlannerWithRegistry.run_multi` populates `MultiPlan.queries` with plain dicts instead of `AggregateQuery` objects. Since `MockSQLMulti.run_multi` ignores them, the new MultiPlan tests do not exercise the real planner→SQL contract that production code uses.
+[MEDIUM] tests/integration/test_real_llm.py:256 — `test_planner_10_questions` rejects valid `MultiPlan.intent` values such as `trend` and `ranking`, even though the model type allows them and the parametrized set includes a trend query. Correct planner output can fail this test.
 tokens used
-93,692
+83,552
 FAIL
-[HIGH] src/swarm_powerbi_bot/agents/planner.py:404 — The new fallback comparison plan is still tagged `planner_v2:keyword`; `SwarmOrchestrator` skips `run_multi()` for any keyword `MultiPlan`, so when the LLM is unavailable these two generated queries are never executed and the request silently degrades to a single legacy SQL call instead of a comparison.
-[HIGH] src/swarm_powerbi_bot/agents/planner.py:367 — Comparison fallback blindly reuses `question.last_topic` as the aggregate id and ignores the current question’s explicit topic. After an `outflow` answer, `сравни выручку за март и февраль` will still compare the previous topic, not revenue; if `last_topic` came from the legacy path (`outflow`, `services`, etc.), it is not even a catalog aggregate id.
-[HIGH] src/swarm_powerbi_bot/agents/planner.py:370 — Every fallback comparison is hard-coded to “previous full month vs current month-to-date”. On 2026-04-15, `сравни за март и февраль` becomes `2026-03-01..2026-03-31` vs `2026-04-01..2026-04-15`, and edge cases from the spec such as `сравни по салонам` or `сравни за три месяца` are forced into the wrong query shape.
-[HIGH] src/swarm_powerbi_bot/agents/planner.py:375 — The fallback client-comparison queries never copy `question.object_id` into `params`, even though catalog client aggregates require `object_id`; if this path is executed through the aggregate runner, registry validation rejects the follow-up instead of answering it.
-[MEDIUM] src/swarm_powerbi_bot/agents/planner.py:318 — `_llm_plan_multi()` persists the LLM’s free-form `topic` verbatim, but the new follow-up mechanism assumes `last_topic` is a concrete aggregate id such as `clients_outflow`. If the model returns the schema example `statistics`, the next turn sends `last_topic=statistics`, which is too coarse to recover the correct aggregate and makes the new context handoff nondeterministic.
+[HIGH] tests/test_e2e_pipeline.py:216 — `test_comparison_pipeline` never asserts `result.image` or PNG output even though T004/US-2 require a comparison chart. Because `MockAnalystMulti` hardcodes `+17%`, this still passes if comparison chart generation is broken.
+[HIGH] tests/test_e2e_pipeline.py:362 — the smoke “fallback quality” checks are structurally incapable of validating fallback text: `MockAnalyst` always returns a canned `Тема: ...` string, and the added tests only inspect topic/follow-ups. Leaked raw field names, missing `Период:`, and bad money formatting will all escape the default suite.
+[HIGH] tests/integration/test_real_e2e.py:46 — comparison integration coverage never checks for the required delta text. One test only asserts a non-empty answer, the other only asserts PNG bytes, so a response that omits the `%` comparison still passes.
+[HIGH] tests/integration/test_real_e2e.py:169 — `test_e2e_fallback_has_period` and `test_e2e_statistics_money_rounded` are no-op assertions on `resp.topic`; they do not verify a period label or 2-decimal monetary formatting as required by the spec.
+[MEDIUM] tests/conftest.py:76 — `MockPlannerWithRegistry.run_multi` populates `MultiPlan.queries` with plain dicts instead of `AggregateQuery` objects. Since `MockSQLMulti.run_multi` ignores them, the new MultiPlan tests do not exercise the real planner→SQL contract that production code uses.
+[MEDIUM] tests/integration/test_real_llm.py:256 — `test_planner_10_questions` rejects valid `MultiPlan.intent` values such as `trend` and `ranking`, even though the model type allows them and the parametrized set includes a trend query. Correct planner output can fail this test.
 ```
 
+---
+## ⚠️ Достигнут лимит раундов (3/3)
+Требуется эскалация на человека.

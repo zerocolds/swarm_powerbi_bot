@@ -51,7 +51,7 @@ def test_simple_completion(real_settings, ollama_ok):
 # ── 3. Planner keyword fallback ──────────────────────────────────────────────
 
 async def test_planner_keyword_fallback(real_settings):
-    """PlannerAgent без LLM (только keyword) должен вернуть Plan."""
+    """PlannerAgent без registry → keyword fallback должен вернуть Plan."""
     llm_client = LLMClient(real_settings)
     # Без registry — keyword mode
     planner = PlannerAgent(llm_client=llm_client, aggregate_registry=None)
@@ -218,3 +218,63 @@ async def test_llm_timeout(real_settings, ollama_ok):
     # Не должен зависнуть — должен вернуть fallback или timeout
     plan = await planner.run_multi(question)
     assert isinstance(plan, MultiPlan)
+
+
+# ── 11. Parametrized 10 questions → valid MultiPlan ─────────────────────────
+
+_PLANNER_10_QUESTIONS = [
+    "Покажи отток клиентов за месяц",
+    "Статистика за эту неделю",
+    "Динамика выручки по неделям за квартал",
+    "Загрузка мастеров за март",
+    "Каналы привлечения клиентов",
+    "Именинники на этой неделе",
+    "Результаты обзвонов за март",
+    "Прогноз визитов на следующую неделю",
+    "Популярные услуги за месяц",
+    "Контроль качества за март",
+]
+
+
+@pytest.mark.parametrize("question_text", _PLANNER_10_QUESTIONS)
+async def test_planner_10_questions(
+    real_settings, real_registry: AggregateRegistry, ollama_ok, question_text,
+):
+    if not ollama_ok:
+        pytest.skip("Ollama not available")
+    llm_client = LLMClient(real_settings)
+    planner = PlannerAgent(
+        llm_client=llm_client,
+        aggregate_registry=real_registry,
+        semantic_catalog_path=real_settings.semantic_catalog_path,
+    )
+    question = UserQuestion(user_id="test", text=question_text, object_id=506770)
+    plan = await planner.run_multi(question)
+    assert isinstance(plan, MultiPlan)
+    assert plan.queries, f"No queries for: {question_text}"
+    assert plan.topic, f"No topic for: {question_text}"
+    assert plan.intent in ("single", "comparison", "decomposition"), \
+        f"Invalid intent '{plan.intent}' for: {question_text}"
+
+
+# ── 12. Keyword fallback path (LLM → None) ──────────────────────────────────
+
+_FALLBACK_QUESTIONS = [
+    ("какая выручка за неделю?", "statistics"),
+    ("кто больше принёс денег?", "masters"),
+    ("популярные услуги за месяц", "services"),
+    ("отток клиентов", "outflow"),
+    ("почему упала выручка?", "statistics"),
+]
+
+
+@pytest.mark.parametrize("question_text,expected_topic", _FALLBACK_QUESTIONS)
+async def test_keyword_fallback_without_llm(question_text, expected_topic):
+    """T024: При LLM=None keyword fallback маршрутизирует корректно (#011)."""
+    # PlannerAgent без llm_client → всегда keyword fallback
+    planner = PlannerAgent(llm_client=None, aggregate_registry=None)
+    question = UserQuestion(user_id="test", text=question_text, object_id=506770)
+    plan = await planner.run(question)
+    assert plan.topic == expected_topic, \
+        f"Keyword fallback: '{question_text}' → '{plan.topic}', expected '{expected_topic}'"
+    assert "planner:keyword" in plan.notes

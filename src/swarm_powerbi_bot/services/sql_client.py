@@ -48,6 +48,14 @@ _RE_MONTH = re.compile(
     re.IGNORECASE,
 )
 
+_RE_MONTH_BARE = re.compile(
+    r"\b(январ[яеюиь]?\b|феврал[яеюиь]?\b|март\b|апрел[яеюиь]?\b|ма[йя]\b|"
+    r"июн[яеюиь]?\b|июл[яеюиь]?\b|август\b|сентябр[яеюиь]?\b|"
+    r"октябр[яеюиь]?\b|ноябр[яеюиь]?\b|декабр[яеюиь]?\b)"
+    r"(?:\s+(\d{4}))?",
+    re.IGNORECASE,
+)
+
 _RE_RANGE = re.compile(
     r"с\s+(\d{1,2})\s+по\s+(\d{1,2})\s+"
     r"(январ\w*|феврал\w*|март\w*|апрел\w*|ма[йя]\w*|"
@@ -82,7 +90,7 @@ _PERIOD_HINTS = (
 def has_period_hint(question: str) -> bool:
     """Проверяет, указан ли в вопросе какой-либо период."""
     text = question.lower()
-    if _RE_MONTH.search(text) or _RE_RANGE.search(text):
+    if _RE_MONTH.search(text) or _RE_RANGE.search(text) or _RE_MONTH_BARE.search(text):
         return True
     return any(h in text for h in _PERIOD_HINTS)
 

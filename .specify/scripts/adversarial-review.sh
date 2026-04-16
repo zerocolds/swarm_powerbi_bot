@@ -52,18 +52,59 @@ if [[ -z "$DIFF" ]]; then
   exit 2
 fi
 
-# Находим спецификацию текущей фичи
-SPEC_CONTENT=""
-for spec_file in "${REPO_ROOT}"/.specify/specs/*/spec.md; do
-  if [[ -f "$spec_file" ]]; then
-    SPEC_CONTENT+="$(cat "$spec_file")"$'\n\n'
-  fi
-done
+# Находим спецификацию текущей фичи по имени ветки
+# Формат ветки: feature/NNN-slug → ищем specs/NNN-*/spec.md
+FEATURE_ID=""
+if [[ "$CURRENT_BRANCH" =~ ^feature/([0-9]+-[^/]+) ]]; then
+  FEATURE_ID="${BASH_REMATCH[1]}"
+elif [[ "$CURRENT_BRANCH" =~ ^feature/([0-9]+) ]]; then
+  FEATURE_ID="${BASH_REMATCH[1]}"
+fi
 
-if [[ -z "$SPEC_CONTENT" ]]; then
-  echo "⚠️  Спецификация не найдена в .specify/specs/*/spec.md" >&2
+SPEC_FILE=""
+if [[ -n "$FEATURE_ID" ]]; then
+  # Точное совпадение по feature ID из имени ветки
+  for candidate in "${REPO_ROOT}"/specs/${FEATURE_ID}*/spec.md "${REPO_ROOT}"/.specify/specs/${FEATURE_ID}*/spec.md; do
+    if [[ -f "$candidate" ]]; then
+      SPEC_FILE="$candidate"
+      break
+    fi
+  done
+fi
+
+# Fallback: если по ветке не нашли, берём SPECIFY_FEATURE или единственный spec
+if [[ -z "$SPEC_FILE" && -n "${SPECIFY_FEATURE:-}" ]]; then
+  for candidate in "${REPO_ROOT}/specs/${SPECIFY_FEATURE}/spec.md" "${REPO_ROOT}/.specify/specs/${SPECIFY_FEATURE}/spec.md"; do
+    if [[ -f "$candidate" ]]; then
+      SPEC_FILE="$candidate"
+      break
+    fi
+  done
+fi
+
+if [[ -z "$SPEC_FILE" ]]; then
+  # Последний fallback: единственный spec в директории
+  spec_files=("${REPO_ROOT}"/specs/*/spec.md "${REPO_ROOT}"/.specify/specs/*/spec.md)
+  found=()
+  for f in "${spec_files[@]}"; do
+    [[ -f "$f" ]] && found+=("$f")
+  done
+  if [[ ${#found[@]} -eq 1 ]]; then
+    SPEC_FILE="${found[0]}"
+  elif [[ ${#found[@]} -gt 1 ]]; then
+    echo "⚠️  Найдено ${#found[@]} спецификаций, но не удалось определить текущую фичу из ветки '${CURRENT_BRANCH}'." >&2
+    echo "   Подсказка: ветка должна быть в формате feature/NNN-slug или задайте SPECIFY_FEATURE=NNN-slug." >&2
+    exit 2
+  fi
+fi
+
+if [[ -z "$SPEC_FILE" ]]; then
+  echo "⚠️  Спецификация не найдена для ветки '${CURRENT_BRANCH}'." >&2
   exit 2
 fi
+
+SPEC_CONTENT="$(cat "$SPEC_FILE")"
+echo "📋 Используется спецификация: ${SPEC_FILE}"
 
 # ── Подготовка директории результатов ────────────────────────────────────────
 mkdir -p "$FINDINGS_DIR"
@@ -91,7 +132,7 @@ Response format:
 - SEVERITY: CRITICAL / HIGH / MEDIUM
 - Do not praise. Only report problems.
 
-Spec: see .specify/specs/*/spec.md
+Spec: see ${SPEC_FILE}
 Changes: git diff main...HEAD"
 
 # ── Запуск ревьюеров параллельно ─────────────────────────────────────────────

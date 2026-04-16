@@ -65,9 +65,10 @@ class TestValueColumnSelection:
         assert label_col == "ClientName"
 
     def test_masters_shows_revenue(self):
-        row = {"MasterName": "Мастер А", "TotalVisits": 50, "Revenue": 120000}
+        # _PREFERRED_VALUE["masters"] = "TotalRevenue" (исправлено в #011)
+        row = {"MasterName": "Мастер А", "TotalVisits": 50, "TotalRevenue": 120000}
         _, value_col = _pick_label_value([row], topic="masters")
-        assert value_col == "Revenue"
+        assert value_col == "TotalRevenue"
 
     def test_leaving_shows_total_spent(self):
         row = {"ClientName": "Клиент", "DaysOverdue": 15, "TotalSpent": 8000}

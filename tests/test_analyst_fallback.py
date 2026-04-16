@@ -166,10 +166,12 @@ class TestStatisticsPeriodAndRounding:
         assert "Выручка" in text
 
     def test_default_branch_float_formatted(self):
-        """Generic fallback (не statistics) тоже округляет float."""
+        """Generic fallback (не statistics) округляет float для известных полей.
+        Неизвестные поля (не в _FIELD_LABELS) скрываются (FR-005)."""
         from swarm_powerbi_bot.models import Plan, SQLInsight, ModelInsight, UserQuestion
         analyst = _make_analyst()
-        rows = [{"SomeMetric": 12345.6789}]
+        # Используем известное поле чтобы проверить форматирование
+        rows = [{"Revenue": 12345.6789}]
         q = UserQuestion(user_id="1", text="тест")
         plan = Plan(objective="тест", topic="unknown_topic")
         sql = SQLInsight(rows=rows, summary="ok")

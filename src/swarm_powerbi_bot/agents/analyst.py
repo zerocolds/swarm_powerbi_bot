@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import logging
 from datetime import date
 from typing import Literal
 
@@ -8,6 +9,8 @@ from .base import Agent
 from ..models import AggregateResult, AnalysisResult, ComparisonResult, ModelInsight, MultiPlan, Plan, SQLInsight, UserQuestion
 from ..services.llm_client import LLMClient
 from ..services.topic_registry import get_description
+
+logger = logging.getLogger(__name__)
 
 # ── Подсказки для описания графиков ──────────────────────────
 
@@ -20,7 +23,7 @@ _CHART_HINTS: dict[str, str] = {
     "communications": "На графике показана сводка коммуникаций по типам и результатам.",
     "referrals": "На диаграмме показано распределение клиентов по каналам привлечения.",
     "masters": "На графике показаны мастера по выручке/загрузке.",
-    "services": "На графике показаны услуги по выручке.",
+    "services": "На графике показаны услуги по количеству.",
     "quality": "На графике показаны клиенты на контроле качества.",
     "noshow": "На графике показаны недошедшие клиенты.",
     "opz": "На графике показаны оперативные записи.",
@@ -135,7 +138,7 @@ _FIELD_LABELS: dict[str, str] = {
     "TotalVisits": "Визитов",
     "LastVisit": "Последний визит",
     "ExpectedNextVisit": "Ожидаемый визит",
-    "ServicePeriodDays": "Период визитов (дни)",
+    # ServicePeriodDays скрыт через _HIDDEN_FIELDS — label не нужен
     "Revenue": "Выручка (₽)",
     "TotalRevenue": "Выручка (₽)",
     "AvgCheck": "Средний чек (₽)",
@@ -149,12 +152,21 @@ _FIELD_LABELS: dict[str, str] = {
     "Reason": "Причина",
     "Result": "Результат",
     "Manager": "Менеджер",
+    # Поля услуг (services) — ServiceCategory скрыто через _HIDDEN_FIELDS
+    "ServiceCount": "Кол-во услуг",
+    # Поля мастеров (masters) — MasterCategory скрыто через _HIDDEN_FIELDS
+    "Rating": "Рейтинг",
+    "ReturningClients": "Вернувшиеся клиенты",
+    "TotalHours": "Часы работы",
+    "EndOfWeek": "Неделя",
+    "WeekLabel": "Неделя",
 }
 
-# Поля, которые не показываем в fallback (технические, приватные)
+# Поля, которые не показываем в fallback (технические, приватные, категории-группировки)
 _HIDDEN_FIELDS = {
     "Phone", "CRMId", "ObjectId", "MasterId", "ClientId", "Id", "Top",
     "SalonName", "FirstVisit", "LastCommResult", "ServicePeriodDays",
+    "IsPrimary", "ServiceCategory", "MasterCategory",
 }
 
 
@@ -301,7 +313,10 @@ class AnalystAgent(Agent):
                 for key, val in row.items():
                     if key in _HIDDEN_FIELDS or val is None:
                         continue
-                    label = _FIELD_LABELS.get(key, key)
+                    # Пропускаем поля без маппинга — не показываем raw-имя
+                    if key not in _FIELD_LABELS:
+                        continue
+                    label = _FIELD_LABELS[key]
                     if isinstance(val, float):
                         val = f"{val:,.2f}"
                     elif isinstance(val, str) and "T" in val and len(val) > 10:
@@ -312,6 +327,8 @@ class AnalystAgent(Agent):
                 if preview:
                     lines.append("")
                     lines.extend(preview)
+                elif sql_insight.rows:
+                    logger.debug("fallback: все поля скрыты/без маппинга, topic=%s", topic)
         else:
             lines.append("Данных за указанный период не найдено.")
 

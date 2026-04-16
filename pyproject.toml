@@ -30,6 +30,7 @@ asyncio_mode = "auto"
 addopts = "-m 'not integration'"
 markers = [
     "integration: тесты с реальным MSSQL/Ollama (требуют окружение)",
+    "e2e: E2E тесты с моками (запускаются всегда в CI)",
 ]
 
 [dependency-groups]

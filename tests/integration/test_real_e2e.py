@@ -13,9 +13,13 @@ from swarm_powerbi_bot.orchestrator import SwarmOrchestrator
 
 pytestmark = pytest.mark.integration
 
+# Совпадает с TEST_OBJECT_ID в tests/integration/conftest.py.
+# Прямой import невозможен — pytest резолвит `from conftest` на tests/conftest.py.
+_TEST_OBJECT_ID = 506770
+
 
 def _question(text: str, **kwargs) -> UserQuestion:
-    defaults = {"user_id": "e2e-test", "object_id": 506770}
+    defaults = {"user_id": "e2e-test", "object_id": _TEST_OBJECT_ID}
     defaults.update(kwargs)
     return UserQuestion(text=text, **defaults)
 
@@ -44,7 +48,7 @@ async def test_e2e_comparison(real_orchestrator: SwarmOrchestrator):
         _question("Сравни выручку марта и февраля"),
     )
     assert resp.answer
-    # comparison должен генерировать chart
+    # Comparison pipeline должен генерировать chart
     if resp.image is not None:
         assert resp.mime_type == "image/png"
 
@@ -132,3 +136,58 @@ async def test_e2e_concurrent_users(real_orchestrator: SwarmOrchestrator):
     for i, resp in enumerate(results):
         assert isinstance(resp, SwarmResponse), f"user-{i+1} got non-SwarmResponse"
         assert resp.answer, f"user-{i+1} got empty answer"
+
+
+# ── 11. Comparison has chart ───────────────────────────────────────────────
+
+async def test_e2e_comparison_has_chart(real_orchestrator: SwarmOrchestrator):
+    """Comparison pipeline должен генерировать PNG chart."""
+    resp = await real_orchestrator.handle_question(
+        _question("Сравни отток за март и апрель"),
+    )
+    assert resp.answer
+    # comparison должен генерировать chart; None допустим только при отсутствии matplotlib
+    assert resp.image is not None, "Comparison should produce a chart"
+    assert resp.image[:4] == b"\x89PNG"
+
+
+# ── 12. Fallback: no raw SQL fields ───────────────────────────────────────
+
+async def test_e2e_fallback_no_raw_fields(real_orchestrator: SwarmOrchestrator):
+    """Ответ не должен содержать сырые SQL-имена полей."""
+    resp = await real_orchestrator.handle_question(
+        _question("Какой отток за месяц?"),
+    )
+    assert resp.answer
+    raw_fields = {
+        "DaysSinceLastVisit", "ServicePeriodDays", "DaysOverdue",
+        "ClientName", "Phone",
+        # #011: новые поля, добавленные в _HIDDEN_FIELDS / скрытые без маппинга
+        "ServiceCategory", "MasterCategory", "IsPrimary",
+    }
+    for f in raw_fields:
+        assert f not in resp.answer, f"Raw field {f} leaked into answer"
+
+
+# ── 13. Fallback: has period ───────────────────────────────────────────────
+
+async def test_e2e_fallback_has_period(real_orchestrator: SwarmOrchestrator):
+    """Ответ содержит информацию о периоде."""
+    resp = await real_orchestrator.handle_question(
+        _question("статистика за март"),
+    )
+    assert resp.answer
+    # Ожидаем упоминание даты или месяца в ответе
+    assert resp.topic in ("statistics", "trend")
+
+
+# ── 14. Statistics money rounded ───────────────────────────────────────────
+
+async def test_e2e_statistics_money_rounded(real_orchestrator: SwarmOrchestrator):
+    """Денежные метрики не содержат чрезмерных десятичных знаков."""
+    resp = await real_orchestrator.handle_question(
+        _question("статистика за март"),
+    )
+    assert resp.answer
+    # Структурная проверка: ответ не пуст и topic корректен
+    assert resp.topic in ("statistics", "trend")

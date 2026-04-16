@@ -1,6 +1,8 @@
 """Реестр аналитических тем КДО — маппинг вопросов на хранимые процедуры."""
 from __future__ import annotations
 
+import logging
+from collections.abc import Callable
 from dataclasses import dataclass, field
 
 
@@ -137,22 +139,75 @@ _MODIFIER_KEYWORDS = {
     "подробн", "детальн", "разбивк", "группиров",
 }
 
+# Контекстные правила: (предикат, topic_id, бонус к score)
+# Применяются ПОСЛЕ базового скоринга — буст для конкретной темы при совпадении контекста.
+# Правило 1: период + «выручк» → статистика сводных KPI, а не тема услуг
+# Правило 2: ранжирование + деньги → мастера (кто лучший по доходу)
+# Правило 3: аналитический вопрос «почему упало/снизилось» + финансы → статистика
+_logger = logging.getLogger(__name__)
+
+_MONTH_STEMS = ("январ", "феврал", "март", "апрел", "май", "мая",
+                "июн", "июл", "август", "сентябр", "октябр", "ноябр", "декабр")
+
+_CONTEXT_RULES: list[tuple[Callable[[str], bool], str, int]] = [
+    (
+        # Период задан через «за» (за неделю, за месяц, за квартал, за год, за март…)
+        # + «выручк» → сводная статистика KPI, а не тема услуг.
+        # Исключаем «по неделям»/«по месяцам» — там routing на trend, не statistics.
+        lambda t: (any(p in t for p in ("за недел", "за месяц", "за квартал", "за год",
+                                         "за прошл", "за последн", "за текущ"))
+                   or any(f"за {m}" in t for m in _MONTH_STEMS))
+        and "выручк" in t
+        and not any(p in t for p in ("по неделям", "по месяцам", "помесячно", "понедельно",
+                                      "по услугам", "по мастерам")),
+        "statistics",
+        3,
+    ),
+    (
+        # Ранжирование + деньги → мастера, но не если явно указаны «услуг»
+        lambda t: any(p in t for p in ("кто больш", "топ ", "рейтинг", "лучш"))
+        and any(p in t for p in ("денег", "выручк", "принёс", "принес", "заработ", "доход"))
+        and "услуг" not in t,
+        "masters",
+        3,
+    ),
+    (
+        lambda t: any(p in t for p in ("почему", "причин", "упал", "снизил"))
+        and any(p in t for p in ("выручк", "денег", "доход")),
+        "statistics",
+        3,
+    ),
+]
+
 
 def detect_topic(question: str, last_topic: str = "") -> str:
     """Определяет тему вопроса по ключевым словам (скоринг).
 
     Если вопрос содержит только модификаторы (сравни, по неделям)
     без явной темы — используем last_topic как контекст разговора.
+
+    После базового скоринга применяются _CONTEXT_RULES — контекстные правила,
+    которые добавляют бонус к определённой теме при совпадении паттерна.
+    Это позволяет корректно маршрутизировать вопросы типа «выручка за неделю»
+    на statistics (сводные KPI), а не на services.
     """
     text = question.lower()
-    best_id = DEFAULT_TOPIC
-    best_score = 0
 
+    # Базовый скоринг по ключевым словам
+    scores: dict[str, int] = {entry.topic_id: 0 for entry in TOPICS}
     for entry in TOPICS:
-        score = sum(1 for kw in entry.keywords if kw in text)
-        if score > best_score:
-            best_score = score
-            best_id = entry.topic_id
+        scores[entry.topic_id] = sum(1 for kw in entry.keywords if kw in text)
+
+    # Применяем контекстные правила — буст для конкретной темы
+    for predicate, topic_id, bonus in _CONTEXT_RULES:
+        try:
+            if predicate(text):
+                scores[topic_id] = scores.get(topic_id, 0) + bonus
+        except Exception:
+            _logger.warning("context rule error for topic=%s", topic_id, exc_info=True)
+
+    best_id = max(scores, key=lambda tid: scores[tid])
+    best_score = scores[best_id]
 
     # Follow-up: вопрос без явной темы + есть предыдущий контекст
     if last_topic and last_topic in _TOPICS_BY_ID:
