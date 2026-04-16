@@ -30,11 +30,12 @@ def test_planner_detects_topic_outflow():
 
 def test_planner_detects_topic_services():
     planner = PlannerAgent()
+    # «выручка ... за неделю» — период + финансы → statistics (FR-001)
     q = UserQuestion(user_id="1", text="Какая выручка и средний чек за неделю?")
 
     plan = asyncio.run(planner.run(q))
 
-    assert plan.topic == "services"
+    assert plan.topic == "statistics"
     assert "period:week" in plan.notes
 
 

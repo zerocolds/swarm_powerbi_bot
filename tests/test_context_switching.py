@@ -51,8 +51,9 @@ class TestContextSwitch:
         assert topic == "masters"
 
     def test_switch_from_outflow_to_services(self):
+        # «выручка за месяц» → statistics (FR-001: период + «выручк» → statistics)
         topic = detect_topic("какая выручка за месяц?", last_topic="outflow")
-        assert topic == "services"
+        assert topic == "statistics"
 
     def test_switch_from_masters_to_outflow(self):
         topic = detect_topic("покажи отток", last_topic="masters")

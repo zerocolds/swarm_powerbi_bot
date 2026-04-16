@@ -126,10 +126,24 @@ class LLMClient:
 
         Возвращает dict с ключами: procedure, group_by, filter, reason,
         date_from, date_to, top, master_name.
-        Или None если LLM недоступен.
+        Или None если LLM недоступен или circuit breaker открыт.
+
+        Circuit breaker: разделяет состояние с plan_aggregates() через поля
+        _cb_failures, _cb_open_until, _cb_lock из __init__.
+        После threshold подряд неудач → None на cooldown секунд.
         """
         if not self.settings.ollama_api_key:
             return None
+
+        # Проверяем circuit breaker (под локом — потокобезопасно)
+        async with self._cb_lock:
+            now = time.monotonic()
+            if self._cb_open_until > now:
+                logger.warning(
+                    "LLM circuit breaker open (plan_query): %.0fs remaining",
+                    self._cb_open_until - now,
+                )
+                return None
 
         if last_topic:
             context = (
@@ -143,9 +157,18 @@ class LLMClient:
         raw = await self._raw_chat(system, question)
         if not raw:
             logger.warning("plan_query: LLM returned empty response")
+            await self._record_cb_failure("empty response")
             return None
 
-        return self._parse_plan_json(raw)
+        result = self._parse_plan_json(raw)
+        if result is None:
+            await self._record_cb_failure("parse error")
+            return None
+
+        # Успех — сбрасываем счётчик ошибок (под локом)
+        async with self._cb_lock:
+            self._cb_failures = 0
+        return result
 
     async def plan_aggregates(
         self,

@@ -109,8 +109,8 @@ _PREFERRED_VALUE: dict[str, str] = {
     "leaving": "TotalSpent",
     "forecast": "TotalSpent",
     "noshow": "TotalVisits",
-    "masters": "Revenue",
-    "services": "Revenue",
+    "masters": "TotalRevenue",
+    "services": "ServiceCount",
     "all_clients": "TotalVisits",
     "quality": "TotalVisits",
 }
@@ -141,11 +141,13 @@ def _pick_label_value(
             value_col = preferred
 
     if not value_col:
+        # IsPrimary — булево поле, не подходит для value axis
         skip = {"ObjectId", "MasterId", "ClientId", "Id", "CRMId", "Top",
-                "DaysSinceLastVisit", "DaysOverdue", "ServicePeriodDays"}
+                "DaysSinceLastVisit", "DaysOverdue", "ServicePeriodDays", "IsPrimary"}
         for k in keys:
             val = rows[0].get(k)
-            if isinstance(val, (int, float)) and k not in skip:
+            # bool является подклассом int в Python, явно исключаем
+            if isinstance(val, (int, float)) and not isinstance(val, bool) and k not in skip:
                 value_col = k
                 break
 

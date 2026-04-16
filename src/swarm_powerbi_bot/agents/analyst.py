@@ -149,12 +149,23 @@ _FIELD_LABELS: dict[str, str] = {
     "Reason": "Причина",
     "Result": "Результат",
     "Manager": "Менеджер",
+    # Поля услуг (services)
+    "ServiceCategory": "Категория услуг",
+    "ServiceCount": "Кол-во услуг",
+    # Поля мастеров (masters)
+    "MasterCategory": "Специализация",
+    "Rating": "Рейтинг",
+    "ReturningClients": "Вернувшиеся клиенты",
+    "TotalHours": "Часы работы",
+    "EndOfWeek": "Неделя",
+    "WeekLabel": "Неделя",
 }
 
-# Поля, которые не показываем в fallback (технические, приватные)
+# Поля, которые не показываем в fallback (технические, приватные, категории-группировки)
 _HIDDEN_FIELDS = {
     "Phone", "CRMId", "ObjectId", "MasterId", "ClientId", "Id", "Top",
     "SalonName", "FirstVisit", "LastCommResult", "ServicePeriodDays",
+    "IsPrimary", "ServiceCategory", "MasterCategory",
 }
 
 
@@ -301,7 +312,10 @@ class AnalystAgent(Agent):
                 for key, val in row.items():
                     if key in _HIDDEN_FIELDS or val is None:
                         continue
-                    label = _FIELD_LABELS.get(key, key)
+                    # Пропускаем поля без маппинга — не показываем raw-имя
+                    if key not in _FIELD_LABELS:
+                        continue
+                    label = _FIELD_LABELS[key]
                     if isinstance(val, float):
                         val = f"{val:,.2f}"
                     elif isinstance(val, str) and "T" in val and len(val) > 10:

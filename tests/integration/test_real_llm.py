@@ -255,3 +255,26 @@ async def test_planner_10_questions(
     assert plan.topic, f"No topic for: {question_text}"
     assert plan.intent in ("single", "comparison", "decomposition"), \
         f"Invalid intent '{plan.intent}' for: {question_text}"
+
+
+# ── 12. Keyword fallback path (LLM → None) ──────────────────────────────────
+
+_FALLBACK_QUESTIONS = [
+    ("какая выручка за неделю?", "statistics"),
+    ("кто больше принёс денег?", "masters"),
+    ("популярные услуги за месяц", "services"),
+    ("отток клиентов", "outflow"),
+    ("почему упала выручка?", "statistics"),
+]
+
+
+@pytest.mark.parametrize("question_text,expected_topic", _FALLBACK_QUESTIONS)
+async def test_keyword_fallback_without_llm(question_text, expected_topic):
+    """T024: При LLM=None keyword fallback маршрутизирует корректно (#011)."""
+    # PlannerAgent без llm_client → всегда keyword fallback
+    planner = PlannerAgent(llm_client=None, aggregate_registry=None)
+    question = UserQuestion(user_id="test", text=question_text, object_id=506770)
+    plan = await planner.run(question)
+    assert plan.topic == expected_topic, \
+        f"Keyword fallback: '{question_text}' → '{plan.topic}', expected '{expected_topic}'"
+    assert "planner:keyword" in plan.notes

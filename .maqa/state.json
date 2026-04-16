@@ -1,7 +1,7 @@
 {
   "features": {
     "001-semantic-aggregate-layer": {
-      "status": "in_review",
+      "status": "done",
       "spec": "specs/001-semantic-aggregate-layer/spec.md",
       "tasks": "specs/001-semantic-aggregate-layer/tasks.md",
       "plan": "specs/001-semantic-aggregate-layer/plan.md",
@@ -12,6 +12,20 @@
       "agents": ["feature-001-setup", "feature-001-bootstrap", "feature-001-runtime"],
       "tests_passed": 346,
       "ruff_clean": true
+    },
+    "011-fix-keyword-fallback-chart": {
+      "status": "in_progress",
+      "spec": "specs/011-fix-keyword-fallback-chart/spec.md",
+      "tasks": "specs/011-fix-keyword-fallback-chart/tasks.md",
+      "plan": "specs/011-fix-keyword-fallback-chart/plan.md",
+      "branch": "feature/011-fix-keyword-fallback-chart",
+      "created": "2026-04-16",
+      "started": "2026-04-16",
+      "completed_phases": [3, 4, 5, 6],
+      "agents": ["feature-011-us1", "feature-011-us2", "feature-011-us3us4"],
+      "tests_passed": 426,
+      "ruff_clean": true,
+      "pending_tasks": ["T024", "T025", "T027"]
     }
   }
 }

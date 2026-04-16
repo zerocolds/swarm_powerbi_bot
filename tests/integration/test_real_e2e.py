@@ -159,7 +159,12 @@ async def test_e2e_fallback_no_raw_fields(real_orchestrator: SwarmOrchestrator):
         _question("Какой отток за месяц?"),
     )
     assert resp.answer
-    raw_fields = {"DaysSinceLastVisit", "ServicePeriodDays", "DaysOverdue", "ClientName", "Phone"}
+    raw_fields = {
+        "DaysSinceLastVisit", "ServicePeriodDays", "DaysOverdue",
+        "ClientName", "Phone",
+        # #011: новые поля, добавленные в _HIDDEN_FIELDS / скрытые без маппинга
+        "ServiceCategory", "MasterCategory", "IsPrimary",
+    }
     for f in raw_fields:
         assert f not in resp.answer, f"Raw field {f} leaked into answer"
 
