@@ -25,7 +25,7 @@ jobs:
           python-version: "3.11"
 
       - name: Install dependencies
-        run: pip install pyyaml jsonschema
+        run: pip install pyyaml jsonschema && pip install -e .
 
       - name: Validate aggregate-catalog.yaml (YAML syntax)
         run: python -c "import yaml; yaml.safe_load(open('catalogs/aggregate-catalog.yaml'))"
@@ -47,20 +47,21 @@ jobs:
       - name: Validate category-index.yaml
         run: python -c "import yaml; yaml.safe_load(open('catalogs/category-index.yaml'))"
 
-      - name: Cross-validate data_method references
+      - name: Cross-validate data_method references against DATA_METHODS
         run: |
           python - <<'EOF'
-          import yaml, sys
+          import sys, yaml
+          sys.path.insert(0, "src")
+          from swarm_powerbi_bot.services.data_methods import DATA_METHODS
           catalog = yaml.safe_load(open("catalogs/aggregate-catalog.yaml").read())
           aggregates = catalog.get("aggregates", [])
-          ids = {a["id"] for a in aggregates if isinstance(a, dict) and "id" in a}
           errors = []
           for a in aggregates:
               if not isinstance(a, dict):
                   continue
               dm = a.get("data_method")
-              if dm and dm not in ids:
-                  errors.append(f"  {a.get('id')!r}: data_method={dm!r} not found in catalog ids")
+              if dm and dm not in DATA_METHODS:
+                  errors.append(f"  {a.get('id')!r}: data_method={dm!r} not in DATA_METHODS")
           if errors:
               print("Cross-validation FAILED:", file=sys.stderr)
               for e in errors:

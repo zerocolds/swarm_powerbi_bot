@@ -61,27 +61,17 @@ def _is_date(value: object) -> bool:
         return False
 
 
-def _load_schema() -> dict | None:
-    if _DEFAULT_SCHEMA.exists():
+def _load_schema(schema_path: Path = _DEFAULT_SCHEMA) -> dict | None:
+    if schema_path.exists():
         try:
-            return json.loads(_DEFAULT_SCHEMA.read_text(encoding="utf-8"))
+            return json.loads(schema_path.read_text(encoding="utf-8"))
         except Exception as exc:
-            logger.warning("Could not load schema %s: %s", _DEFAULT_SCHEMA, exc)
+            logger.warning("Could not load schema %s: %s", schema_path, exc)
     return None
 
 
-_SCHEMA: dict | None = None
-
-
-def _get_schema() -> dict | None:
-    global _SCHEMA
-    if _SCHEMA is None:
-        _SCHEMA = _load_schema()
-    return _SCHEMA
-
-
 def _validate_against_schema(raw: dict, path: Path) -> None:
-    schema = _get_schema()
+    schema = _load_schema()
     if schema is None:
         return
     try:
@@ -158,10 +148,28 @@ _catalog: dict[str, dict] = {}
 _entries: list[AggregateEntry] = []
 
 
+def _validate_data_method_refs(
+    entries: list[AggregateEntry],
+    known_methods: frozenset[str] | set[str],
+    path: Path,
+) -> None:
+    errors = [
+        f"  {e.name!r}: data_method={e.data_method!r} not in known_methods"
+        for e in entries
+        if e.data_method not in known_methods
+    ]
+    if errors:
+        raise ValueError(
+            f"Catalog {path}: data_method cross-validation failed:\n"
+            + "\n".join(errors)
+        )
+
+
 def load_catalog(
     path: str | Path | None = None,
     *,
     validate_schema: bool | None = None,
+    known_methods: frozenset[str] | set[str] | None = None,
 ) -> list[AggregateEntry]:
     """Load aggregate catalog from YAML.
 
@@ -169,11 +177,15 @@ def load_catalog(
     False when an explicit path is provided. Pass validate_schema=True to
     force schema validation on any path.
 
+    When loading the default catalog (path=None), cross-validation against
+    DATA_METHODS is always performed automatically. For custom paths, pass
+    known_methods explicitly to opt in.
+
     Raises:
         FileNotFoundError: file not found
         yaml.YAMLError: invalid YAML
         jsonschema.ValidationError: schema validation failed
-        ValueError: duplicate id or missing required field
+        ValueError: duplicate id, missing required field, or invalid data_method ref
     """
     global _catalog, _entries
     resolved = Path(path) if path is not None else _DEFAULT_CATALOG
@@ -182,6 +194,11 @@ def load_catalog(
     if should_validate:
         _validate_against_schema(raw, resolved)
     _catalog, _entries = _parse_entries(raw, resolved)
+    if path is None:
+        from swarm_powerbi_bot.services.data_methods import DATA_METHODS  # noqa: PLC0415
+        _validate_data_method_refs(_entries, frozenset(DATA_METHODS), resolved)
+    elif known_methods is not None:
+        _validate_data_method_refs(_entries, known_methods, resolved)
     return list(_entries)
 
 
