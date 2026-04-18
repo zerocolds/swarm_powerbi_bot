@@ -19,11 +19,29 @@ CATALOG_YAML = textwrap.dedent("""\
     aggregates:
       - id: revenue_by_master
         name: Выручка по мастерам
+        data_method: revenue_by_master
+        metric_type: monetary
+        description: "Выручка в разрезе мастеров"
+        dimensions: [date, master_id]
+        example_questions:
+          - "топ мастеров по выручке"
+          - "кто из мастеров заработал больше"
+        unit: RUB
+        aggregation: SUM
         allowed_group_by:
           - master
           - day
       - id: visits_by_object
         name: Визиты по объектам
+        data_method: visits_by_object
+        metric_type: count
+        description: "Визиты по объектам"
+        dimensions: [date]
+        example_questions:
+          - "визиты по объектам"
+          - "сколько визитов в каждом объекте"
+        unit: null
+        aggregation: COUNT
         allowed_group_by:
           - object
           - week

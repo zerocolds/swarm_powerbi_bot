@@ -1,9 +1,12 @@
 from __future__ import annotations
 
 import datetime
+import json
 import logging
 import re
+from dataclasses import dataclass
 from pathlib import Path
+from typing import Literal
 
 try:
     import yaml
@@ -12,9 +15,15 @@ except ImportError as exc:  # pragma: no cover
         "PyYAML is required for aggregate_registry. Install it: uv add pyyaml"
     ) from exc
 
-logger = logging.getLogger(__name__)
+try:
+    import jsonschema
+    from jsonschema import ValidationError
+except ImportError as exc:  # pragma: no cover
+    raise ImportError(
+        "jsonschema is required for aggregate_registry. Install it: uv add jsonschema"
+    ) from exc
 
-# ── constants ──────────────────────────────────────────────────────────────────
+logger = logging.getLogger(__name__)
 
 _DATE_RE = re.compile(r"^\d{4}-\d{2}-\d{2}$")
 
@@ -26,8 +35,20 @@ _REASON_VALUES = frozenset(
     {"all", "outflow", "leaving", "forecast", "noshow", "quality", "birthday", "waitlist", "opz"}
 )
 
+_DEFAULT_CATALOG = Path(__file__).parents[3] / "catalogs" / "aggregate-catalog.yaml"
+_DEFAULT_SCHEMA = Path(__file__).parents[3] / "catalogs" / "schemas" / "aggregate-catalog.schema.json"
 
-# ── helpers ────────────────────────────────────────────────────────────────────
+
+@dataclass(frozen=True)
+class AggregateEntry:
+    name: str
+    data_method: str
+    metric_type: Literal["monetary", "count", "ratio", "duration"]
+    description: str
+    dimensions: list[str]
+    example_questions: list[str]
+    unit: str | None
+    aggregation: str
 
 
 def _is_date(value: object) -> bool:
@@ -40,36 +61,142 @@ def _is_date(value: object) -> bool:
         return False
 
 
-def _load_catalog(path: str) -> dict[str, dict]:
-    """Загружает YAML-каталог, возвращает {aggregate_id: entry}.
+def _load_schema() -> dict | None:
+    if _DEFAULT_SCHEMA.exists():
+        try:
+            return json.loads(_DEFAULT_SCHEMA.read_text(encoding="utf-8"))
+        except Exception as exc:
+            logger.warning("Could not load schema %s: %s", _DEFAULT_SCHEMA, exc)
+    return None
 
-    Raises:
-        FileNotFoundError: файл не найден
-        yaml.YAMLError: невалидный YAML
-        ValueError: запись без обязательного поля 'id'
-    """
+
+_SCHEMA: dict | None = None
+
+
+def _get_schema() -> dict | None:
+    global _SCHEMA
+    if _SCHEMA is None:
+        _SCHEMA = _load_schema()
+    return _SCHEMA
+
+
+def _validate_against_schema(raw: dict, path: Path) -> None:
+    schema = _get_schema()
+    if schema is None:
+        return
     try:
-        raw = yaml.safe_load(Path(path).read_text(encoding="utf-8"))
+        jsonschema.validate(instance=raw, schema=schema)
+    except ValidationError as exc:
+        raise ValidationError(
+            f"Catalog {path} failed schema validation: {exc.message}",
+            validator=exc.validator,
+            path=exc.absolute_path,
+            cause=exc.cause,
+            context=exc.context,
+            validator_value=exc.validator_value,
+            instance=exc.instance,
+            schema=exc.schema,
+            schema_path=exc.absolute_schema_path,
+        ) from exc
+
+
+def _parse_entries(raw: dict, path: Path) -> tuple[dict[str, dict], list[AggregateEntry]]:
+    entries = raw.get("aggregates", [])
+    catalog: dict[str, dict] = {}
+    aggregate_entries: list[AggregateEntry] = []
+    seen_ids: dict[str, int] = {}
+
+    for idx, entry in enumerate(entries):
+        if not isinstance(entry, dict) or "id" not in entry:
+            raise ValueError(
+                f"Catalog {path}: entry #{idx} missing required 'id' field: {entry!r}"
+            )
+        entry_id = entry["id"]
+        if entry_id in seen_ids:
+            raise ValueError(
+                f"Catalog {path}: duplicate id {entry_id!r} at entries "
+                f"#{seen_ids[entry_id]} and #{idx}"
+            )
+        seen_ids[entry_id] = idx
+        catalog[entry_id] = entry
+
+        if "data_method" in entry:
+            aggregate_entries.append(
+                AggregateEntry(
+                    name=entry_id,
+                    data_method=entry["data_method"],
+                    metric_type=entry.get("metric_type", "count"),
+                    description=entry.get("description", ""),
+                    dimensions=list(entry.get("dimensions", [])),
+                    example_questions=list(entry.get("example_questions", [])),
+                    unit=entry.get("unit"),
+                    aggregation=entry.get("aggregation", "COUNT"),
+                )
+            )
+
+    return catalog, aggregate_entries
+
+
+def _load_raw(path: Path) -> dict:
+    try:
+        raw = yaml.safe_load(path.read_text(encoding="utf-8"))
     except FileNotFoundError:
         logger.error("Catalog file not found: %s", path)
         raise
     except yaml.YAMLError as exc:
         logger.error("Invalid YAML in catalog %s: %s", path, exc)
         raise
-
     if not isinstance(raw, dict):
         logger.warning("Catalog %s has unexpected format, returning empty", path)
-        return {}
+        return {"aggregates": []}
+    return raw
 
-    entries = raw.get("aggregates", [])
-    result: dict[str, dict] = {}
-    for idx, entry in enumerate(entries):
-        if not isinstance(entry, dict) or "id" not in entry:
-            raise ValueError(
-                f"Catalog {path}: entry #{idx} missing required 'id' field: {entry!r}"
-            )
-        result[entry["id"]] = entry
-    return result
+
+# ── module-level state ────────────────────────────────────────────────────────
+
+_catalog: dict[str, dict] = {}
+_entries: list[AggregateEntry] = []
+
+
+def load_catalog(
+    path: str | Path | None = None,
+    *,
+    validate_schema: bool | None = None,
+) -> list[AggregateEntry]:
+    """Load aggregate catalog from YAML.
+
+    validate_schema defaults to True when loading the default catalog path,
+    False when an explicit path is provided. Pass validate_schema=True to
+    force schema validation on any path.
+
+    Raises:
+        FileNotFoundError: file not found
+        yaml.YAMLError: invalid YAML
+        jsonschema.ValidationError: schema validation failed
+        ValueError: duplicate id or missing required field
+    """
+    global _catalog, _entries
+    resolved = Path(path) if path is not None else _DEFAULT_CATALOG
+    should_validate = (path is None) if validate_schema is None else validate_schema
+    raw = _load_raw(resolved)
+    if should_validate:
+        _validate_against_schema(raw, resolved)
+    _catalog, _entries = _parse_entries(raw, resolved)
+    return list(_entries)
+
+
+# ── public functions (backward-compatible) ────────────────────────────────────
+
+
+def validate_aggregate_id(aggregate_id: str) -> bool:
+    return aggregate_id in _catalog
+
+
+def validate_params(aggregate_id: str, params: dict) -> tuple[bool, str]:
+    entry = _catalog.get(aggregate_id)
+    if entry is None:
+        return False, f"unknown aggregate_id: {aggregate_id!r}"
+    return _validate_entry_params(aggregate_id, entry, params)
 
 
 def _validate_entry_params(
@@ -77,10 +204,7 @@ def _validate_entry_params(
     entry: dict,
     params: dict,
 ) -> tuple[bool, str]:
-    """Общая валидация параметров для записи каталога."""
     allowed_group_by: list[str] = entry.get("allowed_group_by", [])
-
-    # Проверяем наличие обязательных параметров из каталога
     catalog_params: list[dict] = entry.get("parameters", [])
     for catalog_param in catalog_params:
         if catalog_param.get("required", False):
@@ -94,37 +218,24 @@ def _validate_entry_params(
         if key in ("date_from", "date_to"):
             if not _is_date(value):
                 return False, f"{key} must be YYYY-MM-DD, got {value!r}"
-
         elif key == "object_id":
             if not isinstance(value, int):
                 return False, f"object_id must be int, got {type(value).__name__}"
-
         elif key == "master_id":
             if value is not None and not isinstance(value, int):
-                return (
-                    False,
-                    f"master_id must be int or None, got {type(value).__name__}",
-                )
-
+                return False, f"master_id must be int or None, got {type(value).__name__}"
         elif key == "group_by":
             if value not in allowed_group_by:
                 return False, (
                     f"group_by {value!r} not allowed for {aggregate_id!r}; "
                     f"allowed: {allowed_group_by}"
                 )
-
         elif key == "filter":
             if value not in _FILTER_VALUES:
-                return False, (
-                    f"filter {value!r} not in allowed set {sorted(_FILTER_VALUES)}"
-                )
-
+                return False, f"filter {value!r} not in allowed set {sorted(_FILTER_VALUES)}"
         elif key == "reason":
             if value not in _REASON_VALUES:
-                return False, (
-                    f"reason {value!r} not in allowed set {sorted(_REASON_VALUES)}"
-                )
-
+                return False, f"reason {value!r} not in allowed set {sorted(_REASON_VALUES)}"
         elif key in ("top_n", "top"):
             if not isinstance(value, int) or not (1 <= value <= 50):
                 return False, f"{key} must be int in [1, 50], got {value!r}"
@@ -132,53 +243,28 @@ def _validate_entry_params(
     return True, ""
 
 
-# ── module-level state (populated by load_catalog()) ──────────────────────────
-
-_catalog: dict[str, dict] = {}
-
-
-def load_catalog(path: str) -> None:
-    """Загружает каталог агрегатов из YAML-файла. Вызывается при старте."""
-    global _catalog
-    _catalog = _load_catalog(path)
-
-
-# ── public functions ───────────────────────────────────────────────────────────
-
-
-def validate_aggregate_id(aggregate_id: str) -> bool:
-    """True, если aggregate_id есть в загруженном каталоге."""
-    return aggregate_id in _catalog
-
-
-def validate_params(aggregate_id: str, params: dict) -> tuple[bool, str]:
-    """Валидирует params для указанного агрегата.
-
-    Возвращает (True, "") при успехе или (False, <причина>) при ошибке.
-    """
-    entry = _catalog.get(aggregate_id)
-    if entry is None:
-        return False, f"unknown aggregate_id: {aggregate_id!r}"
-    return _validate_entry_params(aggregate_id, entry, params)
-
-
-# ── Registry class ─────────────────────────────────────────────────────────────
+# ── Registry class ────────────────────────────────────────────────────────────
 
 
 class AggregateRegistry:
-    def __init__(self, catalog_path: str) -> None:
-        self._catalog: dict[str, dict] = _load_catalog(catalog_path)
+    def __init__(self, catalog_path: str, *, validate_schema: bool = False) -> None:
+        p = Path(catalog_path)
+        raw = _load_raw(p)
+        if validate_schema:
+            _validate_against_schema(raw, p)
+        self._catalog, self._entries = _parse_entries(raw, p)
 
     def get_aggregate(self, aggregate_id: str) -> dict | None:
         return self._catalog.get(aggregate_id)
 
     def validate(self, aggregate_id: str, params: dict) -> tuple[bool, str]:
-        """Комбинирует проверку whitelist и параметров."""
         entry = self._catalog.get(aggregate_id)
         if entry is None:
             return False, f"unknown aggregate_id: {aggregate_id!r}"
         return _validate_entry_params(aggregate_id, entry, params)
 
     def list_aggregates(self) -> list[dict]:
-        """Возвращает все агрегаты — используется при формировании LLM-промпта."""
         return list(self._catalog.values())
+
+    def list_entries(self) -> list[AggregateEntry]:
+        return list(self._entries)

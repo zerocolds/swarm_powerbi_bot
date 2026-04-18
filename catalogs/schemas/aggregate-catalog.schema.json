@@ -1,0 +1,58 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "aggregate-catalog",
+  "type": "object",
+  "required": ["aggregates"],
+  "properties": {
+    "aggregates": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/aggregate" }
+    }
+  },
+  "additionalProperties": true,
+  "$defs": {
+    "aggregate": {
+      "type": "object",
+      "required": [
+        "id",
+        "name",
+        "description",
+        "data_method",
+        "metric_type",
+        "dimensions",
+        "example_questions",
+        "aggregation"
+      ],
+      "properties": {
+        "id": { "type": "string" },
+        "name": { "type": "string" },
+        "description": { "type": "string" },
+        "data_method": { "type": "string" },
+        "metric_type": {
+          "type": "string",
+          "enum": ["monetary", "count", "ratio", "duration"]
+        },
+        "dimensions": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "example_questions": {
+          "type": "array",
+          "items": { "type": "string" },
+          "minItems": 2
+        },
+        "unit": {
+          "type": ["string", "null"]
+        },
+        "aggregation": { "type": "string" },
+        "category": { "type": "string" },
+        "procedure": { "type": "string" },
+        "allowed_group_by": { "type": "array" },
+        "parameters": { "type": "array" },
+        "returns": { "type": "array" },
+        "examples": { "type": "array" }
+      },
+      "additionalProperties": true
+    }
+  }
+}

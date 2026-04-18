@@ -21,7 +21,15 @@ CATALOG_YAML = textwrap.dedent("""\
     aggregates:
       - id: revenue_total
         name: Общая выручка
+        data_method: revenue_total
+        metric_type: monetary
         description: Суммарная выручка за период
+        dimensions: []
+        example_questions:
+          - "общая выручка за месяц"
+          - "сколько заработали"
+        unit: RUB
+        aggregation: SUM
         procedure: spKDO_Aggregate
         allowed_group_by:
           - total
@@ -30,14 +38,30 @@ CATALOG_YAML = textwrap.dedent("""\
           - master
       - id: outflow_clients
         name: Отток клиентов
+        data_method: outflow_clients
+        metric_type: count
         description: Клиенты со статусом outflow
+        dimensions: [date]
+        example_questions:
+          - "список оттока"
+          - "кто в оттоке"
+        unit: null
+        aggregation: COUNT
         procedure: spKDO_ClientList
         allowed_group_by:
           - list
           - master
       - id: visits_by_salon
         name: Визиты по салонам
+        data_method: visits_by_salon
+        metric_type: count
         description: Агрегация визитов по объектам
+        dimensions: [date]
+        example_questions:
+          - "визиты по салонам"
+          - "сколько визитов в каждом салоне"
+        unit: null
+        aggregation: COUNT
         procedure: spKDO_Aggregate
         allowed_group_by:
           - salon

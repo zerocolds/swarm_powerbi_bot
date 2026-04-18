@@ -4,7 +4,7 @@
 #   spKDO_Aggregate  — факт-таблица tbRecords
 #   spKDO_ClientList — fnKDO_ClientStatus + tbClients
 #   spKDO_CommAgg    — tbClientCommunicationHistory
-# Последнее обновление: 2026-04-15
+# Последнее обновление: 2026-04-19
 
 aggregates:
 
@@ -14,9 +14,17 @@ aggregates:
 
   - id: revenue_total
     name: "Общая выручка"
+    data_method: revenue_total
+    metric_type: monetary
+    description: "Суммарная выручка по салону за период. Единственная строка KPI: визиты, уникальные клиенты, средний чек, возвращаемость."
+    dimensions: []
+    example_questions:
+      - "покажи общую выручку за месяц"
+      - "сколько выручили за апрель"
+    unit: RUB
+    aggregation: SUM
     category: revenue
     procedure: spKDO_Aggregate
-    description: "Суммарная выручка по салону за период. Единственная строка KPI: визиты, уникальные клиенты, средний чек, возвращаемость."
     allowed_group_by: [total]
     parameters:
       - name: date_from
@@ -43,9 +51,17 @@ aggregates:
 
   - id: revenue_by_week
     name: "Выручка по неделям"
+    data_method: revenue_by_week
+    metric_type: monetary
+    description: "Динамика выручки с разбивкой по неделям. Каждая строка — одна неделя (EndOfWeek)."
+    dimensions: [date]
+    example_questions:
+      - "выручка по неделям за последние 2 месяца"
+      - "недельный тренд выручки"
+    unit: RUB
+    aggregation: SUM
     category: revenue
     procedure: spKDO_Aggregate
-    description: "Динамика выручки с разбивкой по неделям. Каждая строка — одна неделя (EndOfWeek)."
     allowed_group_by: [week]
     parameters:
       - name: date_from
@@ -72,9 +88,17 @@ aggregates:
 
   - id: revenue_by_month
     name: "Выручка по месяцам"
+    data_method: revenue_by_month
+    metric_type: monetary
+    description: "Динамика выручки с разбивкой по месяцам. Каждая строка — один месяц (EndOfMonth)."
+    dimensions: [date]
+    example_questions:
+      - "выручка по месяцам за год"
+      - "помесячная динамика выручки"
+    unit: RUB
+    aggregation: SUM
     category: revenue
     procedure: spKDO_Aggregate
-    description: "Динамика выручки с разбивкой по месяцам. Каждая строка — один месяц (EndOfMonth)."
     allowed_group_by: [month]
     parameters:
       - name: date_from
@@ -101,9 +125,17 @@ aggregates:
 
   - id: revenue_by_master
     name: "Выручка по мастерам"
+    data_method: revenue_by_master
+    metric_type: monetary
+    description: "Выручка, количество визитов и средний чек в разрезе мастеров. Включает выручку в час и общие часы работы."
+    dimensions: [date, master_id]
+    example_questions:
+      - "какой мастер принёс больше всех в марте"
+      - "топ мастеров по выручке за квартал"
+    unit: RUB
+    aggregation: SUM
     category: masters
     procedure: spKDO_Aggregate
-    description: "Выручка, количество визитов и средний чек в разрезе мастеров. Включает выручку в час и общие часы работы."
     allowed_group_by: [master]
     parameters:
       - name: date_from
@@ -130,9 +162,17 @@ aggregates:
 
   - id: revenue_by_service
     name: "Выручка по услугам"
+    data_method: revenue_by_service
+    metric_type: monetary
+    description: "Выручка и количество оказанных услуг по каждой услуге (ServiceId + tbServicesSettings)."
+    dimensions: [date, service]
+    example_questions:
+      - "топ услуг по выручке за квартал"
+      - "какие услуги пользуются наибольшим спросом"
+    unit: RUB
+    aggregation: SUM
     category: services
     procedure: spKDO_Aggregate
-    description: "Выручка и количество оказанных услуг по каждой услуге (ServiceId + tbServicesSettings)."
     allowed_group_by: [service]
     parameters:
       - name: date_from
@@ -159,9 +199,17 @@ aggregates:
 
   - id: revenue_by_salon
     name: "Выручка по салонам"
+    data_method: revenue_by_salon
+    metric_type: monetary
+    description: "Сравнительная выручка по всем салонам сети за период. Не требует object_id — охватывает все салоны."
+    dimensions: [date, salon]
+    example_questions:
+      - "сравни выручку по всем салонам за месяц"
+      - "рейтинг филиалов по выручке"
+    unit: RUB
+    aggregation: SUM
     category: revenue
     procedure: spKDO_Aggregate
-    description: "Сравнительная выручка по всем салонам сети за период. Не требует object_id — охватывает все салоны."
     allowed_group_by: [salon]
     parameters:
       - name: date_from
@@ -189,9 +237,17 @@ aggregates:
 
   - id: revenue_by_channel
     name: "Выручка по каналам привлечения"
+    data_method: revenue_by_channel
+    metric_type: monetary
+    description: "Распределение клиентов и выручки по каналам привлечения (AcquisitionChannel из tbClients)."
+    dimensions: [date, channel]
+    example_questions:
+      - "откуда приходят клиенты и сколько они приносят"
+      - "эффективность каналов маркетинга по выручке"
+    unit: RUB
+    aggregation: SUM
     category: marketing
     procedure: spKDO_Aggregate
-    description: "Распределение клиентов и выручки по каналам привлечения (AcquisitionChannel из tbClients)."
     allowed_group_by: [channel]
     parameters:
       - name: date_from
@@ -219,9 +275,17 @@ aggregates:
 
   - id: clients_outflow
     name: "Отток клиентов"
+    data_method: clients_outflow
+    metric_type: count
+    description: "Клиенты без визита 31-240 дней сверх ожидаемой даты (DaysToAwaiting от -240 до -31). Соответствует DAX-мере «Статус клиента для обработки = Отток»."
+    dimensions: [date, master_id]
+    example_questions:
+      - "покажи список клиентов в оттоке"
+      - "кто из клиентов ушёл в отток и требует обзвона"
+    unit: null
+    aggregation: COUNT
     category: clients
     procedure: spKDO_ClientList
-    description: "Клиенты без визита 31-240 дней сверх ожидаемой даты (DaysToAwaiting от -240 до -31). Соответствует DAX-мере «Статус клиента для обработки = Отток»."
     allowed_group_by: [list, status, master]
     parameters:
       - name: date_from
@@ -257,9 +321,17 @@ aggregates:
 
   - id: clients_leaving
     name: "Уходящие клиенты"
+    data_method: clients_leaving
+    metric_type: count
+    description: "Клиенты без визита 1-30 дней сверх ожидаемой даты (DaysToAwaiting от -30 до -1). Соответствует DAX-мере «Уходящие»."
+    dimensions: [date, master_id]
+    example_questions:
+      - "кто из клиентов скоро уйдёт и требует звонка"
+      - "список уходящих клиентов на этой неделе"
+    unit: null
+    aggregation: COUNT
     category: clients
     procedure: spKDO_ClientList
-    description: "Клиенты без визита 1-30 дней сверх ожидаемой даты (DaysToAwaiting от -30 до -1). Соответствует DAX-мере «Уходящие»."
     allowed_group_by: [list, status, master]
     parameters:
       - name: date_from
@@ -295,9 +367,17 @@ aggregates:
 
   - id: clients_forecast
     name: "Прогноз визитов"
+    data_method: clients_forecast
+    metric_type: count
+    description: "Клиенты с ожидаемой датой следующего визита через 0-14 дней. Соответствует DAX-мере «Прогноз визитов»."
+    dimensions: [date, master_id]
+    example_questions:
+      - "кто ожидается на визит в ближайшие две недели"
+      - "сколько клиентов придёт на этой неделе по прогнозу"
+    unit: null
+    aggregation: COUNT
     category: clients
     procedure: spKDO_ClientList
-    description: "Клиенты с ожидаемой датой следующего визита через 0-14 дней. Соответствует DAX-мере «Прогноз визитов»."
     allowed_group_by: [list, status, master]
     parameters:
       - name: date_from
@@ -333,9 +413,17 @@ aggregates:
 
   - id: clients_noshow
     name: "Недошедшие клиенты"
+    data_method: clients_noshow
+    metric_type: count
+    description: "Клиенты с отменёнными записями без последующего выполненного визита (первичный или повторный)."
+    dimensions: [date, master_id]
+    example_questions:
+      - "кто записывался но не пришёл на визит"
+      - "список недошедших клиентов за неделю"
+    unit: null
+    aggregation: COUNT
     category: clients
     procedure: spKDO_ClientList
-    description: "Клиенты с отменёнными записями без последующего выполненного визита (первичный или повторный)."
     allowed_group_by: [list, status, master]
     parameters:
       - name: date_from
@@ -371,9 +459,17 @@ aggregates:
 
   - id: clients_quality
     name: "Контроль качества"
+    data_method: clients_quality
+    metric_type: count
+    description: "Клиенты с визитом не более 7 дней назад — первичные и повторные. Требуют обзвона для контроля качества."
+    dimensions: [date, master_id]
+    example_questions:
+      - "кому нужно позвонить для контроля качества после визита"
+      - "список клиентов для обзвона по качеству за сегодня"
+    unit: null
+    aggregation: COUNT
     category: clients
     procedure: spKDO_ClientList
-    description: "Клиенты с визитом не более 7 дней назад — первичные и повторные. Требуют обзвона для контроля качества."
     allowed_group_by: [list, status, master]
     parameters:
       - name: date_from
@@ -409,9 +505,17 @@ aggregates:
 
   - id: clients_birthday
     name: "Именинники"
+    data_method: clients_birthday
+    metric_type: count
+    description: "Клиенты с днём рождения в заданный диапазон дат. По умолчанию — ближайшие 7 дней. Показывает был ли уже поздравлен."
+    dimensions: [date]
+    example_questions:
+      - "кто из клиентов отмечает день рождения на этой неделе"
+      - "список именинников на ближайшие 7 дней"
+    unit: null
+    aggregation: COUNT
     category: clients
     procedure: spKDO_ClientList
-    description: "Клиенты с днём рождения в заданный диапазон дат. По умолчанию — ближайшие 7 дней. Показывает был ли уже поздравлен."
     allowed_group_by: [list]
     parameters:
       - name: date_from
@@ -444,9 +548,17 @@ aggregates:
 
   - id: clients_all
     name: "Все клиенты"
+    data_method: clients_all
+    metric_type: count
+    description: "Полная клиентская база с историей визитов и текущим статусом КДО."
+    dimensions: [date, master_id]
+    example_questions:
+      - "покажи всю клиентскую базу с распределением по статусам"
+      - "сколько всего клиентов в базе и какое у них распределение"
+    unit: null
+    aggregation: COUNT
     category: clients
     procedure: spKDO_ClientList
-    description: "Полная клиентская база с историей визитов и текущим статусом КДО."
     allowed_group_by: [list, status, master]
     parameters:
       - name: date_from
@@ -487,9 +599,17 @@ aggregates:
 
   - id: comm_all_by_reason
     name: "Коммуникации по причинам"
+    data_method: comm_all_by_reason
+    metric_type: count
+    description: "Сводка всех коммуникаций с группировкой по причине обращения. Показывает конверсию (записался / отказался)."
+    dimensions: [date, reason]
+    example_questions:
+      - "коммуникации за месяц с разбивкой по типам обращения"
+      - "сводная статистика обзвонов по причинам за период"
+    unit: null
+    aggregation: COUNT
     category: communications
     procedure: spKDO_CommAgg
-    description: "Сводка всех коммуникаций с группировкой по причине обращения. Показывает конверсию (записался / отказался)."
     allowed_group_by: [reason]
     parameters:
       - name: date_from
@@ -522,9 +642,17 @@ aggregates:
 
   - id: comm_all_by_result
     name: "Коммуникации по результатам"
+    data_method: comm_all_by_result
+    metric_type: count
+    description: "Распределение всех коммуникаций по результату (Записался, Отказался, Пообещал и т.д.)."
+    dimensions: [date, result]
+    example_questions:
+      - "сколько клиентов записалось после обзвона в этом месяце"
+      - "конверсия коммуникаций по результатам за период"
+    unit: null
+    aggregation: COUNT
     category: communications
     procedure: spKDO_CommAgg
-    description: "Распределение всех коммуникаций по результату (Записался, Отказался, Пообещал и т.д.)."
     allowed_group_by: [result]
     parameters:
       - name: date_from
@@ -557,9 +685,17 @@ aggregates:
 
   - id: comm_all_by_manager
     name: "Коммуникации по менеджерам"
+    data_method: comm_all_by_manager
+    metric_type: count
+    description: "Производительность менеджеров по количеству коммуникаций и конверсии в запись."
+    dimensions: [date, manager]
+    example_questions:
+      - "кто из менеджеров сделал больше всего звонков за месяц"
+      - "сравни эффективность менеджеров по количеству коммуникаций"
+    unit: null
+    aggregation: COUNT
     category: communications
     procedure: spKDO_CommAgg
-    description: "Производительность менеджеров по количеству коммуникаций и конверсии в запись."
     allowed_group_by: [manager]
     parameters:
       - name: date_from
@@ -592,9 +728,17 @@ aggregates:
 
   - id: comm_all_list
     name: "Список коммуникаций"
+    data_method: comm_all_list
+    metric_type: count
+    description: "Подробный список коммуникаций без агрегации: дата, причина, тип, результат, менеджер."
+    dimensions: [date]
+    example_questions:
+      - "покажи последние коммуникации с клиентами за сегодня"
+      - "история обзвонов за прошлую неделю"
+    unit: null
+    aggregation: COUNT
     category: communications
     procedure: spKDO_CommAgg
-    description: "Подробный список коммуникаций без агрегации: дата, причина, тип, результат, менеджер."
     allowed_group_by: [list]
     parameters:
       - name: date_from
@@ -626,9 +770,17 @@ aggregates:
 
   - id: comm_outflow_by_reason
     name: "Коммуникации по оттоку"
+    data_method: comm_outflow_by_reason
+    metric_type: count
+    description: "Коммуникации с причиной «Отток» — эффективность работы с оттоком клиентов."
+    dimensions: [date, reason]
+    example_questions:
+      - "как мы работаем с оттоком клиентов в этом месяце"
+      - "конверсия звонков по оттоку за квартал"
+    unit: null
+    aggregation: COUNT
     category: communications
     procedure: spKDO_CommAgg
-    description: "Коммуникации с причиной «Отток» — эффективность работы с оттоком клиентов."
     allowed_group_by: [reason, result, manager, list]
     parameters:
       - name: date_from
@@ -661,9 +813,17 @@ aggregates:
 
   - id: comm_leaving_by_result
     name: "Коммуникации по уходящим"
+    data_method: comm_leaving_by_result
+    metric_type: count
+    description: "Коммуникации с причиной «Уходящие» — результаты работы с уходящими клиентами."
+    dimensions: [date, result]
+    example_questions:
+      - "результаты звонков уходящим клиентам за месяц"
+      - "сколько уходящих удалось вернуть после обзвона"
+    unit: null
+    aggregation: COUNT
     category: communications
     procedure: spKDO_CommAgg
-    description: "Коммуникации с причиной «Уходящие» — результаты работы с уходящими клиентами."
     allowed_group_by: [reason, result, manager, list]
     parameters:
       - name: date_from
@@ -695,9 +855,17 @@ aggregates:
 
   - id: comm_forecast_by_result
     name: "Коммуникации по прогнозу визитов"
+    data_method: comm_forecast_by_result
+    metric_type: count
+    description: "Коммуникации с причиной «Прогноз визитов» — конверсия напоминаний о визите."
+    dimensions: [date, result]
+    example_questions:
+      - "сколько записалось после напоминания о визите за месяц"
+      - "конверсия напоминаний по прогнозу визитов"
+    unit: null
+    aggregation: COUNT
     category: communications
     procedure: spKDO_CommAgg
-    description: "Коммуникации с причиной «Прогноз визитов» — конверсия напоминаний о визите."
     allowed_group_by: [reason, result, manager, list]
     parameters:
       - name: date_from
@@ -729,9 +897,17 @@ aggregates:
 
   - id: comm_noshow_by_manager
     name: "Коммуникации по недошедшим"
+    data_method: comm_noshow_by_manager
+    metric_type: count
+    description: "Коммуникации с причиной «Недошедшие» — эффективность менеджеров по работе с недошедшими."
+    dimensions: [date, manager]
+    example_questions:
+      - "кто из менеджеров обзванивает недошедших клиентов"
+      - "эффективность работы с недошедшими в разрезе менеджеров"
+    unit: null
+    aggregation: COUNT
     category: communications
     procedure: spKDO_CommAgg
-    description: "Коммуникации с причиной «Недошедшие» — эффективность менеджеров по работе с недошедшими."
     allowed_group_by: [reason, result, manager, list]
     parameters:
       - name: date_from
@@ -763,9 +939,17 @@ aggregates:
 
   - id: comm_quality_by_result
     name: "Контроль качества — результаты"
+    data_method: comm_quality_by_result
+    metric_type: count
+    description: "Коммуникации с причиной «Контроль качества» — доля довольных клиентов и результаты обзвона."
+    dimensions: [date, result]
+    example_questions:
+      - "результаты обзвона по контролю качества за неделю"
+      - "сколько клиентов остались довольны по итогам звонков"
+    unit: null
+    aggregation: COUNT
     category: communications
     procedure: spKDO_CommAgg
-    description: "Коммуникации с причиной «Контроль качества» — доля довольных клиентов и результаты обзвона."
     allowed_group_by: [reason, result, manager, list]
     parameters:
       - name: date_from
@@ -798,9 +982,17 @@ aggregates:
 
   - id: comm_birthday_by_result
     name: "Поздравления с днём рождения"
+    data_method: comm_birthday_by_result
+    metric_type: count
+    description: "Коммуникации с причиной «День рождения» — итоги поздравлений клиентов."
+    dimensions: [date, result]
+    example_questions:
+      - "кого поздравили с днём рождения на этой неделе"
+      - "результаты поздравительных звонков именинникам"
+    unit: null
+    aggregation: COUNT
     category: communications
     procedure: spKDO_CommAgg
-    description: "Коммуникации с причиной «День рождения» — итоги поздравлений клиентов."
     allowed_group_by: [reason, result, manager, list]
     parameters:
       - name: date_from
@@ -832,9 +1024,17 @@ aggregates:
 
   - id: comm_waitlist_by_manager
     name: "Лист ожидания — коммуникации"
+    data_method: comm_waitlist_by_manager
+    metric_type: count
+    description: "Коммуникации с причиной «Лист ожидания» — работа с клиентами из листа ожидания."
+    dimensions: [date, manager]
+    example_questions:
+      - "кто из менеджеров работает с листом ожидания"
+      - "коммуникации по листу ожидания за текущий месяц"
+    unit: null
+    aggregation: COUNT
     category: communications
     procedure: spKDO_CommAgg
-    description: "Коммуникации с причиной «Лист ожидания» — работа с клиентами из листа ожидания."
     allowed_group_by: [reason, result, manager, list]
     parameters:
       - name: date_from
@@ -867,9 +1067,17 @@ aggregates:
 
   - id: comm_opz_by_result
     name: "ОПЗ — коммуникации"
+    data_method: comm_opz_by_result
+    metric_type: count
+    description: "Коммуникации с причиной «ОПЗ» (оперативная запись на другой день) — результаты и конверсия."
+    dimensions: [date, result]
+    example_questions:
+      - "результаты оперативной записи за этот месяц"
+      - "сколько клиентов записалось через ОПЗ"
+    unit: null
+    aggregation: COUNT
     category: communications
     procedure: spKDO_CommAgg
-    description: "Коммуникации с причиной «ОПЗ» (оперативная запись на другой день) — результаты и конверсия."
     allowed_group_by: [reason, result, manager, list]
     parameters:
       - name: date_from

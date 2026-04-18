@@ -4,10 +4,12 @@ on:
   push:
     paths:
       - "catalogs/*.yaml"
+      - "catalogs/schemas/*.json"
       - "scripts/bootstrap/*.py"
   pull_request:
     paths:
       - "catalogs/*.yaml"
+      - "catalogs/schemas/*.json"
       - "scripts/bootstrap/*.py"
 
 jobs:
@@ -22,11 +24,47 @@ jobs:
         with:
           python-version: "3.11"
 
-      - name: Install pyyaml
-        run: pip install pyyaml
+      - name: Install dependencies
+        run: pip install pyyaml jsonschema
 
-      - name: Validate aggregate-catalog.yaml
+      - name: Validate aggregate-catalog.yaml (YAML syntax)
         run: python -c "import yaml; yaml.safe_load(open('catalogs/aggregate-catalog.yaml'))"
+
+      - name: Validate aggregate-catalog.yaml (JSONSchema)
+        run: |
+          python - <<'EOF'
+          import json, yaml, jsonschema, sys
+          schema = json.loads(open("catalogs/schemas/aggregate-catalog.schema.json").read())
+          catalog = yaml.safe_load(open("catalogs/aggregate-catalog.yaml").read())
+          try:
+              jsonschema.validate(instance=catalog, schema=schema)
+              print("aggregate-catalog.yaml: OK")
+          except jsonschema.ValidationError as e:
+              print(f"FAIL: {e.message}", file=sys.stderr)
+              sys.exit(1)
+          EOF
 
       - name: Validate category-index.yaml
         run: python -c "import yaml; yaml.safe_load(open('catalogs/category-index.yaml'))"
+
+      - name: Cross-validate data_method references
+        run: |
+          python - <<'EOF'
+          import yaml, sys
+          catalog = yaml.safe_load(open("catalogs/aggregate-catalog.yaml").read())
+          aggregates = catalog.get("aggregates", [])
+          ids = {a["id"] for a in aggregates if isinstance(a, dict) and "id" in a}
+          errors = []
+          for a in aggregates:
+              if not isinstance(a, dict):
+                  continue
+              dm = a.get("data_method")
+              if dm and dm not in ids:
+                  errors.append(f"  {a.get('id')!r}: data_method={dm!r} not found in catalog ids")
+          if errors:
+              print("Cross-validation FAILED:", file=sys.stderr)
+              for e in errors:
+                  print(e, file=sys.stderr)
+              sys.exit(1)
+          print(f"Cross-validation OK: {len(aggregates)} aggregates checked")
+          EOF
