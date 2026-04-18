@@ -16,6 +16,8 @@ if TYPE_CHECKING:
 
 logger = logging.getLogger(__name__)
 
+_ALLOWED_PROCEDURE_NAMES = frozenset({"spKDO_Aggregate", "spKDO_ClientList", "spKDO_CommAgg"})
+
 try:
     import pyodbc  # type: ignore
 except Exception:  # pragma: no cover
@@ -311,10 +313,13 @@ class SQLClient:
         max_rows: int = 20,
     ) -> tuple[list[dict[str, Any]], str, dict[str, Any]]:
         """Синхронное выполнение агрегатного запроса."""
-        # Защита от SQL injection: только alphanumeric + underscore + точка
+        # Defence-in-depth: regex + explicit whitelist
         bare = procedure.replace("dbo.", "", 1) if procedure.startswith("dbo.") else procedure
         if not re.fullmatch(r"[a-zA-Z0-9_.]+", bare):
             logger.error("Invalid procedure name rejected: %r", procedure)
+            return [], aggregate_id, {}
+        if bare not in _ALLOWED_PROCEDURE_NAMES:
+            logger.error("Procedure %r not in whitelist, rejected", bare)
             return [], aggregate_id, {}
         if not procedure.startswith("dbo."):
             procedure = f"dbo.{procedure}"

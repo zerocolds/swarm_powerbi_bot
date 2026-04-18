@@ -46,7 +46,10 @@
         },
         "aggregation": { "type": "string" },
         "category": { "type": "string" },
-        "procedure": { "type": "string" },
+        "procedure": {
+          "type": "string",
+          "enum": ["spKDO_Aggregate", "spKDO_ClientList", "spKDO_CommAgg"]
+        },
         "allowed_group_by": { "type": "array" },
         "parameters": { "type": "array" },
         "returns": { "type": "array" },

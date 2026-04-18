@@ -23,7 +23,7 @@ def build_orchestrator(settings: Settings) -> SwarmOrchestrator:
     catalog_path = settings.aggregate_catalog_path
     if catalog_path and os.path.exists(catalog_path):
         try:
-            aggregate_registry = AggregateRegistry(catalog_path)
+            aggregate_registry = AggregateRegistry(catalog_path, validate_schema=True)
             query_logger = QueryLogger()
             logger.info("AggregateRegistry loaded from %s", catalog_path)
         except Exception as exc:

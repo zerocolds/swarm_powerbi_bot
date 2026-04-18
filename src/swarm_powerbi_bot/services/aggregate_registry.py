@@ -61,7 +61,9 @@ def _is_date(value: object) -> bool:
         return False
 
 
-def _load_schema(schema_path: Path = _DEFAULT_SCHEMA) -> dict | None:
+def _load_schema(schema_path: Path | None = None) -> dict | None:
+    if schema_path is None:
+        schema_path = _DEFAULT_SCHEMA
     if schema_path.exists():
         try:
             return json.loads(schema_path.read_text(encoding="utf-8"))
@@ -270,6 +272,9 @@ class AggregateRegistry:
         if validate_schema:
             _validate_against_schema(raw, p)
         self._catalog, self._entries = _parse_entries(raw, p)
+        if validate_schema:
+            from swarm_powerbi_bot.services.data_methods import DATA_METHODS  # noqa: PLC0415
+            _validate_data_method_refs(self._entries, frozenset(DATA_METHODS), p)
 
     def get_aggregate(self, aggregate_id: str) -> dict | None:
         return self._catalog.get(aggregate_id)
