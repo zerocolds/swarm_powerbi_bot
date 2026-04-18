@@ -30,7 +30,11 @@ _MONTH_MAP: dict[str, int] = {
     "феврал": 2,
     "март": 3,
     "апрел": 4,
+    # «май» падежи: май/мая/маю/мае (творительный «маем» ловится стемом «мае» через
+    # startswith в _match_month). «ма» как стем нельзя — конфликт с «март» (FR-001).
     "мая": 5,
+    "мае": 5,
+    "маю": 5,
     "май": 5,
     "июн": 6,
     "июл": 7,
@@ -49,9 +53,20 @@ _RE_MONTH = re.compile(
 )
 
 _RE_MONTH_BARE = re.compile(
-    r"\b(январ[яеюиь]?\b|феврал[яеюиь]?\b|март\b|апрел[яеюиь]?\b|ма[йя]\b|"
-    r"июн[яеюиь]?\b|июл[яеюиь]?\b|август\b|сентябр[яеюиь]?\b|"
-    r"октябр[яеюиь]?\b|ноябр[яеюиь]?\b|декабр[яеюиь]?\b)"
+    r"\b("
+    r"январ(?:я|е|ю|и|ём|ем|ь)?"
+    r"|феврал(?:я|е|ю|и|ём|ем|ь)?"
+    r"|март(?:а|у|е|ом)?"
+    r"|апрел(?:я|е|ю|и|ём|ем|ь)?"
+    r"|ма(?:й|я|ю|е|ем)"
+    r"|июн(?:я|е|ю|и|ём|ем|ь)?"
+    r"|июл(?:я|е|ю|и|ём|ем|ь)?"
+    r"|август(?:а|у|е|ом)?"
+    r"|сентябр(?:я|е|ю|и|ём|ем|ь)?"
+    r"|октябр(?:я|е|ю|и|ём|ем|ь)?"
+    r"|ноябр(?:я|е|ю|и|ём|ем|ь)?"
+    r"|декабр(?:я|е|ю|и|ём|ем|ь)?"
+    r")\b"
     r"(?:\s+(\d{4}))?",
     re.IGNORECASE,
 )
@@ -95,6 +110,41 @@ def has_period_hint(question: str) -> bool:
     return any(h in text for h in _PERIOD_HINTS)
 
 
+def _result(
+    strategy: str,
+    date_from: date,
+    date_to: date,
+    question: str,
+) -> dict[str, date]:
+    """Логирует стратегию извлечения периода и возвращает params."""
+    try:
+        logger.debug(
+            "period_extracted",
+            extra={
+                "strategy": strategy,
+                "date_from": str(date_from),
+                "date_to": str(date_to),
+                "question_len": len(question),
+            },
+        )
+    except (
+        KeyError,
+        TypeError,
+    ):  # pragma: no cover — I-1: LogRecord reserved-name collision / bad extra shape
+        pass
+    return {"DateFrom": date_from, "DateTo": date_to}
+
+
+def _month_range(year: int, month: int) -> tuple[date, date]:
+    """Возвращает (first, last) даты указанного месяца."""
+    first = date(year, month, 1)
+    if month == 12:
+        last = date(year + 1, 1, 1) - timedelta(days=1)
+    else:
+        last = date(year, month + 1, 1) - timedelta(days=1)
+    return first, last
+
+
 def extract_date_params(question: str) -> dict[str, date]:
     """Извлекает @DateFrom / @DateTo из вопроса на русском."""
     today = date.today()
@@ -106,12 +156,11 @@ def extract_date_params(question: str) -> dict[str, date]:
         month = _match_month(m.group(1))
         year = int(m.group(2)) if m.group(2) else today.year
         if month:
-            first = date(year, month, 1)
-            if month == 12:
-                last = date(year + 1, 1, 1) - timedelta(days=1)
-            else:
-                last = date(year, month + 1, 1) - timedelta(days=1)
-            return {"DateFrom": first, "DateTo": last}
+            try:
+                first, last = _month_range(year, month)
+                return _result("za_month", first, last, question)
+            except ValueError:
+                pass  # I-1: невалидный год (например 0) → fall-through к default
 
     # «с 1 по 15 марта»
     m = _RE_RANGE.search(text)
@@ -120,42 +169,59 @@ def extract_date_params(question: str) -> dict[str, date]:
         month = _match_month(m.group(3))
         year = int(m.group(4)) if m.group(4) else today.year
         if month:
-            return {
-                "DateFrom": date(year, month, day_from),
-                "DateTo": date(year, month, day_to),
-            }
+            try:
+                return _result(
+                    "range",
+                    date(year, month, day_from),
+                    date(year, month, day_to),
+                    question,
+                )
+            except ValueError:
+                pass  # I-1: невалидный день/год (например «с 30 по 31 февраля»)
 
     # «вчера»
     if "вчера" in text:
         yesterday = today - timedelta(days=1)
-        return {"DateFrom": yesterday, "DateTo": yesterday}
+        return _result("absolute", yesterday, yesterday, question)
 
     # «сегодня»
     if "сегодн" in text:
-        return {"DateFrom": today, "DateTo": today}
+        return _result("absolute", today, today, question)
+
+    # bare-month — «выручка март», «итоги марта 2026», «в августе»
+    m = _RE_MONTH_BARE.search(text)
+    if m:
+        month = _match_month(m.group(1))
+        year = int(m.group(2)) if m.group(2) else today.year
+        if month:
+            try:
+                first, last = _month_range(year, month)
+                return _result("bare_month", first, last, question)
+            except ValueError:
+                pass  # I-1: невалидный год (например «январь 0000»)
 
     # «за последнюю неделю» / «за неделю»
     if "недел" in text:
-        return {"DateFrom": today - timedelta(days=7), "DateTo": today}
+        return _result("keyword", today - timedelta(days=7), today, question)
 
     # «за последний месяц» / «за месяц» / «за меся»
     if "месяц" in text or "меся" in text:
-        return {"DateFrom": today - timedelta(days=30), "DateTo": today}
+        return _result("keyword", today - timedelta(days=30), today, question)
 
     # «за квартал»
     if "квартал" in text:
-        return {"DateFrom": today - timedelta(days=90), "DateTo": today}
+        return _result("keyword", today - timedelta(days=90), today, question)
 
     # «за полугодие»
     if "полугод" in text or "полгод" in text:
-        return {"DateFrom": today - timedelta(days=180), "DateTo": today}
+        return _result("keyword", today - timedelta(days=180), today, question)
 
     # «за год»
     if "год" in text and "новый год" not in text:
-        return {"DateFrom": today - timedelta(days=365), "DateTo": today}
+        return _result("keyword", today - timedelta(days=365), today, question)
 
     # По умолчанию — последние 30 дней
-    return {"DateFrom": today - timedelta(days=30), "DateTo": today}
+    return _result("default", today - timedelta(days=30), today, question)
 
 
 _RE_OBJECT_ID = re.compile(r"салон[а-яё]*\s*(?:id\s*)?(\d{4,})", re.IGNORECASE)
@@ -298,7 +364,11 @@ class SQLClient:
     ) -> tuple[list[dict[str, Any]], str, dict[str, Any]]:
         """Синхронное выполнение агрегатного запроса."""
         # Защита от SQL injection: только alphanumeric + underscore + точка
-        bare = procedure.replace("dbo.", "", 1) if procedure.startswith("dbo.") else procedure
+        bare = (
+            procedure.replace("dbo.", "", 1)
+            if procedure.startswith("dbo.")
+            else procedure
+        )
         if not re.fullmatch(r"[a-zA-Z0-9_.]+", bare):
             logger.error("Invalid procedure name rejected: %r", procedure)
             return [], aggregate_id, {}
@@ -308,14 +378,22 @@ class SQLClient:
         d_from_raw = params.get("date_from")
         d_to_raw = params.get("date_to")
         try:
-            d_from = date.fromisoformat(d_from_raw) if d_from_raw else date.today() - timedelta(days=30)
+            d_from = (
+                date.fromisoformat(d_from_raw)
+                if d_from_raw
+                else date.today() - timedelta(days=30)
+            )
         except (ValueError, TypeError):
-            logger.warning("Invalid date_from %r for %s, using default", d_from_raw, aggregate_id)
+            logger.warning(
+                "Invalid date_from %r for %s, using default", d_from_raw, aggregate_id
+            )
             d_from = date.today() - timedelta(days=30)
         try:
             d_to = date.fromisoformat(d_to_raw) if d_to_raw else date.today()
         except (ValueError, TypeError):
-            logger.warning("Invalid date_to %r for %s, using default", d_to_raw, aggregate_id)
+            logger.warning(
+                "Invalid date_to %r for %s, using default", d_to_raw, aggregate_id
+            )
             d_to = date.today()
 
         conn_str = self.settings.sql_connection_string()
@@ -419,7 +497,11 @@ class SQLClient:
 
         # Парсим даты (LLM может вернуть невалидную строку)
         try:
-            d_from = date.fromisoformat(qp.date_from) if qp.date_from else date.today() - timedelta(days=30)
+            d_from = (
+                date.fromisoformat(qp.date_from)
+                if qp.date_from
+                else date.today() - timedelta(days=30)
+            )
         except (ValueError, TypeError):
             logger.warning("Invalid date_from %r, using default", qp.date_from)
             d_from = date.today() - timedelta(days=30)
@@ -538,7 +620,11 @@ class SQLClient:
         topic_id = topic or detect_topic(question)
         procedure = get_procedure(topic_id)
         # Защита от SQL injection: только alphanumeric + underscore + точка
-        bare = procedure.replace("dbo.", "", 1) if procedure.startswith("dbo.") else procedure
+        bare = (
+            procedure.replace("dbo.", "", 1)
+            if procedure.startswith("dbo.")
+            else procedure
+        )
         if not re.fullmatch(r"[a-zA-Z0-9_.]+", bare):
             logger.error("Invalid procedure name rejected: %r", procedure)
             return [], topic_id, {}
