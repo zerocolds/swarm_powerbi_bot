@@ -124,4 +124,18 @@ def test_match_month_order_independent(monkeypatch):
     assert _match_month("мая") == 5
     assert _match_month("май") == 5
     assert _match_month("мае") == 5
+    assert _match_month("маю") == 5
     assert _match_month("март") == 3
+
+
+def test_match_month_order_independent_reversed(monkeypatch):
+    """Reversed map is the worst-case for insertion-order bugs."""
+    reversed_map = dict(reversed(list(_MONTH_MAP.items())))
+    monkeypatch.setattr(_sql_client_mod, "_MONTH_MAP", reversed_map)
+    assert _match_month("маем") == 5
+    assert _match_month("мая") == 5
+    assert _match_month("май") == 5
+    assert _match_month("мае") == 5
+    assert _match_month("маю") == 5
+    assert _match_month("март") == 3
+    assert _match_month("") == 0
