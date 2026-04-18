@@ -1,3 +1,4 @@
+import logging
 import sys
 from datetime import date, timedelta
 
@@ -121,3 +122,52 @@ def test_regression_range(query, exp_year, exp_month, exp_day_from, exp_day_to):
     params = extract_date_params(query)
     assert params["DateFrom"] == date(exp_year, exp_month, exp_day_from)
     assert params["DateTo"] == date(exp_year, exp_month, exp_day_to)
+
+
+def test_period_extracted_log_strategy(caplog):
+    with caplog.at_level(logging.DEBUG, logger="swarm_powerbi_bot.services.sql_client"):
+        extract_date_params("выручка март")
+    matching = [r for r in caplog.records if r.message == "period_extracted"]
+    assert matching, "period_extracted лог должен быть emitted"
+    strategy = getattr(matching[0], "strategy", None)
+    assert strategy is not None, "period_extracted record should carry strategy= extra"
+    assert strategy == "bare_month"
+
+
+def test_extract_bare_month():
+    params = extract_date_params("выручка март")
+    today = date.today()
+    assert params["DateFrom"] == date(today.year, 3, 1)
+    assert params["DateTo"] == date(today.year, 3, 31)
+
+
+def test_redos_guard():
+    import time
+
+    long_input = "март " * 10000
+    start = time.perf_counter()
+    has_period_hint(long_input)
+    elapsed_ms = (time.perf_counter() - start) * 1000
+    assert elapsed_ms < 50.0, f"ReDoS suspected: {elapsed_ms:.1f}ms"
+
+
+def test_redos_guard_alternating():
+    """Alternated trigger words — still orders-of-magnitude fast."""
+    import time
+
+    long_input = "март апрель " * 5000
+    start = time.perf_counter()
+    has_period_hint(long_input)
+    elapsed_ms = (time.perf_counter() - start) * 1000
+    assert elapsed_ms < 50.0, f"ReDoS suspected on alternating input: {elapsed_ms:.1f}ms"
+
+
+def test_redos_guard_pure_noise():
+    """Pure noise with no period triggers — must not cause backtracking."""
+    import time
+
+    long_input = "x" * 10000
+    start = time.perf_counter()
+    has_period_hint(long_input)
+    elapsed_ms = (time.perf_counter() - start) * 1000
+    assert elapsed_ms < 50.0, f"ReDoS suspected on noise input: {elapsed_ms:.1f}ms"

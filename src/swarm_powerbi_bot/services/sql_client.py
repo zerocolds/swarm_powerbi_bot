@@ -125,6 +125,20 @@ def extract_date_params(question: str) -> dict[str, date]:
                 "DateTo": date(year, month, day_to),
             }
 
+    # «март», «выручка март 2025» — bare month without «за»
+    m = _RE_MONTH_BARE.search(text)
+    if m:
+        month = _match_month(m.group(1))
+        year = int(m.group(2)) if m.group(2) else today.year
+        if month:
+            first = date(year, month, 1)
+            if month == 12:
+                last = date(year + 1, 1, 1) - timedelta(days=1)
+            else:
+                last = date(year, month + 1, 1) - timedelta(days=1)
+            logger.debug("period_extracted", extra={"strategy": "bare_month"})
+            return {"DateFrom": first, "DateTo": last}
+
     # «вчера»
     if "вчера" in text:
         yesterday = today - timedelta(days=1)
