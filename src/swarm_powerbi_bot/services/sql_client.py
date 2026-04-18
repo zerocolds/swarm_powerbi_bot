@@ -296,15 +296,12 @@ class SQLClient:
         params: dict[str, Any],
         max_rows: int = 20,
     ) -> tuple[list[dict[str, Any]], str, dict[str, Any]]:
-        """Синхронное выполнение агрегатного запроса."""
-        # Защита от SQL injection: только alphanumeric + underscore + точка
-        bare = procedure.replace("dbo.", "", 1) if procedure.startswith("dbo.") else procedure
-        if not re.fullmatch(r"[a-zA-Z0-9_.]+", bare):
-            logger.error("Invalid procedure name rejected: %r", procedure)
-            return [], aggregate_id, {}
-        if not procedure.startswith("dbo."):
-            procedure = f"dbo.{procedure}"
+        """Синхронное выполнение агрегатного запроса.
 
+        Делегирует в DATA_METHODS[aggregate_id] для всех каталожных агрегатов.
+        Для legacy-процедур (spKDO_Attachments, spKDO_Training и т.д.) использует
+        прямой SQL-вызов.
+        """
         d_from_raw = params.get("date_from")
         d_to_raw = params.get("date_to")
         try:
@@ -339,6 +336,33 @@ class SQLClient:
 
         # Каталог использует "top", LLM может передать "top_n" — принимаем оба
         top_n = params.get("top", params.get("top_n", max_rows))
+        master_id = params.get("master_id")
+
+        # Делегируем в DATA_METHODS для всех каталожных агрегатов
+        from .data_methods import DATA_METHODS  # noqa: PLC0415
+        if aggregate_id in DATA_METHODS:
+            try:
+                df = DATA_METHODS[aggregate_id](
+                    conn_str=conn_str,
+                    date_from=d_from,
+                    date_to=d_to,
+                    object_id=obj_id,
+                    master_id=master_id,
+                    top=top_n,
+                )
+                rows = df.to_dict("records")[:max_rows]
+                return rows, aggregate_id, {"DateFrom": d_from, "DateTo": d_to}
+            except Exception as exc:
+                logger.error("DATA_METHODS[%r] error: %s — re-raising", aggregate_id, exc)
+                raise
+
+        # Legacy-путь для процедур не в каталоге (spKDO_Attachments, spKDO_Training и др.)
+        bare = procedure.replace("dbo.", "", 1) if procedure.startswith("dbo.") else procedure
+        if not re.fullmatch(r"[a-zA-Z0-9_.]+", bare):
+            logger.error("Invalid procedure name rejected: %r", procedure)
+            return [], aggregate_id, {}
+        if not procedure.startswith("dbo."):
+            procedure = f"dbo.{procedure}"
 
         sql_parts = [f"EXEC {procedure} @DateFrom=?, @DateTo=?"]
         sql_args: list[Any] = [d_from, d_to]
@@ -347,7 +371,6 @@ class SQLClient:
             sql_parts.append("@ObjectId=?")
             sql_args.append(obj_id)
 
-        master_id = params.get("master_id")
         if master_id is not None:
             sql_parts.append("@MasterId=?")
             sql_args.append(master_id)
@@ -370,7 +393,7 @@ class SQLClient:
         sql_args.append(top_n)
 
         sql = ", ".join(sql_parts) + ";"
-        logger.debug("execute_aggregate SQL: %s | args: %s", sql, sql_args)
+        logger.debug("execute_aggregate SQL (legacy): %s | args: %s", sql, sql_args)
 
         rows: list[dict[str, Any]] = []
         with pyodbc.connect(conn_str, timeout=10) as conn:

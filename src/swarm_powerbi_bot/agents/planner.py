@@ -9,6 +9,7 @@ from datetime import date, timedelta
 from .base import Agent
 from ..models import AggregateParams, AggregateQuery, MultiPlan, Plan, QueryParams, UserQuestion
 from ..services.aggregate_registry import AggregateRegistry
+from ..services.data_methods import DATA_METHODS
 from ..services.llm_client import LLMClient
 from ..services.topic_registry import detect_topic, get_procedure
 
@@ -432,17 +433,20 @@ class PlannerAgent(Agent):
                     notes=["planner_v2:keyword", "comparison:fallback"],
                 )
 
+        # Validate against DATA_METHODS (catalog-backed methods); fall back to topic as-is
+        resolved_agg_id = topic if topic in DATA_METHODS else self._LEGACY_TO_CATALOG.get(topic, topic)
+
         agg_query = AggregateQuery(
-            aggregate_id=topic,
+            aggregate_id=resolved_agg_id,
             params={},
-            label=topic,
+            label=resolved_agg_id,
         )
 
         return MultiPlan(
             objective=question.text,
             intent="single",
             queries=[agg_query],
-            topic=topic,
+            topic=resolved_agg_id,
             render_needed=render_needed,
             notes=["planner_v2:keyword"],
         )

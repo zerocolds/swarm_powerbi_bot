@@ -78,6 +78,7 @@ class SQLAgent(Agent):
         - Использует asyncio.Semaphore(settings.sql_max_concurrency) для ограничения параллельности
         - При timeout/error возвращает AggregateResult с соответствующим статусом
         - Логирует каждый вызов через QueryLogger если передан
+        - Каталожные агрегаты (из DATA_METHODS) выполняются через atomic data-methods
         """
         client = sql_client or self.client
 
