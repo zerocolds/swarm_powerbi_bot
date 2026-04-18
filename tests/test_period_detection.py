@@ -1,3 +1,4 @@
+import logging
 from datetime import date, timedelta
 
 from swarm_powerbi_bot.services.sql_client import extract_date_params, has_period_hint
@@ -87,3 +88,20 @@ def test_extract_default_30_days():
     today = date.today()
     assert params["DateFrom"] == today - timedelta(days=30)
     assert params["DateTo"] == today
+
+
+def test_period_extracted_log_strategy(caplog):
+    with caplog.at_level(logging.DEBUG, logger="swarm_powerbi_bot.services.sql_client"):
+        extract_date_params("выручка март")
+    matching = [r for r in caplog.records if r.message == "period_extracted"]
+    assert matching, "period_extracted лог должен быть emitted"
+    strategy = getattr(matching[0], "strategy", None)
+    assert strategy is not None, "period_extracted record should carry strategy= extra"
+    assert strategy == "bare_month"
+
+
+def test_extract_bare_month():
+    params = extract_date_params("выручка март")
+    today = date.today()
+    assert params["DateFrom"] == date(today.year, 3, 1)
+    assert params["DateTo"] == date(today.year, 3, 31)
