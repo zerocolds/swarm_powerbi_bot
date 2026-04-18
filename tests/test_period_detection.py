@@ -1,6 +1,13 @@
+import random
 from datetime import date, timedelta
 
-from swarm_powerbi_bot.services.sql_client import extract_date_params, has_period_hint
+import swarm_powerbi_bot.services.sql_client as _sql_client_mod
+from swarm_powerbi_bot.services.sql_client import (
+    _MONTH_MAP,
+    _match_month,
+    extract_date_params,
+    has_period_hint,
+)
 
 
 def test_has_period_hint_with_week():
@@ -87,3 +94,34 @@ def test_extract_default_30_days():
     today = date.today()
     assert params["DateFrom"] == today - timedelta(days=30)
     assert params["DateTo"] == today
+
+
+def test_match_month_may_forms():
+    assert _match_month("маем") == 5
+    assert _match_month("мая") == 5
+    assert _match_month("май") == 5
+    assert _match_month("мае") == 5
+    assert _match_month("маю") == 5
+
+
+def test_match_month_no_collision_with_march():
+    assert _match_month("март") == 3
+    assert _match_month("мартом") == 3
+    assert _match_month("марта") == 3
+
+
+def test_match_month_empty():
+    assert _match_month("") == 0
+
+
+def test_match_month_order_independent(monkeypatch):
+    items = list(_MONTH_MAP.items())
+    random.seed(42)
+    random.shuffle(items)
+    shuffled = dict(items)
+    monkeypatch.setattr(_sql_client_mod, "_MONTH_MAP", shuffled)
+    assert _match_month("маем") == 5
+    assert _match_month("мая") == 5
+    assert _match_month("май") == 5
+    assert _match_month("мае") == 5
+    assert _match_month("март") == 3
