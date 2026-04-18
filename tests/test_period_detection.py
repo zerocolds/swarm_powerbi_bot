@@ -87,3 +87,13 @@ def test_extract_default_30_days():
     today = date.today()
     assert params["DateFrom"] == today - timedelta(days=30)
     assert params["DateTo"] == today
+
+
+def test_redos_guard():
+    import time
+
+    long_input = "март " * 10000
+    start = time.perf_counter()
+    has_period_hint(long_input)
+    elapsed_ms = (time.perf_counter() - start) * 1000
+    assert elapsed_ms < 50.0, f"ReDoS suspected: {elapsed_ms:.1f}ms"
