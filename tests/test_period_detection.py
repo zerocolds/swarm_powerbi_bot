@@ -110,6 +110,22 @@ def test_extract_default_30_days():
             ),
         ),
         pytest.param("март_2026", id="underscore"),
+        pytest.param(
+            "не-апрель",
+            id="hyphen_prefix",
+            marks=pytest.mark.xfail(
+                strict=True,
+                reason="open issue: \\b matches after hyphen — _RE_MONTH_BARE needs negative lookbehind",
+            ),
+        ),
+        pytest.param(
+            "май's period",
+            id="apostrophe_en",
+            marks=pytest.mark.xfail(
+                strict=True,
+                reason="open issue: \\b matches before apostrophe — _RE_MONTH_BARE needs lookahead",
+            ),
+        ),
     ],
 )
 def test_bare_month_rejects_non_boundary(question):
