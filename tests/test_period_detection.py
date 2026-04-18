@@ -1,3 +1,4 @@
+import pytest
 from datetime import date, timedelta
 
 from swarm_powerbi_bot.services.sql_client import extract_date_params, has_period_hint
@@ -87,3 +88,45 @@ def test_extract_default_30_days():
     today = date.today()
     assert params["DateFrom"] == today - timedelta(days=30)
     assert params["DateTo"] == today
+
+
+@pytest.mark.parametrize(
+    "question",
+    [
+        pytest.param(
+            "пред-март",
+            id="hyphen",
+            marks=pytest.mark.xfail(
+                strict=True,
+                reason="open issue: \\b matches after hyphen — _RE_MONTH_BARE needs negative lookbehind",
+            ),
+        ),
+        pytest.param(
+            "март'ом",
+            id="apostrophe",
+            marks=pytest.mark.xfail(
+                strict=True,
+                reason="open issue: \\b matches before apostrophe — _RE_MONTH_BARE needs lookahead",
+            ),
+        ),
+        pytest.param("март_2026", id="underscore"),
+    ],
+)
+def test_bare_month_rejects_non_boundary(question):
+    assert has_period_hint(question) is False
+
+
+@pytest.mark.parametrize(
+    "question",
+    [
+        pytest.param("март-апрель", id="hyphen_two_months"),
+        pytest.param("март.", id="dot"),
+        pytest.param("март,", id="comma"),
+        pytest.param("(март)", id="parens"),
+        pytest.param("март 2026", id="with_year"),
+        pytest.param("март", id="bare"),
+        pytest.param("с 1 по 15 марта", id="genitive_in_range"),
+    ],
+)
+def test_bare_month_valid_forms_still_detected(question):
+    assert has_period_hint(question) is True
