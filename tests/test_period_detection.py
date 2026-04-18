@@ -1,3 +1,4 @@
+import pytest
 from datetime import date, timedelta
 
 from swarm_powerbi_bot.services.sql_client import extract_date_params, has_period_hint
@@ -87,3 +88,40 @@ def test_extract_default_30_days():
     today = date.today()
     assert params["DateFrom"] == today - timedelta(days=30)
     assert params["DateTo"] == today
+
+
+@pytest.mark.parametrize("month_form,expected_month", [
+    ("январь", 1), ("января", 1), ("январю", 1), ("январе", 1), ("январём", 1),
+    ("февраль", 2), ("февраля", 2), ("февралю", 2), ("феврале", 2), ("февралём", 2),
+    ("март", 3), ("марта", 3), ("марту", 3), ("марте", 3), ("мартом", 3),
+    ("апрель", 4), ("апреля", 4), ("апрелю", 4), ("апреле", 4), ("апрелём", 4),
+    ("май", 5), ("мая", 5),
+    ("июнь", 6), ("июня", 6), ("июню", 6), ("июне", 6), ("июнем", 6),
+    ("июль", 7), ("июля", 7), ("июлю", 7), ("июле", 7), ("июлем", 7),
+    ("август", 8), ("августа", 8), ("августу", 8), ("августе", 8), ("августом", 8),
+    ("сентябрь", 9), ("сентября", 9), ("сентябрю", 9), ("сентябре", 9), ("сентябрём", 9),
+    ("октябрь", 10), ("октября", 10), ("октябрю", 10), ("октябре", 10), ("октябрём", 10),
+    ("ноябрь", 11), ("ноября", 11), ("ноябрю", 11), ("ноябре", 11), ("ноябрём", 11),
+    ("декабрь", 12), ("декабря", 12), ("декабрю", 12), ("декабре", 12), ("декабрём", 12),
+])
+def test_za_month_all_cases(month_form, expected_month):
+    params = extract_date_params(f"выручка за {month_form} 2026")
+    assert params["DateFrom"].year == 2026
+    assert params["DateFrom"].month == expected_month
+
+
+def test_za_unknown_word_not_matched():
+    params = extract_date_params("выручка за хрущовка 2026")
+    today = date.today()
+    assert params["DateFrom"] == today - timedelta(days=30)
+
+
+def test_za_month_no_year_uses_current_year():
+    today = date.today()
+    params = extract_date_params("выручка за апрель")
+    assert params["DateFrom"] == date(today.year, 4, 1)
+
+
+def test_za_first_match_wins():
+    params = extract_date_params("выручка за январь декабрь 2026")
+    assert params["DateFrom"].month == 1
