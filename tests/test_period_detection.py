@@ -1,7 +1,26 @@
 import logging
+import sys
 from datetime import date, timedelta
 
+import pytest
+
 from swarm_powerbi_bot.services.sql_client import extract_date_params, has_period_hint
+
+_FROZEN_TODAY = date(2026, 4, 17)
+
+
+class _FixedDateClass(date):
+    @classmethod
+    def today(cls):
+        return _FROZEN_TODAY
+
+
+@pytest.fixture(autouse=True)
+def _FixedDate(monkeypatch):
+    import swarm_powerbi_bot.services.sql_client as _sql_mod
+
+    monkeypatch.setattr(_sql_mod, "date", _FixedDateClass)
+    monkeypatch.setattr(sys.modules[__name__], "date", _FixedDateClass)
 
 
 def test_has_period_hint_with_week():
@@ -88,6 +107,21 @@ def test_extract_default_30_days():
     today = date.today()
     assert params["DateFrom"] == today - timedelta(days=30)
     assert params["DateTo"] == today
+
+
+@pytest.mark.parametrize(
+    "query, exp_year, exp_month, exp_day_from, exp_day_to",
+    [
+        ("с 1 по 15 марта", 2026, 3, 1, 15),
+        ("с 1 по 15 мая", 2026, 5, 1, 15),
+        ("с 10 по 20 декабря", 2026, 12, 10, 20),
+    ],
+    ids=["march_no_year", "may_no_year", "december_no_year"],
+)
+def test_regression_range(query, exp_year, exp_month, exp_day_from, exp_day_to):
+    params = extract_date_params(query)
+    assert params["DateFrom"] == date(exp_year, exp_month, exp_day_from)
+    assert params["DateTo"] == date(exp_year, exp_month, exp_day_to)
 
 
 def test_period_extracted_log_strategy(caplog):
