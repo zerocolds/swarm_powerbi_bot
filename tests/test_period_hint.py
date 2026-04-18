@@ -55,15 +55,15 @@ def test_no_false_positive_on_masters():
 
 
 def test_bare_month_with_soft_sign_april():
-    """«выручка апрель» — мягкий знак не должен ломать распознавание."""
+    """Нормативная форма на -ь корректно распознаётся (round 3: добавлено `|ь` в _RE_MONTH_BARE)."""
     assert has_period_hint("выручка апрель") is True
 
 
 def test_bare_month_with_soft_sign_january():
-    """«выручка январь» — мягкий знак."""
+    """Нормативная форма на -ь корректно распознаётся (round 3: добавлено `|ь` в _RE_MONTH_BARE)."""
     assert has_period_hint("выручка январь") is True
 
 
 def test_bare_month_with_soft_sign_september():
-    """«сентябрь 2026» — мягкий знак + год."""
+    """Нормативная форма на -ь корректно распознаётся (round 3: добавлено `|ь` в _RE_MONTH_BARE)."""
     assert has_period_hint("сентябрь 2026") is True
