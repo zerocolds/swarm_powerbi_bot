@@ -105,3 +105,35 @@ def test_extract_bare_month():
     today = date.today()
     assert params["DateFrom"] == date(today.year, 3, 1)
     assert params["DateTo"] == date(today.year, 3, 31)
+
+
+def test_redos_guard():
+    import time
+
+    long_input = "март " * 10000
+    start = time.perf_counter()
+    has_period_hint(long_input)
+    elapsed_ms = (time.perf_counter() - start) * 1000
+    assert elapsed_ms < 50.0, f"ReDoS suspected: {elapsed_ms:.1f}ms"
+
+
+def test_redos_guard_alternating():
+    """Alternated trigger words — still orders-of-magnitude fast."""
+    import time
+
+    long_input = "март апрель " * 5000
+    start = time.perf_counter()
+    has_period_hint(long_input)
+    elapsed_ms = (time.perf_counter() - start) * 1000
+    assert elapsed_ms < 50.0, f"ReDoS suspected on alternating input: {elapsed_ms:.1f}ms"
+
+
+def test_redos_guard_pure_noise():
+    """Pure noise with no period triggers — must not cause backtracking."""
+    import time
+
+    long_input = "x" * 10000
+    start = time.perf_counter()
+    has_period_hint(long_input)
+    elapsed_ms = (time.perf_counter() - start) * 1000
+    assert elapsed_ms < 50.0, f"ReDoS suspected on noise input: {elapsed_ms:.1f}ms"
