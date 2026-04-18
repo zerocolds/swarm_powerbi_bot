@@ -558,6 +558,64 @@ def _render_comparison_per_row(
     return _fig_to_bytes(fig)
 
 
+def render_comparison_multi(
+    data_frames: list[list[dict[str, Any]]],
+    labels: list[str],
+) -> bytes | None:
+    """Сравнительный линейный график для N агрегатов (multi-aggregate composer).
+
+    Возвращает None если matplotlib недоступен, < 2 серий, или любая серия < 2 точек.
+    """
+    if not HAS_MPL:
+        return None
+    if len(data_frames) < 2:
+        return None
+    if any(len(df) < 2 for df in data_frames):
+        return None
+
+    n = min(len(data_frames), len(labels))
+    data_frames = data_frames[:n]
+    labels = labels[:n]
+
+    def _pick_values(rows: list[dict[str, Any]]) -> list[float]:
+        if not rows:
+            return []
+        skip = {"ObjectId", "MasterId", "ClientId", "Id", "CRMId"}
+        for k, v in rows[0].items():
+            if isinstance(v, (int, float)) and not isinstance(v, bool) and k not in skip:
+                return [float(r.get(k, 0) or 0) for r in rows]
+        return [0.0] * len(rows)
+
+    max_len = max(len(df) for df in data_frames)
+    x = list(range(max_len))
+    colors = ["#4472C4", "#ED7D31", "#A5A5A5", "#FFC000", "#5B9BD5"]
+
+    fig, ax = plt.subplots(figsize=(max(8, max_len * 0.8), 5))
+
+    for i, (df, label) in enumerate(zip(data_frames, labels)):
+        values = _pick_values(df)
+        if len(values) < max_len:
+            values = values + [0.0] * (max_len - len(values))
+        ax.plot(
+            x,
+            values[:max_len],
+            marker="o",
+            markersize=4,
+            label=label[:30],
+            color=colors[i % len(colors)],
+        )
+
+    ax.set_xticks(x)
+    ax.set_xticklabels([str(i + 1) for i in x], fontsize=8)
+    ax.legend(fontsize=9)
+    ax.set_title("Сравнительный анализ", fontsize=11)
+    ax.yaxis.set_major_formatter(ticker.FuncFormatter(lambda val, _: _format_number(val)))
+    ax.grid(True, alpha=0.3)
+
+    fig.tight_layout()
+    return _fig_to_bytes(fig)
+
+
 def _render_comparison_aggregated(
     topic: str,
     results_a: list[dict[str, Any]],
