@@ -1,0 +1,127 @@
+name: CI
+
+on:
+  workflow_dispatch: {}
+  pull_request:
+  push:
+    branches:
+      - main
+
+jobs:
+  spec-check:
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request' && startsWith(github.head_ref, 'feature/')
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Extract feature name from branch
+        id: feature
+        run: |
+          # feature/001-semantic-aggregate-layer → 001-semantic-aggregate-layer
+          FEATURE="${GITHUB_HEAD_REF#feature/}"
+          echo "name=$FEATURE" >> "$GITHUB_OUTPUT"
+          echo "Feature: $FEATURE"
+
+      - name: Check spec.md exists
+        run: |
+          SPEC="specs/${{ steps.feature.outputs.name }}/spec.md"
+          if [ ! -f "$SPEC" ]; then
+            echo "::error::spec.md not found at $SPEC"
+            echo "Feature branch must have a matching specs/ directory with spec.md"
+            exit 1
+          fi
+          echo "Found: $SPEC"
+
+      - name: Check tasks.md for uncompleted CRITICAL tasks
+        run: |
+          TASKS="specs/${{ steps.feature.outputs.name }}/tasks.md"
+          if [ ! -f "$TASKS" ]; then
+            echo "::warning::tasks.md not found at $TASKS — skipping CRITICAL check"
+            exit 0
+          fi
+
+          # Ищем незавершённые задачи (- [ ]) внутри CRITICAL-секций.
+          FOUND=0
+          IN_CRITICAL=0
+          while IFS= read -r line; do
+            if echo "$line" | grep -qE '^(##|---)'; then
+              IN_CRITICAL=0
+            fi
+            if echo "$line" | grep -qi 'CRITICAL'; then
+              IN_CRITICAL=1
+            fi
+            if [ "$IN_CRITICAL" = "1" ] && echo "$line" | grep -qE '^\s*-\s*\[ \]'; then
+              echo "::error::Uncompleted CRITICAL task: $line"
+              FOUND=$((FOUND + 1))
+            fi
+          done < "$TASKS"
+
+          if [ "$FOUND" -gt 0 ]; then
+            echo "::error::Found $FOUND uncompleted CRITICAL task(s). Resolve before merging."
+            exit 1
+          fi
+          echo "No uncompleted CRITICAL tasks found."
+
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install system deps for pyodbc
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends unixodbc-dev
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install deps
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e .
+
+      - name: Run tests
+        working-directory: ${{ github.workspace }}
+        env:
+          PYTHONPATH: ${{ github.workspace }}
+          USE_DOTENV: "0"
+          IN_DOCKER: "1"
+          LOG_JSON: "1"
+          LOG_LEVEL: "INFO"
+          TG_TOKEN: "TEST"
+          PBI_HOST: "host"
+          PBI_USER: "u"
+          PBI_PASS: "p"
+          MSSQL_SERVER: "localhost"
+          MSSQL_DB: "db"
+          MSSQL_USER: "user"
+          MSSQL_PWD: "pwd"
+        run: pytest -q
+
+  docker:
+    needs: test
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/')
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+      - name: Login to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Build and push
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          push: true
+          tags: ghcr.io/${{ github.repository }}:latest
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
