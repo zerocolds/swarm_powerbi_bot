@@ -21,6 +21,7 @@
         "metric_type",
         "dimensions",
         "example_questions",
+        "unit",
         "aggregation"
       ],
       "properties": {

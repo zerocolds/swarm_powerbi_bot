@@ -291,19 +291,11 @@ class PlannerAgent(Agent):
                 )
                 return None  # ANY invalid → полный fallback
             raw_params = dict(q.get("params", {}))
-            # Инжектим object_id из подписки пользователя, только если каталог
-            # требует его (required: true). Для salon-wide агрегатов (required: false)
-            # object_id намеренно не подставляем.
+            # Always scope to the subscriber's salon — even for aggregates that
+            # mark object_id as optional (e.g. revenue_by_salon).  Without this,
+            # any authenticated user can read data across all salons (IDOR).
             if "object_id" not in raw_params and question.object_id is not None:
-                entry = registry.get_aggregate(agg_id)
-                if entry:
-                    params_meta = entry.get("parameters", [])
-                    obj_required = any(
-                        p.get("name") == "object_id" and p.get("required", False)
-                        for p in params_meta
-                    )
-                    if obj_required:
-                        raw_params["object_id"] = question.object_id
+                raw_params["object_id"] = question.object_id
             queries.append(
                 AggregateQuery(
                     aggregate_id=agg_id,

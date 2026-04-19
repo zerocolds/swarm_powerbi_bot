@@ -73,6 +73,7 @@ def test_default_load_auto_cross_validates(tmp_path, monkeypatch):
         "    description: injected\n"
         "    dimensions: []\n"
         "    example_questions: [вопрос один, вопрос два]\n"
+        "    unit: null\n"
         "    aggregation: COUNT\n",
         encoding="utf-8",
     )
@@ -280,7 +281,7 @@ def test_yaml_with_comments_loads_ok(tmp_path):
     )
     result = load_catalog(path=commented, validate_schema=False)
     assert len(result) == 1
-    assert result[0].name == "revenue_total"
+    assert result[0].name == "Revenue Total"
 
 
 # ── structural / field contract ───────────────────────────────────────────────

@@ -350,7 +350,7 @@ class SQLClient:
             obj_id = self.settings.default_object_id
 
         group_by = params.get("group_by", "")
-        if obj_id is None and group_by != "salon":
+        if obj_id is None:
             logger.warning(
                 "execute_aggregate: no ObjectId for %s — returning empty", aggregate_id
             )

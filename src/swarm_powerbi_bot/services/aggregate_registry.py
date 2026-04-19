@@ -114,7 +114,7 @@ def _parse_entries(raw: dict, path: Path) -> tuple[dict[str, dict], list[Aggrega
         if "data_method" in entry:
             aggregate_entries.append(
                 AggregateEntry(
-                    name=entry_id,
+                    name=entry.get("name", entry_id),
                     data_method=entry["data_method"],
                     metric_type=entry.get("metric_type", "count"),
                     description=entry.get("description", ""),
@@ -203,6 +203,16 @@ def validate_params(aggregate_id: str, params: dict) -> tuple[bool, str]:
     return _validate_entry_params(aggregate_id, entry, params)
 
 
+def _build_param_allowed_values(catalog_params: list[dict]) -> dict[str, frozenset[str]]:
+    result: dict[str, frozenset[str]] = {}
+    for p in catalog_params:
+        name = p.get("name", "")
+        allowed = p.get("allowed_values")
+        if name and allowed:
+            result[name] = frozenset(str(v) for v in allowed)
+    return result
+
+
 def _validate_entry_params(
     aggregate_id: str,
     entry: dict,
@@ -210,6 +220,8 @@ def _validate_entry_params(
 ) -> tuple[bool, str]:
     allowed_group_by: list[str] = entry.get("allowed_group_by", [])
     catalog_params: list[dict] = entry.get("parameters", [])
+    per_param_allowed = _build_param_allowed_values(catalog_params)
+
     for catalog_param in catalog_params:
         if catalog_param.get("required", False):
             param_name = catalog_param.get("name", "")
@@ -235,11 +247,17 @@ def _validate_entry_params(
                     f"allowed: {allowed_group_by}"
                 )
         elif key == "filter":
-            if value not in _FILTER_VALUES:
-                return False, f"filter {value!r} not in allowed set {sorted(_FILTER_VALUES)}"
+            allowed = per_param_allowed.get("filter", _FILTER_VALUES)
+            if value not in allowed:
+                return False, (
+                    f"filter {value!r} not in allowed set for {aggregate_id!r}: {sorted(allowed)}"
+                )
         elif key == "reason":
-            if value not in _REASON_VALUES:
-                return False, f"reason {value!r} not in allowed set {sorted(_REASON_VALUES)}"
+            allowed = per_param_allowed.get("reason", _REASON_VALUES)
+            if value not in allowed:
+                return False, (
+                    f"reason {value!r} not in allowed set for {aggregate_id!r}: {sorted(allowed)}"
+                )
         elif key in ("top_n", "top"):
             if not isinstance(value, int) or not (1 <= value <= 50):
                 return False, f"{key} must be int in [1, 50], got {value!r}"

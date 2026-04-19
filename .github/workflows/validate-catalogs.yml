@@ -6,11 +6,17 @@ on:
       - "catalogs/*.yaml"
       - "catalogs/schemas/*.json"
       - "scripts/bootstrap/*.py"
+      - "src/swarm_powerbi_bot/services/aggregate_registry.py"
+      - "src/swarm_powerbi_bot/services/data_methods.py"
+      - "tests/test_aggregate_registry_v2.py"
   pull_request:
     paths:
       - "catalogs/*.yaml"
       - "catalogs/schemas/*.json"
       - "scripts/bootstrap/*.py"
+      - "src/swarm_powerbi_bot/services/aggregate_registry.py"
+      - "src/swarm_powerbi_bot/services/data_methods.py"
+      - "tests/test_aggregate_registry_v2.py"
 
 jobs:
   validate:
