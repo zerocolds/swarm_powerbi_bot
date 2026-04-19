@@ -134,6 +134,32 @@ def test_period_extracted_log_strategy(caplog):
     assert strategy == "bare_month"
 
 
+def test_period_extracted_log_strategy_resilient_to_extra_shape(caplog):
+    """Resilient read via getattr — must not raise KeyError if extras change."""
+    with caplog.at_level(logging.DEBUG, logger="swarm_powerbi_bot.services.sql_client"):
+        extract_date_params("выручка март")
+    matching = [r for r in caplog.records if r.message == "period_extracted"]
+    assert matching
+    # getattr path — never KeyError even if attr absent
+    strategy = getattr(matching[0], "strategy", None)
+    missing = getattr(matching[0], "definitely_not_a_real_extra_key", None)
+    assert missing is None
+    assert strategy is not None
+
+
+def test_period_extracted_strategy_label_contract(caplog):
+    """Pins the strategy label — catches accidental rename of 'bare_month'."""
+    with caplog.at_level(logging.DEBUG, logger="swarm_powerbi_bot.services.sql_client"):
+        extract_date_params("выручка март")
+    matching = [r for r in caplog.records if r.message == "period_extracted"]
+    assert matching, "period_extracted лог должен быть emitted"
+    strategy = getattr(matching[0], "strategy", None)
+    assert strategy is not None, "strategy extra must be present on LogRecord"
+    assert strategy == "bare_month", (
+        f"strategy label changed unexpectedly: got {strategy!r}"
+    )
+
+
 def test_extract_bare_month():
     params = extract_date_params("выручка март")
     today = date.today()
