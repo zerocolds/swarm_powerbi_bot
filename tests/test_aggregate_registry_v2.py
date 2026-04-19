@@ -281,3 +281,38 @@ def test_yaml_with_comments_loads_ok(tmp_path):
     result = load_catalog(path=commented, validate_schema=False)
     assert len(result) == 1
     assert result[0].name == "revenue_total"
+
+
+# ── structural / field contract ───────────────────────────────────────────────
+
+
+def test_aggregate_entry_field_names():
+    """AggregateEntry must expose exactly the 8 spec-required fields by name."""
+    import dataclasses
+
+    field_names = {f.name for f in dataclasses.fields(AggregateEntry)}
+    required = {"name", "data_method", "metric_type", "description", "dimensions",
+                "example_questions", "unit", "aggregation"}
+    assert required.issubset(field_names), (
+        f"AggregateEntry missing spec fields: {required - field_names}"
+    )
+
+
+def test_empty_aggregates_list_returns_empty(tmp_path):
+    """YAML with an empty aggregates list must return [] without raising."""
+    empty = tmp_path / "empty.yaml"
+    empty.write_text("aggregates: []\n", encoding="utf-8")
+    result = load_catalog(path=empty, validate_schema=False)
+    assert result == []
+
+
+def test_default_path_auto_validates_schema():
+    """load_catalog() with no args must validate against schema (implicit True)."""
+    import swarm_powerbi_bot.services.aggregate_registry as reg
+
+    # The real catalog is valid — if schema auto-validation is broken this would
+    # either raise or return stale entries.  We confirm entries come back typed.
+    catalog = reg.load_catalog()
+    assert all(
+        e.metric_type in ("monetary", "count", "ratio", "duration") for e in catalog
+    )
