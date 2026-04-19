@@ -171,3 +171,20 @@ def test_redos_guard_pure_noise():
     has_period_hint(long_input)
     elapsed_ms = (time.perf_counter() - start) * 1000
     assert elapsed_ms < 50.0, f"ReDoS suspected on noise input: {elapsed_ms:.1f}ms"
+
+
+def test_redos_guard_catches_catastrophic_backtracking():
+    """Sanity: even a generous 1s budget rules out seconds-order catastrophic backtracking.
+
+    A ReDoS-vulnerable regex on 10k-char input would take seconds or minutes;
+    a linear matcher finishes in sub-millisecond. The 50ms thresholds above
+    protect against regressions; this test is an extra orders-of-magnitude guard
+    that stays green even under heavy CI load.
+    """
+    import time
+
+    long_input = "март апрель май июнь " * 2500
+    start = time.perf_counter()
+    has_period_hint(long_input)
+    elapsed_s = time.perf_counter() - start
+    assert elapsed_s < 1.0, f"Catastrophic backtracking suspected: {elapsed_s:.3f}s"
