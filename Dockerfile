@@ -9,10 +9,10 @@ RUN apt-get update \
        curl \
     && rm -rf /var/lib/apt/lists/*
 
-COPY requirements.txt /app/requirements.txt
-RUN pip install --no-cache-dir -r /app/requirements.txt
-
+COPY pyproject.toml /app/pyproject.toml
 COPY src /app/src
+RUN pip install --no-cache-dir /app
+
 COPY catalogs/aggregate-catalog.yaml /app/catalogs/aggregate-catalog.yaml
 COPY catalogs/category-index.yaml /app/catalogs/category-index.yaml
 
