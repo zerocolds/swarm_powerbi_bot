@@ -124,6 +124,20 @@ def test_regression_range(query, exp_year, exp_month, exp_day_from, exp_day_to):
     assert params["DateTo"] == date(exp_year, exp_month, exp_day_to)
 
 
+def test_range_without_explicit_year():
+    """Covers today.year fallback in range branch of extract_date_params (sql_client.py ~L170)."""
+    params = extract_date_params("с 1 по 15 марта")
+    assert params["DateFrom"] == date(2026, 3, 1)
+    assert params["DateTo"] == date(2026, 3, 15)
+
+
+def test_range_no_year_may_does_not_collide_with_march():
+    """Stem-collision guard: 'мая' не должно ложно сматчиться как март."""
+    params = extract_date_params("с 1 по 15 мая")
+    assert params["DateFrom"].month == 5
+    assert params["DateTo"].month == 5
+
+
 def test_period_extracted_log_strategy(caplog):
     with caplog.at_level(logging.DEBUG, logger="swarm_powerbi_bot.services.sql_client"):
         extract_date_params("выручка март")
