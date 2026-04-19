@@ -171,3 +171,85 @@ def test_redos_guard_pure_noise():
     has_period_hint(long_input)
     elapsed_ms = (time.perf_counter() - start) * 1000
     assert elapsed_ms < 50.0, f"ReDoS suspected on noise input: {elapsed_ms:.1f}ms"
+
+
+def test_match_month_all_may_cases():
+    from swarm_powerbi_bot.services.sql_client import _match_month
+
+    assert _match_month("май") == 5
+    assert _match_month("мая") == 5
+    assert _match_month("маю") == 5
+    assert _match_month("мае") == 5
+    assert _match_month("маем") == 5
+
+
+def test_match_month_march_no_collision():
+    from swarm_powerbi_bot.services.sql_client import _match_month
+
+    assert _match_month("март") == 3
+    assert _match_month("марта") == 3
+    assert _match_month("мартом") == 3
+    assert _match_month("марте") == 3
+
+
+def test_match_month_empty_string():
+    from swarm_powerbi_bot.services.sql_client import _match_month
+
+    assert _match_month("") == 0
+
+
+def test_match_month_bare_ma_prefix_no_greedy_collision():
+    """«ма» как префикс не должен фолбэчить в май через жадный startswith."""
+    from swarm_powerbi_bot.services.sql_client import _match_month
+
+    assert _match_month("ма") == 0
+    assert _match_month("мам") == 0
+    assert _match_month("мас") == 0
+
+
+def test_match_month_order_independent(monkeypatch):
+    """Результат не должен зависеть от порядка вставки в _MONTH_MAP."""
+    import random
+
+    import swarm_powerbi_bot.services.sql_client as _sql_mod
+
+    items = list(_sql_mod._MONTH_MAP.items())
+    rng = random.Random(42)
+    rng.shuffle(items)
+    shuffled = dict(items)
+
+    monkeypatch.setattr(_sql_mod, "_MONTH_MAP", shuffled)
+    monkeypatch.setattr(
+        _sql_mod,
+        "_MONTH_STEMS_SORTED",
+        tuple(sorted(shuffled.items(), key=lambda kv: len(kv[0]), reverse=True)),
+    )
+
+    assert _sql_mod._match_month("маем") == 5
+    assert _sql_mod._match_month("мае") == 5
+    assert _sql_mod._match_month("мая") == 5
+    assert _sql_mod._match_month("май") == 5
+    assert _sql_mod._match_month("март") == 3
+    assert _sql_mod._match_month("мартом") == 3
+
+
+def test_match_month_all_twelve_cases():
+    from swarm_powerbi_bot.services.sql_client import _match_month
+
+    cases = {
+        1: ["январь", "января", "январю", "январе", "январём"],
+        2: ["февраль", "февраля", "февралю", "феврале", "февралём"],
+        3: ["март", "марта", "марту", "марте", "мартом"],
+        4: ["апрель", "апреля", "апрелю", "апреле", "апрелем"],
+        5: ["май", "мая", "маю", "мае", "маем"],
+        6: ["июнь", "июня", "июню", "июне", "июнем"],
+        7: ["июль", "июля", "июлю", "июле", "июлем"],
+        8: ["август", "августа", "августу", "августе", "августом"],
+        9: ["сентябрь", "сентября", "сентябрю", "сентябре", "сентябрём"],
+        10: ["октябрь", "октября", "октябрю", "октябре", "октябрём"],
+        11: ["ноябрь", "ноября", "ноябрю", "ноябре", "ноябрём"],
+        12: ["декабрь", "декабря", "декабрю", "декабре", "декабрём"],
+    }
+    for expected, forms in cases.items():
+        for form in forms:
+            assert _match_month(form) == expected, f"{form!r} → expected {expected}"

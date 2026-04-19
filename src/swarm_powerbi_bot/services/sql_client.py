@@ -30,7 +30,10 @@ _MONTH_MAP: dict[str, int] = {
     "феврал": 2,
     "март": 3,
     "апрел": 4,
+    "маем": 5,
+    "маю": 5,
     "мая": 5,
+    "мае": 5,
     "май": 5,
     "июн": 6,
     "июл": 7,
@@ -65,9 +68,14 @@ _RE_RANGE = re.compile(
 )
 
 
+_MONTH_STEMS_SORTED: tuple[tuple[str, int], ...] = tuple(
+    sorted(_MONTH_MAP.items(), key=lambda kv: len(kv[0]), reverse=True)
+)
+
+
 def _match_month(text: str) -> int:
     low = text.lower()
-    for stem, num in _MONTH_MAP.items():
+    for stem, num in _MONTH_STEMS_SORTED:
         if low.startswith(stem):
             return num
     return 0
