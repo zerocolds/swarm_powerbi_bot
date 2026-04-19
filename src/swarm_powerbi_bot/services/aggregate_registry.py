@@ -172,22 +172,8 @@ def load_catalog(
     validate_schema: bool | None = None,
     known_methods: frozenset[str] | set[str] | None = None,
 ) -> list[AggregateEntry]:
-    """Load aggregate catalog from YAML.
-
-    validate_schema defaults to True when loading the default catalog path,
-    False when an explicit path is provided. Pass validate_schema=True to
-    force schema validation on any path.
-
-    When loading the default catalog (path=None), cross-validation against
-    DATA_METHODS is always performed automatically. For custom paths, pass
-    known_methods explicitly to opt in.
-
-    Raises:
-        FileNotFoundError: file not found
-        yaml.YAMLError: invalid YAML
-        jsonschema.ValidationError: schema validation failed
-        ValueError: duplicate id, missing required field, or invalid data_method ref
-    """
+    # validate_schema defaults True for the default path, False for custom paths;
+    # path=None also triggers automatic cross-validation against DATA_METHODS.
     global _catalog, _entries
     resolved = Path(path) if path is not None else _DEFAULT_CATALOG
     should_validate = (path is None) if validate_schema is None else validate_schema
