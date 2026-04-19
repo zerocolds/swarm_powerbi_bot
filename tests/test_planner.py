@@ -4,7 +4,9 @@ from swarm_powerbi_bot.agents.planner import PlannerAgent
 from swarm_powerbi_bot.models import UserQuestion
 
 
-def test_planner_extracts_report_and_flags():
+def test_planner_ignores_report_tag_in_text():
+    # Report IDs must not be extracted from free text (IDOR prevention).
+    # report_id must come from question.report_id (subscription-configured), not user text.
     planner = PlannerAgent()
     q = UserQuestion(user_id="1", text="Сравни выручку report:sales/kpi без картинки")
 
@@ -13,7 +15,7 @@ def test_planner_extracts_report_and_flags():
     assert plan.render_needed is False
     assert plan.sql_needed is True
     assert plan.powerbi_needed is True
-    assert plan.render_report_id == "sales/kpi"
+    assert plan.render_report_id is None  # user-text injection blocked
     assert "comparison_requested" in plan.notes
 
 

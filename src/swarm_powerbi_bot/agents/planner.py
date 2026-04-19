@@ -530,7 +530,8 @@ class PlannerAgent(Agent):
                 query_params.filter = ""
                 query_params.reason = ""
 
-        report_id = question.report_id or self._extract_report_id(question.text)
+        # Do not extract report_id from free text — IDOR: users must not specify arbitrary report IDs
+        report_id = question.report_id
 
         return Plan(
             objective=question.text,

@@ -181,6 +181,19 @@ class TelegramSwarmBot:
         if not update.message:
             return
 
+        # Enforce subscription before any data access
+        user_id = str(update.message.from_user.id) if update.message.from_user else None
+        if user_id:
+            try:
+                subscribed = await is_subscribed(user_id, self.settings)
+            except Exception:
+                subscribed = False
+            if not subscribed:
+                await update.message.reply_text(
+                    "Подписка не активирована. Используйте /start для подключения."
+                )
+                return
+
         if has_period_hint(text):
             # Период указан — выполняем сразу
             await self._process_question(update.message, text, context=context)

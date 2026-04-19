@@ -85,8 +85,8 @@ def _build_report_base_from_legacy_env() -> str:
         userinfo = f"{userinfo}:{quote(password, safe='')}"
 
     if userinfo:
-        return f"http://{userinfo}@{host}/powerbi/?id="
-    return f"http://{host}/powerbi/?id="
+        return f"https://{userinfo}@{host}/powerbi/?id="
+    return f"https://{host}/powerbi/?id="
 
 
 @dataclass(frozen=True)
@@ -108,6 +108,8 @@ class Settings:
     mssql_user: str = ""
     mssql_pwd: str = field(default="", repr=False)
     mssql_driver: str = "ODBC Driver 17 for SQL Server"
+    mssql_encrypt: bool = True
+    mssql_trust_server_cert: bool = False
 
     powerbi_model_query_url: str = ""
     powerbi_model_query_token: str = field(default="", repr=False)
@@ -123,6 +125,9 @@ class Settings:
     default_object_id: int = 0
 
     debug: bool = False
+
+    # Report allowlist — empty means only default_report_id is served
+    allowed_report_ids: frozenset[str] = field(default_factory=frozenset)
 
     # Пути к каталогам семантического слоя
     catalog_dir: str = "catalogs"
@@ -162,6 +167,8 @@ class Settings:
             mssql_user=os.getenv("MSSQL_USER", "").strip(),
             mssql_pwd=os.getenv("MSSQL_PWD", "").strip(),
             mssql_driver=os.getenv("MSSQL_DRIVER", "ODBC Driver 17 for SQL Server").strip(),
+            mssql_encrypt=_as_bool("MSSQL_ENCRYPT", True),
+            mssql_trust_server_cert=_as_bool("MSSQL_TRUST_SERVER_CERTIFICATE", False),
             powerbi_model_query_url=os.getenv("POWERBI_MODEL_QUERY_URL", "").strip(),
             powerbi_model_query_token=os.getenv("POWERBI_MODEL_QUERY_TOKEN", "").strip(),
             ollama_api_key=os.getenv("OLLAMA_API_KEY", "").strip(),
@@ -180,6 +187,11 @@ class Settings:
             sql_query_timeout=_as_int("SQL_QUERY_TIMEOUT", 10),
             sql_max_queries=_as_int("SQL_MAX_QUERIES", 10),
             sql_max_concurrency=_as_int("SQL_MAX_CONCURRENCY", 5),
+            allowed_report_ids=frozenset(
+                r.strip()
+                for r in os.getenv("ALLOWED_REPORT_IDS", "").split(",")
+                if r.strip()
+            ),
         )
 
     def sql_connection_string(self) -> str:
@@ -190,17 +202,22 @@ class Settings:
             return ""
 
         driver = self.mssql_driver.replace("{", "").replace("}", "")
+        encrypt = "yes" if self.mssql_encrypt else "no"
+        trust = "yes" if self.mssql_trust_server_cert else "no"
         return (
             f"DRIVER={{{driver}}};"
             f"SERVER={self.mssql_server},{self.mssql_port};"
             f"DATABASE={self.mssql_db};"
             f"UID={self.mssql_user};"
             f"PWD={self.mssql_pwd};"
-            "TrustServerCertificate=yes;Encrypt=no;"
+            f"Encrypt={encrypt};TrustServerCertificate={trust};"
         )
 
     def report_url(self, report_id: str | None) -> str:
         report = (report_id or self.default_report_id).strip()
+        # Enforce allowlist when configured — reject unknown report IDs
+        if self.allowed_report_ids and report not in self.allowed_report_ids:
+            report = self.default_report_id
         if not self.report_base_url:
             return report
 
