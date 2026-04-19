@@ -6,6 +6,7 @@ on:
   push:
     branches:
       - main
+      - 'maqa/**'
 
 jobs:
   spec-check:
