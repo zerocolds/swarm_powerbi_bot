@@ -106,12 +106,20 @@ def extract_date_params(question: str) -> dict[str, date]:
         month = _match_month(m.group(1))
         year = int(m.group(2)) if m.group(2) else today.year
         if month:
-            first = date(year, month, 1)
-            if month == 12:
-                last = date(year + 1, 1, 1) - timedelta(days=1)
-            else:
-                last = date(year, month + 1, 1) - timedelta(days=1)
-            return {"DateFrom": first, "DateTo": last}
+            try:
+                first = date(year, month, 1)
+                if month == 12:
+                    last = date(year + 1, 1, 1) - timedelta(days=1)
+                else:
+                    last = date(year, month + 1, 1) - timedelta(days=1)
+                return {"DateFrom": first, "DateTo": last}
+            except ValueError:
+                logger.debug(
+                    "invalid date in %s branch",
+                    "za_month",
+                    exc_info=True,
+                    extra={"question_len": len(question)},
+                )
 
     # «с 1 по 15 марта»
     m = _RE_RANGE.search(text)
@@ -120,10 +128,18 @@ def extract_date_params(question: str) -> dict[str, date]:
         month = _match_month(m.group(3))
         year = int(m.group(4)) if m.group(4) else today.year
         if month:
-            return {
-                "DateFrom": date(year, month, day_from),
-                "DateTo": date(year, month, day_to),
-            }
+            try:
+                return {
+                    "DateFrom": date(year, month, day_from),
+                    "DateTo": date(year, month, day_to),
+                }
+            except ValueError:
+                logger.debug(
+                    "invalid date in %s branch",
+                    "range",
+                    exc_info=True,
+                    extra={"question_len": len(question)},
+                )
 
     # «март», «выручка март 2025» — bare month without «за»
     m = _RE_MONTH_BARE.search(text)
@@ -131,13 +147,21 @@ def extract_date_params(question: str) -> dict[str, date]:
         month = _match_month(m.group(1))
         year = int(m.group(2)) if m.group(2) else today.year
         if month:
-            first = date(year, month, 1)
-            if month == 12:
-                last = date(year + 1, 1, 1) - timedelta(days=1)
-            else:
-                last = date(year, month + 1, 1) - timedelta(days=1)
-            logger.debug("period_extracted", extra={"strategy": "bare_month"})
-            return {"DateFrom": first, "DateTo": last}
+            try:
+                first = date(year, month, 1)
+                if month == 12:
+                    last = date(year + 1, 1, 1) - timedelta(days=1)
+                else:
+                    last = date(year, month + 1, 1) - timedelta(days=1)
+                logger.debug("period_extracted", extra={"strategy": "bare_month"})
+                return {"DateFrom": first, "DateTo": last}
+            except ValueError:
+                logger.debug(
+                    "invalid date in %s branch",
+                    "bare_month",
+                    exc_info=True,
+                    extra={"question_len": len(question)},
+                )
 
     # «вчера»
     if "вчера" in text:

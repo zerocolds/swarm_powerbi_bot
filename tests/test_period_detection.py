@@ -141,6 +141,149 @@ def test_extract_bare_month():
     assert params["DateTo"] == date(today.year, 3, 31)
 
 
+def test_invalid_range_logs_debug(caplog):
+    with caplog.at_level(logging.DEBUG, logger="swarm_powerbi_bot.services.sql_client"):
+        extract_date_params("с 30 по 31 февраля 2025")
+    assert any("invalid date" in r.message for r in caplog.records)
+
+
+def test_invariant_i1_invalid_range_returns_default():
+    params = extract_date_params("с 30 по 31 февраля 2025")
+    assert hasattr(params["DateFrom"], "year")
+    assert hasattr(params["DateTo"], "year")
+    assert params["DateFrom"] <= params["DateTo"]
+
+
+def test_invariant_i1_invalid_day_in_range():
+    params = extract_date_params("с 1 по 32 марта 2026")
+    assert hasattr(params["DateFrom"], "year")
+    assert params["DateFrom"] <= params["DateTo"]
+
+
+def test_invariant_i1_year_zero():
+    params = extract_date_params("за январь 0000")
+    assert hasattr(params["DateFrom"], "year")
+    assert params["DateFrom"] <= params["DateTo"]
+
+
+def test_invalid_date_log_excludes_full_question(caplog):
+    question = "с 30 по 31 февраля 2025 секретный текст"
+    with caplog.at_level(logging.DEBUG, logger="swarm_powerbi_bot.services.sql_client"):
+        extract_date_params(question)
+    invalid_records = [r for r in caplog.records if "invalid date" in r.message]
+    assert invalid_records
+    for rec in invalid_records:
+        assert "секретный" not in rec.getMessage()
+        assert getattr(rec, "question", None) is None
+        assert getattr(rec, "question_len", None) == len(question)
+
+
+def test_invalid_date_log_strategy_range(caplog):
+    """Branch 'range' (с N по M <month>) emits DEBUG with strategy_name."""
+    with caplog.at_level(logging.DEBUG, logger="swarm_powerbi_bot.services.sql_client"):
+        extract_date_params("с 30 по 31 февраля 2025")
+    invalid = [r for r in caplog.records if "invalid date" in r.message]
+    assert invalid, "range branch must emit DEBUG on ValueError"
+    assert any("range" in r.getMessage() for r in invalid)
+
+
+def test_invalid_date_log_strategy_za_month(caplog):
+    """Branch 'za_month' (за <month> <year>) with year=0 emits DEBUG."""
+    with caplog.at_level(logging.DEBUG, logger="swarm_powerbi_bot.services.sql_client"):
+        extract_date_params("за январь 0000")
+    invalid = [r for r in caplog.records if "invalid date" in r.message]
+    assert invalid, "za_month branch must emit DEBUG on ValueError (year=0)"
+    assert any("za_month" in r.getMessage() for r in invalid)
+
+
+def test_invalid_date_log_strategy_bare_month(caplog):
+    """Branch 'bare_month' (<month> <year>) with year=0 emits DEBUG."""
+    with caplog.at_level(logging.DEBUG, logger="swarm_powerbi_bot.services.sql_client"):
+        extract_date_params("январь 0000")
+    invalid = [r for r in caplog.records if "invalid date" in r.message]
+    assert invalid, "bare_month branch must emit DEBUG on ValueError"
+    assert any("bare_month" in r.getMessage() for r in invalid)
+
+
+def test_invalid_date_log_has_exc_info(caplog):
+    """exc_info=True — запись содержит информацию об exception."""
+    with caplog.at_level(logging.DEBUG, logger="swarm_powerbi_bot.services.sql_client"):
+        extract_date_params("с 30 по 31 февраля 2025")
+    invalid = [r for r in caplog.records if "invalid date" in r.message]
+    assert invalid
+    assert any(r.exc_info is not None for r in invalid), (
+        "exc_info=True требуется для диагностики по телеметрии"
+    )
+
+
+def test_valid_input_no_invalid_date_log(caplog):
+    """Валидный input — НЕ должен триггерить 'invalid date' DEBUG."""
+    with caplog.at_level(logging.DEBUG, logger="swarm_powerbi_bot.services.sql_client"):
+        params = extract_date_params("за март 2025")
+    assert params["DateFrom"] == date(2025, 3, 1)
+    invalid = [r for r in caplog.records if "invalid date" in r.message]
+    assert not invalid, "valid input must not emit 'invalid date' DEBUG"
+
+
+def test_valid_range_no_invalid_date_log(caplog):
+    with caplog.at_level(logging.DEBUG, logger="swarm_powerbi_bot.services.sql_client"):
+        params = extract_date_params("с 5 по 20 апреля 2025")
+    assert params["DateFrom"] == date(2025, 4, 5)
+    invalid = [r for r in caplog.records if "invalid date" in r.message]
+    assert not invalid
+
+
+def test_valid_bare_month_no_invalid_date_log(caplog):
+    with caplog.at_level(logging.DEBUG, logger="swarm_powerbi_bot.services.sql_client"):
+        params = extract_date_params("выручка март 2025")
+    assert params["DateFrom"] == date(2025, 3, 1)
+    invalid = [r for r in caplog.records if "invalid date" in r.message]
+    assert not invalid
+
+
+def test_invariant_i1_day_32_march():
+    """Edge case из spec: 'с 1 по 32 марта 2026' → default, не бросает."""
+    params = extract_date_params("с 1 по 32 марта 2026")
+    assert hasattr(params["DateFrom"], "year")
+    assert hasattr(params["DateTo"], "year")
+    assert params["DateFrom"] <= params["DateTo"]
+
+
+def test_invariant_i1_feb_30_31():
+    """Edge case: 'с 30 по 31 февраля 2025' — не существующие дни февраля."""
+    params = extract_date_params("с 30 по 31 февраля 2025")
+    assert hasattr(params["DateFrom"], "year")
+    assert hasattr(params["DateTo"], "year")
+    assert params["DateFrom"] <= params["DateTo"]
+
+
+def test_invariant_i1_year_zero_za_month():
+    """'за январь 0000' → ValueError от date(0,1,1) → default, не бросает."""
+    params = extract_date_params("за январь 0000")
+    assert hasattr(params["DateFrom"], "year")
+    assert params["DateFrom"] <= params["DateTo"]
+
+
+def test_privacy_question_len_not_full_question_all_branches(caplog):
+    """R-008: В extra кладётся question_len, но не полный текст question."""
+    secret = "супер-секретное-поле-которое-не-должно-утечь"
+    questions = [
+        f"с 30 по 31 февраля 2025 {secret}",
+        f"за январь 0000 {secret}",
+        f"январь 0000 {secret}",
+    ]
+    for q in questions:
+        caplog.clear()
+        with caplog.at_level(logging.DEBUG, logger="swarm_powerbi_bot.services.sql_client"):
+            extract_date_params(q)
+        invalid = [r for r in caplog.records if "invalid date" in r.message]
+        assert invalid, f"no invalid-date log for: {q}"
+        for rec in invalid:
+            assert secret not in rec.getMessage()
+            assert getattr(rec, "question", None) is None
+            assert getattr(rec, "question_len", None) == len(q)
+
+
 def test_redos_guard():
     import time
 
