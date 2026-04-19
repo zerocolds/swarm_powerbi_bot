@@ -427,9 +427,13 @@ class SQLClient:
     ) -> tuple[list[dict[str, Any]], str, dict[str, Any]]:
         """Вызывает процедуру с параметрами из QueryParams."""
         procedure = qp.procedure or "spKDO_Aggregate"
-        # Защита от SQL injection: только alphanumeric + underscore + точка
+        # Defence-in-depth: regex + explicit whitelist
         if not re.fullmatch(r"[a-zA-Z0-9_.]+", procedure):
             logger.error("Invalid procedure name rejected: %r", procedure)
+            return [], "", {}
+        bare = procedure.replace("dbo.", "", 1) if procedure.startswith("dbo.") else procedure
+        if bare not in _ALLOWED_PROCEDURE_NAMES:
+            logger.error("Procedure %r not in whitelist, rejected", bare)
             return [], "", {}
         # Добавляем dbo. если не указано
         if not procedure.startswith("dbo."):
@@ -556,10 +560,13 @@ class SQLClient:
     ) -> tuple[list[dict[str, Any]], str, dict[str, Any]]:
         topic_id = topic or detect_topic(question)
         procedure = get_procedure(topic_id)
-        # Защита от SQL injection: только alphanumeric + underscore + точка
+        # Defence-in-depth: regex + explicit whitelist
         bare = procedure.replace("dbo.", "", 1) if procedure.startswith("dbo.") else procedure
         if not re.fullmatch(r"[a-zA-Z0-9_.]+", bare):
             logger.error("Invalid procedure name rejected: %r", procedure)
+            return [], topic_id, {}
+        if bare not in _ALLOWED_PROCEDURE_NAMES:
+            logger.error("Procedure %r not in whitelist, rejected", bare)
             return [], topic_id, {}
         date_params = extract_date_params(question)
 

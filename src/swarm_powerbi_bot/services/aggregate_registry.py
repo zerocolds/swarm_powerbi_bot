@@ -61,9 +61,8 @@ def _is_date(value: object) -> bool:
         return False
 
 
-def _load_schema(schema_path: Path | None = None) -> dict | None:
-    if schema_path is None:
-        schema_path = _DEFAULT_SCHEMA
+def _load_schema() -> dict | None:
+    schema_path = _DEFAULT_SCHEMA
     if schema_path.exists():
         try:
             return json.loads(schema_path.read_text(encoding="utf-8"))

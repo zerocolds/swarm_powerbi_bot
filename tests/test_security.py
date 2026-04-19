@@ -53,7 +53,7 @@ CATALOG_YAML = textwrap.dedent("""\
           - master
       - id: visits_by_salon
         name: Визиты по салонам
-        data_method: revenue_by_salon
+        data_method: visits_by_salon
         metric_type: count
         description: Агрегация визитов по объектам
         dimensions: [date]
