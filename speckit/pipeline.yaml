@@ -1,0 +1,170 @@
+# SpecKit-пайплайн. Классическая петля: конституция → спека → уточнение →
+# план → критика → реализация → ревью → тесты → ревью тестов → баги →
+# план багов → triage → фикс блокеров → коммит → спека багов → loop.
+#
+# Каждая стадия:
+#   worker:      агент, который производит артефакт
+#   reviewers:   список ролей, которые делают ревью
+#   artifacts:   имена файлов-выходов в runs/<run_id>/<stage>/
+#   gate:        какие условия проверяет gate-агент перед переходом
+#   next:        следующая стадия (или список условных переходов)
+
+version: 1
+
+stages:
+  - id: constitution-check
+    worker: null          # чистая валидация, агент не нужен
+    reviewers: []
+    artifacts: [constitution_hash.txt]
+    gate: { require: [constitution_unchanged] }
+    next: specify
+
+  - id: bootstrap
+    worker: claude        # только когда стартуем с --from bootstrap
+    tools: [Read, Write, Edit, Bash]
+    reviewers: [architecture, external-spec]
+    artifacts: [bootstrap_plan.md]
+    gate: { require: [no_blockers, review_approved] }
+    next: specify
+
+  - id: specify
+    worker: claude
+    reviewers: [external-spec]
+    artifacts: [spec.md]
+    gate: { require: [spec_present, no_open_questions] }
+    next: clarify
+
+  - id: clarify
+    worker: claude
+    reviewers: [external-spec, architecture]
+    artifacts: [clarifications.md, spec.md]
+    gate: { require: [no_open_questions] }
+    next: plan
+
+  - id: plan
+    worker: claude
+    reviewers: [architecture, security, external-spec]
+    artifacts: [plan.md, tasks.md]
+    gate: { require: [tasks_decomposed, no_blockers] }
+    next: critique
+
+  - id: critique
+    worker: codex          # ревьюер в роли worker'а на стадии критики
+    reviewers: [architecture, external-spec]
+    artifacts: [critique.md]
+    gate: { require: [no_blockers] }
+    next: implement
+
+  - id: implement
+    worker: claude
+    tools: [Read, Write, Edit, Bash]
+    reviewers: [architecture, security, code-quality]
+    artifacts: [diff.patch, impl_notes.md]
+    gate: { require: [no_blockers, review_approved] }
+    next: fix-review
+
+  - id: fix-review
+    worker: claude
+    tools: [Read, Write, Edit, Bash]
+    reviewers: [architecture, code-quality]
+    artifacts: [diff.patch]
+    gate: { require: [review_approved] }
+    next: write-tests
+
+  - id: write-tests
+    worker: claude          # ДРУГОЙ экземпляр Claude, не тот, что писал код
+    tools: [Read, Write, Edit, Bash]
+    reviewers: [test-engineer]
+    artifacts: [tests.patch]
+    gate: { require: [no_blockers] }
+    next: install-deps
+
+  - id: install-deps
+    worker: runner
+    reviewers: []
+    artifacts: [deps_report.json]
+    gate: { require: [deps_installed] }
+    next: run-tests
+
+  - id: run-tests
+    worker: runner          # исполнитель тестов, не LLM
+    reviewers: []
+    artifacts: [test_report.json]
+    gate:
+      require: [tests_green_or_known_failing]
+      ci_gate: required     # spec-kit-maqa-ci: блокируем, если GH Actions красные
+    next: review-tests
+
+  - id: review-tests
+    worker: null
+    reviewers: [test-engineer, external-tests]
+    artifacts: [test_review.md]
+    gate: { require: [review_approved] }
+    next: identify-bugs
+
+  - id: identify-bugs
+    worker: codex
+    reviewers: [external-bugs]
+    artifacts: [bugs.jsonl]
+    gate: { require: [bugs_enumerated] }
+    next: plan-bugs
+
+  - id: plan-bugs
+    worker: claude
+    reviewers: [architecture]
+    artifacts: [bug_plan.md]
+    next: triage-bugs
+
+  - id: triage-bugs
+    worker: claude
+    reviewers: [security, architecture]
+    artifacts: [triage.md]
+    next:
+      router:
+        reason: "куда направить бага-репорт после triage"
+        options: [fix-blockers, spec-bugs, clarify, commit]
+
+  - id: fix-blockers
+    worker: claude
+    tools: [Read, Write, Edit, Bash]
+    reviewers: [architecture, security, code-quality]
+    artifacts: [diff.patch]
+    gate: { require: [no_blockers, review_approved] }
+    next: install-deps     # возврат в цикл тестов (через переустановку deps)
+
+  - id: commit
+    worker: runner
+    reviewers: []
+    artifacts: [commit_sha.txt]
+    gate: { require: [tests_green, no_blockers] }
+    next: open-pr
+
+  - id: open-pr
+    worker: runner
+    reviewers: []
+    artifacts: [pr_number.txt, pr_url.txt]
+    gate: { require: [no_blockers] }
+    next: merge-pr
+
+  - id: merge-pr
+    worker: runner
+    reviewers: []
+    artifacts: [merge_status.txt]
+    gate: { require: [no_blockers] }
+    next: spec-bugs
+
+  - id: spec-bugs
+    worker: claude
+    reviewers: [external-spec]
+    artifacts: [bug_specs.md]
+    gate: { require: [no_open_questions] }
+    next: loop             # вернуться к specify для следующей задачи из очереди
+
+# Порог эскалации к человеку
+human_escalation:
+  confidence_threshold: 0.80
+  also_escalate_on:
+    - reviewer_blocker
+    - reviewer_conflict_unresolved_after: 2   # раунды ревью
+    - constitution_amendment_required
+    - frozen_spec_change_required
