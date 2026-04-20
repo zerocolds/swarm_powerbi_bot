@@ -1,0 +1,12 @@
+maqa:
+  github_repo: zerocolds/swarm_powerbi_bot
+  backlog_source: github_projects
+  backlog_project:
+    owner: zerocolds
+    number: 1
+    status_field: Status
+    columns:
+      backlog: Todo
+      in_progress: In Progress
+      blocked: Blocked
+      done: Done
